@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: puqme-edge
+  namespace: edge
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "<cloudflare-ip-ranges>"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      real_ip_header CF-Connecting-IP;
+      real_ip_recursive on;
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: puq.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: puqme-web-svc
+                port:
+                  number: 80
+    - host: api.puq.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: puqme-backend-svc
+                port:
+                  number: 80
+    - host: ws.puq.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: puqme-backend-svc
+                port:
+                  number: 80

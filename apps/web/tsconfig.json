@@ -1,0 +1,42 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "noEmit": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@puqme/config": [
+        "../../packages/config/src/index.ts"
+      ],
+      "@puqme/types": [
+        "../../packages/types/src/index.ts"
+      ],
+      "@puqme/ui": [
+        "../../packages/ui/src/index.tsx"
+      ],
+      "@puqme/validation": [
+        "../../packages/validation/src/index.ts"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    },
+    "isolatedModules": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

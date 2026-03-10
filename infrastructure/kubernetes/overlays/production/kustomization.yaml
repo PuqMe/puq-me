@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: puqme-production
+
+resources:
+  - ../../base
+
+images:
+  - name: ghcr.io/puqme/api
+    newTag: production
+  - name: ghcr.io/puqme/web
+    newTag: production
+  - name: ghcr.io/puqme/websocket
+    newTag: production
+  - name: ghcr.io/puqme/admin
+    newTag: production
+
+patches:
+  - target:
+      kind: Namespace
+      name: puqme
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: puqme-production

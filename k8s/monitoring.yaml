@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: puqme-monitoring-config
+  namespace: observability
+data:
+  README: |
+    Monitoring stack assumptions:
+    - Prometheus Operator installed in cluster
+    - Loki-compatible log backend available
+    - Grafana available in observability namespace
+    - Error tracking DSN injected into backend/web secrets
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vector-agent
+  namespace: observability
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: puqme-backend
+  namespace: observability
+spec:
+  selector:
+    matchLabels:
+      app: puqme-backend
+  namespaceSelector:
+    matchNames:
+      - core
+  endpoints:
+    - port: http
+      path: /health/ready
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: puqme-web
+  namespace: observability
+spec:
+  selector:
+    matchLabels:
+      app: puqme-web
+  namespaceSelector:
+    matchNames:
+      - frontend
+  endpoints:
+    - port: http
+      path: /
+      interval: 30s
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: vector-agent
+  namespace: observability
+spec:
+  selector:
+    matchLabels:
+      app: vector-agent
+  template:
+    metadata:
+      labels:
+        app: vector-agent
+    spec:
+      serviceAccountName: vector-agent
+      containers:
+        - name: vector
+          image: timberio/vector:0.39.0-debian
+          args:
+            - "--config-dir"
+            - "/etc/vector/"
+          volumeMounts:
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+            - name: config
+              mountPath: /etc/vector
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+      volumes:
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: config
+          configMap:
+            name: vector-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-config
+  namespace: observability
+data:
+  vector.yaml: |
+    sources:
+      kubernetes_logs:
+        type: file
+        include:
+          - /var/log/containers/*.log
+    transforms:
+      parse_json:
+        type: remap
+        inputs: ["kubernetes_logs"]
+        source: |
+          . = parse_json!(string!(.message)) ?? .
+    sinks:
+      loki:
+        type: loki
+        inputs: ["parse_json"]
+        endpoint: "${LOKI_ENDPOINT}"
+        encoding:
+          codec: json

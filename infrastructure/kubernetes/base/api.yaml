@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: puqme-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: puqme-api
+  template:
+    metadata:
+      labels:
+        app: puqme-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/puqme/api:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+          envFrom:
+            - secretRef:
+                name: puqme-api-secrets
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3000
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3000
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: puqme-api
+spec:
+  selector:
+    app: puqme-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

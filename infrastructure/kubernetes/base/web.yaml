@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: puqme-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: puqme-web
+  template:
+    metadata:
+      labels:
+        app: puqme-web
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/puqme/web:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+          envFrom:
+            - secretRef:
+                name: puqme-web-secrets
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: puqme-web
+spec:
+  selector:
+    app: puqme-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

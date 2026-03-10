@@ -1,0 +1,169 @@
+name: ci-cd
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - staging
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: ghcr.io/puqme
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@9.15.1 --activate
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/package.json', 'pnpm-workspace.yaml', 'turbo.json') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: quality
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - app: web
+            dockerfile: apps/web/Dockerfile
+            image: ghcr.io/puqme/web
+          - app: api
+            dockerfile: apps/api/Dockerfile
+            image: ghcr.io/puqme/api
+          - app: websocket
+            dockerfile: apps/websocket/Dockerfile
+            image: ghcr.io/puqme/websocket
+          - app: admin
+            dockerfile: apps/admin/Dockerfile
+            image: ghcr.io/puqme/admin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set deployment environment
+        id: deploy-env
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "name=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=staging" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ matrix.image }}:${{ github.sha }}
+            ${{ matrix.image }}:${{ steps.deploy-env.outputs.name }}
+            ${{ matrix.image }}:latest
+          build-args: |
+            APP_ENV=${{ steps.deploy-env.outputs.name }}
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.event_name == 'push' && github.ref_name == 'staging'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBE_CONFIG_STAGING_B64 }}" | base64 --decode > "$HOME/.kube/config"
+
+      - name: Deploy staging overlay
+        run: kubectl apply -k infrastructure/kubernetes/overlays/staging
+
+      - name: Verify rollout
+        run: |
+          kubectl rollout status deployment/puqme-api -n puqme-staging --timeout=180s
+          kubectl rollout status deployment/puqme-web -n puqme-staging --timeout=180s
+          kubectl rollout status deployment/puqme-websocket -n puqme-staging --timeout=180s
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBE_CONFIG_PRODUCTION_B64 }}" | base64 --decode > "$HOME/.kube/config"
+
+      - name: Deploy production overlay
+        run: kubectl apply -k infrastructure/kubernetes/overlays/production
+
+      - name: Verify rollout
+        run: |
+          kubectl rollout status deployment/puqme-api -n puqme-production --timeout=180s
+          kubectl rollout status deployment/puqme-web -n puqme-production --timeout=180s
+          kubectl rollout status deployment/puqme-websocket -n puqme-production --timeout=180s
+
+  deploy-summary:
+    runs-on: ubuntu-latest
+    needs:
+      - docker
+      - deploy-staging
+      - deploy-production
+    if: always() && github.event_name == 'push'
+    steps:
+      - name: Summarize deployment target
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "Production images published and production overlay deployed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Staging images published and staging overlay deployed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Cloudflare DNS/WAF/CDN and IDrive E2 bucket policy changes remain managed outside this workflow." >> "$GITHUB_STEP_SUMMARY"

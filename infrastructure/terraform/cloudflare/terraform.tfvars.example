@@ -1,0 +1,6 @@
+cloudflare_api_token = "replace-me"
+zone_name            = "puq.me"
+frontend_origin_ip   = "203.0.113.10"
+backend_origin_ip    = "203.0.113.11"
+websocket_origin_ip  = "203.0.113.12"
+cdn_origin_host      = "storage.idrivee2-7.com"

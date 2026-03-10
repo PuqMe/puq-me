@@ -1,0 +1,152 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: puqme-postgres
+    environment:
+      POSTGRES_DB: puqme
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d puqme"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: puqme-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: puqme-api
+    working_dir: /app
+    command: >
+      sh -c "pnpm install --no-frozen-lockfile &&
+      pnpm --filter @puqme/config build &&
+      pnpm --filter @puqme/types build &&
+      pnpm --filter @puqme/validation build &&
+      pnpm --filter @puqme/api dev"
+    env_file:
+      - apps/api/.env.example
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/puqme
+      REDIS_URL: redis://redis:6379
+      APP_ORIGIN: http://localhost:3001
+      S3_ENDPOINT: https://storage.idrivee2-7.com
+      S3_REGION: auto
+      S3_BUCKET: puq-images
+      STORAGE_AVATARS_BUCKET: puq-avatars
+      STORAGE_IMAGES_BUCKET: puq-images
+      STORAGE_CHAT_MEDIA_BUCKET: puq-chat-media
+      STORAGE_BACKUPS_BUCKET: puq-backups
+      S3_PUBLIC_BASE_URL: https://cdn.puq.me
+      CDN_BASE_URL: https://cdn.puq.me
+      S3_ACCESS_KEY: local-replace-me
+      S3_SECRET_KEY: local-replace-me
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+
+  websocket:
+    build:
+      context: .
+      dockerfile: apps/websocket/Dockerfile
+    container_name: puqme-websocket
+    working_dir: /app
+    command: >
+      sh -c "pnpm install --no-frozen-lockfile &&
+      pnpm --filter @puqme/config build &&
+      pnpm --filter @puqme/types build &&
+      pnpm --filter @puqme/validation build &&
+      pnpm --filter @puqme/websocket dev"
+    env_file:
+      - apps/websocket/.env.example
+    environment:
+      NODE_ENV: development
+      PORT: 3010
+      HOST: 0.0.0.0
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "3010:3010"
+    volumes:
+      - .:/app
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: puqme-web
+    working_dir: /app
+    command: >
+      sh -c "pnpm install --no-frozen-lockfile &&
+      pnpm --filter @puqme/web dev"
+    env_file:
+      - apps/web/.env.example
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3000
+      NEXT_PUBLIC_WS_BASE_URL: ws://localhost:3010
+    depends_on:
+      api:
+        condition: service_started
+      websocket:
+        condition: service_started
+    ports:
+      - "3001:3000"
+    volumes:
+      - .:/app
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    container_name: puqme-admin
+    working_dir: /app
+    command: >
+      sh -c "pnpm install --no-frozen-lockfile &&
+      pnpm --filter @puqme/admin dev"
+    env_file:
+      - apps/admin/.env.example
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3000
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "3002:3002"
+    volumes:
+      - .:/app
+
+volumes:
+  postgres-data:
+  redis-data:

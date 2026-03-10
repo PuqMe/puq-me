@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-idrive-backup
+  namespace: backups
+spec:
+  schedule: "0 3 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pgdump
+              image: postgres:16-alpine
+              envFrom:
+                - secretRef:
+                    name: puqme-backup-secrets
+              command:
+                - /bin/sh
+                - -lc
+                - |
+                  set -euo pipefail
+                  export BACKUP_FILE="/tmp/puqme-$(date +%F-%H%M%S).sql.gz"
+                  apk add --no-cache aws-cli
+                  pg_dump "${DATABASE_URL}" | gzip > "${BACKUP_FILE}"
+                  export AWS_ACCESS_KEY_ID="${IDRIVE_E2_ACCESS_KEY}"
+                  export AWS_SECRET_ACCESS_KEY="${IDRIVE_E2_SECRET_KEY}"
+                  aws s3 cp "${BACKUP_FILE}" "s3://${IDRIVE_E2_BUCKET}/postgres/$(basename "${BACKUP_FILE}")" \
+                    --endpoint-url "${IDRIVE_E2_ENDPOINT}"
