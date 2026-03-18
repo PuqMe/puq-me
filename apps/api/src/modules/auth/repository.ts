@@ -99,6 +99,19 @@ export class AuthRepository {
     }
   }
 
+  async linkGoogleAccount(userId: string, googleSub: string) {
+    await this.app.db.query(
+      `update users
+       set google_sub = $2,
+           status = 'active',
+           email_verified_at = coalesce(email_verified_at, now()),
+           updated_at = now()
+       where id = $1
+         and deleted_at is null`,
+      [userId, googleSub]
+    );
+  }
+
   async findUserByEmail(email: string): Promise<AuthUserRecord | null> {
     const result = await this.app.db.query<{
       id: string;

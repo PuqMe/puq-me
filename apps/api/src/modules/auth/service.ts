@@ -229,8 +229,7 @@ export class AuthService {
       // Check if user exists by email and link Google account
       const existingUser = await this.repository.findUserByEmail(payload.email);
       if (existingUser) {
-        // Link Google sub to existing user
-        // Note: Real implementation should have a repository method for this
+        await this.repository.linkGoogleAccount(existingUser.id, payload.sub);
         user = existingUser;
       } else {
         user = await this.repository.createGoogleUser(payload.email, payload.sub);

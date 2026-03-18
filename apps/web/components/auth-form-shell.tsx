@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Link from "next/link";
 import { BRAND_NAME } from "@puqme/config";
 import { Button, Card } from "@puqme/ui";
@@ -6,6 +7,7 @@ import { GoogleSignInButton } from "./auth/google-sign-in-button";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { env } from "@/lib/env";
+import { resolvePostAuthPath } from "@/lib/post-auth";
 
 type AuthFormShellProps = {
   eyebrow: string;
@@ -36,13 +38,15 @@ export function AuthFormShell({
 }: AuthFormShellProps) {
   const { signInWithGoogle } = useAuth();
   const router = useRouter();
+  const [googleErrorMessage, setGoogleErrorMessage] = useState<string | null>(null);
 
   const handleGoogleSuccess = async (credential: string) => {
     try {
+      setGoogleErrorMessage(null);
       await signInWithGoogle(credential);
-      router.push("/discover");
-    } catch {
-      return;
+      router.push(await resolvePostAuthPath());
+    } catch (error) {
+      setGoogleErrorMessage(error instanceof Error ? error.message : "Google Login konnte nicht abgeschlossen werden.");
     }
   };
 
@@ -71,7 +75,10 @@ export function AuthFormShell({
       </form>
 
       {env.googleClientId ? (
-        <GoogleSignInButton onSuccess={handleGoogleSuccess} text="continue_with" />
+        <>
+          <GoogleSignInButton onSuccess={handleGoogleSuccess} text="continue_with" />
+          {googleErrorMessage ? <p className="mt-3 text-sm text-[#ffb4c7]">{googleErrorMessage}</p> : null}
+        </>
       ) : (
         <p className="text-sm text-white/55">Google Login wird sichtbar, sobald eine `NEXT_PUBLIC_GOOGLE_CLIENT_ID` gesetzt ist.</p>
       )}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AuthFormShell } from "@/components/auth-form-shell";
 import { FormField } from "@/components/form-field";
 import { useAuth } from "@/lib/auth";
+import { resolvePostAuthPath } from "@/lib/post-auth";
 
 export function AuthCard() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export function AuthCard() {
 
     try {
       await signIn(email.trim(), password);
-      router.push("/discover");
+      router.push(await resolvePostAuthPath());
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Login failed.");
     } finally {

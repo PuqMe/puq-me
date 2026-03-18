@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AuthFormShell } from "@/components/auth-form-shell";
 import { FormField } from "@/components/form-field";
 import { useAuth } from "@/lib/auth";
+import { resolvePostAuthPath } from "@/lib/post-auth";
 
 export function RegisterCard() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export function RegisterCard() {
 
     try {
       await register(email.trim(), password);
-      router.push("/onboarding");
+      router.push(await resolvePostAuthPath());
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Registration failed.");
     } finally {
