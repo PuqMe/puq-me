@@ -5,14 +5,19 @@ import { LogoMark } from "@puqme/ui";
 import { GoogleSignInButton } from "./auth/google-sign-in-button";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { env } from "@/lib/env";
 
 type AuthFormShellProps = {
   eyebrow: string;
   title: string;
   description: string;
   submitLabel: string;
+  pendingLabel?: string;
   altLabel: string;
   altHref: string;
+  errorMessage?: string | null;
+  isSubmitting?: boolean;
+  onSubmit?: () => Promise<void> | void;
   children: React.ReactNode;
 };
 
@@ -21,8 +26,12 @@ export function AuthFormShell({
   title,
   description,
   submitLabel,
+  pendingLabel = "Bitte warten...",
   altLabel,
   altHref,
+  errorMessage,
+  isSubmitting = false,
+  onSubmit,
   children
 }: AuthFormShellProps) {
   const { signInWithGoogle } = useAuth();
@@ -31,9 +40,9 @@ export function AuthFormShell({
   const handleGoogleSuccess = async (credential: string) => {
     try {
       await signInWithGoogle(credential);
-      router.push("/");
-    } catch (err) {
-      console.error(err);
+      router.push("/discover");
+    } catch {
+      return;
     }
   };
 
@@ -47,10 +56,17 @@ export function AuthFormShell({
       <h1 className="mt-4 text-[2rem] font-semibold leading-none text-white">{title}</h1>
       <p className="mt-3 max-w-sm text-sm leading-6 text-white/72">{description}</p>
 
-      <form className="mt-6 grid gap-3">
+      <form
+        className="mt-6 grid gap-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void onSubmit?.();
+        }}
+      >
         {children}
-        <Button className="mt-1 rounded-[1.2rem] bg-[#17201B] py-3.5 text-sm" type="button">
-          {submitLabel}
+        {errorMessage ? <p className="text-sm text-[#ffb4c7]">{errorMessage}</p> : null}
+        <Button className="mt-1 rounded-[1.2rem] bg-[#17201B] py-3.5 text-sm disabled:opacity-60" disabled={isSubmitting} type="submit">
+          {isSubmitting ? pendingLabel : submitLabel}
         </Button>
       </form>
 
@@ -60,7 +76,11 @@ export function AuthFormShell({
         <div className="h-px flex-1 bg-white/10" />
       </div>
 
-      <GoogleSignInButton onSuccess={handleGoogleSuccess} text="continue_with" />
+      {env.googleClientId ? (
+        <GoogleSignInButton onSuccess={handleGoogleSuccess} text="continue_with" />
+      ) : (
+        <p className="text-sm text-white/55">Google Login wird sichtbar, sobald eine `NEXT_PUBLIC_GOOGLE_CLIENT_ID` gesetzt ist.</p>
+      )}
 
       <Link className="mt-4 inline-flex text-sm font-medium text-white/72" href={altHref}>
         {altLabel}
