@@ -41,6 +41,22 @@ export type UpdateProfileInput = {
   city?: string;
 };
 
+export type UpdatePreferencesInput = {
+  interestedIn: Array<"men" | "women" | "non_binary" | "everyone">;
+  minAge: number;
+  maxAge: number;
+  maxDistanceKm: number;
+  showMeGlobally?: boolean;
+  onlyVerifiedProfiles?: boolean;
+};
+
+export type UpdateLocationInput = {
+  latitude: number;
+  longitude: number;
+  city?: string;
+  countryCode?: string;
+};
+
 async function readApiError(response: Response) {
   try {
     const payload = (await response.json()) as {
@@ -90,6 +106,62 @@ export async function updateMyProfile(input: UpdateProfileInput) {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input)
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return (await response.json()) as ProfileResponse;
+}
+
+export async function updateMyInterests(interests: string[]) {
+  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/interests`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ interests })
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return (await response.json()) as ProfileResponse;
+}
+
+export async function updateMyPreferences(input: UpdatePreferencesInput) {
+  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/preferences`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input)
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return (await response.json()) as ProfileResponse;
+}
+
+export async function updateMyLocation(input: UpdateLocationInput) {
+  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/location`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input)
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+
+  return (await response.json()) as ProfileResponse;
+}
+
+export async function updateMyVisibility(isVisible: boolean) {
+  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/visibility`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ isVisible })
   });
 
   if (!response.ok) {

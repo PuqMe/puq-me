@@ -476,6 +476,108 @@ const devMockPlugin: FastifyPluginAsync = async (app) => {
     return nextProfile;
   });
 
+  app.put("/v1/profiles/me/interests", async (request, reply) => {
+    const user = getUserFromAuthHeader(request.headers.authorization);
+    if (!user) {
+      return reply.code(401).send({ error: "unauthorized", message: "Please sign in first." });
+    }
+
+    const payload = request.body as { interests?: string[] };
+    const currentProfile = ensureMockProfile(user);
+    const nextProfile = {
+      ...currentProfile,
+      interests: payload.interests ?? []
+    };
+
+    profileStore.set(user.id, nextProfile);
+    return nextProfile;
+  });
+
+  app.put("/v1/profiles/me/preferences", async (request, reply) => {
+    const user = getUserFromAuthHeader(request.headers.authorization);
+    if (!user) {
+      return reply.code(401).send({ error: "unauthorized", message: "Please sign in first." });
+    }
+
+    const payload = request.body as Partial<{
+      interestedIn: string[];
+      minAge: number;
+      maxAge: number;
+      maxDistanceKm: number;
+      showMeGlobally: boolean;
+      onlyVerifiedProfiles: boolean;
+    }>;
+    const currentProfile = ensureMockProfile(user);
+    const nextProfile = {
+      ...currentProfile,
+      preferences: {
+        ...currentProfile.preferences,
+        ...payload
+      }
+    };
+
+    profileStore.set(user.id, nextProfile);
+    return nextProfile;
+  });
+
+  app.put("/v1/profiles/me/location", async (request, reply) => {
+    const user = getUserFromAuthHeader(request.headers.authorization);
+    if (!user) {
+      return reply.code(401).send({ error: "unauthorized", message: "Please sign in first." });
+    }
+
+    const payload = request.body as {
+      latitude?: number;
+      longitude?: number;
+      city?: string;
+      countryCode?: string;
+    };
+    const currentProfile = ensureMockProfile(user);
+    const nextProfile = {
+      ...currentProfile,
+      location:
+        typeof payload.latitude === "number" && typeof payload.longitude === "number"
+          ? {
+              latitude: payload.latitude,
+              longitude: payload.longitude,
+              city: payload.city ?? null,
+              countryCode: payload.countryCode ?? null
+            }
+          : currentProfile.location
+    };
+
+    if (nextProfile.location) {
+      nextProfile.profile = {
+        ...nextProfile.profile,
+        city: nextProfile.location.city,
+        countryCode: nextProfile.location.countryCode
+      };
+    }
+
+    profileStore.set(user.id, nextProfile);
+    return nextProfile;
+  });
+
+  app.patch("/v1/profiles/me/visibility", async (request, reply) => {
+    const user = getUserFromAuthHeader(request.headers.authorization);
+    if (!user) {
+      return reply.code(401).send({ error: "unauthorized", message: "Please sign in first." });
+    }
+
+    const payload = request.body as { isVisible?: boolean };
+    const currentProfile = ensureMockProfile(user);
+    const nextProfile = {
+      ...currentProfile,
+      profile: {
+        ...currentProfile.profile,
+        isVisible: payload.isVisible ?? currentProfile.profile.isVisible
+      }
+    };
+
+    profileStore.set(user.id, nextProfile);
+    return nextProfile;
+  });
+
   app.get("/v1/swipe/discover", async (request, reply) => {
     const user = getUserFromAuthHeader(request.headers.authorization);
     if (!user) {
