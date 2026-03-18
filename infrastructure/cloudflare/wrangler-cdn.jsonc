@@ -1,0 +1,36 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "puqme-cdn",
+  "main": "cdn-worker.js",
+  "compatibility_date": "2026-03-17",
+  "compatibility_flags": [],
+
+  "observability": {
+    "enabled": true
+  },
+
+  "vars": {
+    "E2_ORIGIN": "https://puq-images.storage.idrivee2-7.com"
+  },
+
+  "env": {
+    "production": {
+      "name": "puqme-cdn",
+      "routes": [
+        { "pattern": "cdn.puq.me", "custom_domain": true }
+      ],
+      "vars": {
+        "E2_ORIGIN": "https://puq-images.storage.idrivee2-7.com"
+      }
+    },
+    "staging": {
+      "name": "puqme-cdn-staging",
+      "routes": [
+        { "pattern": "cdn-staging.puq.me", "custom_domain": true }
+      ],
+      "vars": {
+        "E2_ORIGIN": "https://puq-images-staging.storage.idrivee2-7.com"
+      }
+    }
+  }
+}

@@ -11,3 +11,9 @@ apps/admin/.next
 apps/web/.env.local
 apps/admin/.env.local
 .turbo
+.wrangler
+.open-next
+apps/web/.open-next
+.pnpm-store
+*.tsbuildinfo
+_tmp_*

@@ -7,9 +7,9 @@ type FormFieldProps = {
 export function FormField({ label, placeholder, type = "text" }: FormFieldProps) {
   return (
     <label className="grid gap-2">
-      <span className="text-xs font-medium uppercase tracking-[0.18em] text-black/45">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/58">{label}</span>
       <input
-        className="rounded-2xl border border-black/10 bg-white px-4 py-4 outline-none transition focus:border-black/20"
+        className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-3.5 text-[15px] text-white outline-none transition placeholder:text-white/35 focus:border-[#A855F7]/45 focus:bg-white/14"
         placeholder={placeholder}
         type={type}
       />

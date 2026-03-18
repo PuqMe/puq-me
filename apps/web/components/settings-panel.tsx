@@ -17,9 +17,9 @@ export function SettingsPanel() {
         <PushPermissionCard />
         {rows.map((row) => (
           <article key={row} className="glass-card flex items-center justify-between rounded-[2rem] px-4 py-4">
-            <div className="text-sm font-medium text-ink">{row}</div>
-            <div className="h-7 w-12 rounded-full bg-black/10 p-1">
-              <div className="h-5 w-5 rounded-full bg-white shadow-sm" />
+            <div className="text-sm font-medium text-white">{row}</div>
+            <div className="h-7 w-12 rounded-full bg-white/10 p-1">
+              <div className="h-5 w-5 rounded-full bg-[#A855F7] shadow-sm" />
             </div>
           </article>
         ))}

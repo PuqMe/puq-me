@@ -9,18 +9,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        sand: "#f7f3ea",
-        ink: "#151515",
-        coral: "#ff6b57",
-        amber: "#f4b740",
-        mint: "#9fd7c8",
-        stone: "#ece6d9"
+        sand: "#f6f7f3",
+        ink: "#17201B",
+        coral: "#E6A77A",
+        amber: "#E9C98B",
+        mint: "#9FC8B1",
+        stone: "#edf1ea"
       },
       fontFamily: {
         sans: ["ui-sans-serif", "system-ui", "sans-serif"]
       },
       boxShadow: {
-        card: "0 20px 45px rgba(21, 21, 21, 0.12)"
+        card: "0 18px 40px rgba(23, 32, 27, 0.08)"
       },
       animation: {
         "slide-up": "slideUp 500ms ease-out",

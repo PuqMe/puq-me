@@ -4,6 +4,7 @@ import { analyticsModule } from "./analytics/index.js";
 import { authModule } from "./auth/index.js";
 import { billingModule } from "./billing/index.js";
 import { chatModule } from "./chat/index.js";
+import { circleModule } from "./circle/index.js";
 import { experimentsModule } from "./experiments/index.js";
 import { healthModule } from "./health/index.js";
 import { matchModule } from "./match/index.js";
@@ -16,6 +17,7 @@ import { usersModule } from "./users/index.js";
 
 export const modules: AppModule[] = [
   healthModule,
+  circleModule,
   analyticsModule,
   authModule,
   billingModule,

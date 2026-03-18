@@ -1,11 +1,10 @@
 import { ImageResponse } from "next/og";
+import { LogoMark } from "@puqme/ui";
 
-export const size = {
+const size = {
   width: 192,
   height: 192
 };
-
-export const contentType = "image/png";
 
 export function GET() {
   return new ImageResponse(
@@ -17,13 +16,21 @@ export function GET() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #ff6b57, #f4b740)",
-          color: "#151515",
-          fontSize: 72,
-          fontWeight: 700
+          borderRadius: "42px",
+          background: "#472845"
         }}
       >
-        P
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%"
+          }}
+        >
+          <LogoMark size={124} />
+        </div>
       </div>
     ),
     size

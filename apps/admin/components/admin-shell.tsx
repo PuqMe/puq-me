@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@puqme/ui";
+import { BRAND_NAME } from "@puqme/config";
+import { Button, LogoMark } from "@puqme/ui";
 import { useAdminAuth } from "@/lib/admin-auth";
 
 const navigation = [
@@ -23,11 +24,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <div className="mx-auto grid min-h-[calc(100vh-1.5rem)] max-w-[1440px] gap-3 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(11,23,35,0.96),rgba(8,17,27,0.92))] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
           <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                PuQ.me
+            <div className="flex items-start gap-3">
+              <LogoMark className="mt-0.5 h-9 w-9 shrink-0" size={36} />
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                {BRAND_NAME}
+                </div>
+                <div className="mt-2 text-2xl font-semibold">Admin</div>
               </div>
-              <div className="mt-2 text-2xl font-semibold">Admin</div>
             </div>
             <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-slate-300">
               {admin?.role ?? "admin"}

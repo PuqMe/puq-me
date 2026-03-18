@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import configPlugin from "./plugins/config.js";
+import devMockPlugin from "./plugins/dev-mock.js";
 import observabilityPlugin from "./plugins/observability.js";
 import postgresPlugin from "./plugins/postgres.js";
 import redisPlugin from "./plugins/redis.js";
@@ -8,6 +9,7 @@ import storagePlugin from "./plugins/storage.js";
 import rateLimitPlugin from "./plugins/rate-limit.js";
 import { handleRouteError } from "./common/http.js";
 import { registerModules } from "./common/module.js";
+import { circleModule } from "./modules/circle/index.js";
 import { modules } from "./modules/index.js";
 
 export async function buildApp() {
@@ -26,13 +28,19 @@ export async function buildApp() {
 
   await app.register(configPlugin);
   await app.register(observabilityPlugin);
-  await app.register(postgresPlugin);
-  await app.register(redisPlugin);
-  await app.register(jwtPlugin);
-  await app.register(storagePlugin);
-  await app.register(rateLimitPlugin);
 
-  await registerModules(app, modules);
+  if (app.config.DEV_MOCK_MODE) {
+    await app.register(devMockPlugin);
+    await registerModules(app, [circleModule]);
+  } else {
+    await app.register(postgresPlugin);
+    await app.register(redisPlugin);
+    await app.register(jwtPlugin);
+    await app.register(storagePlugin);
+    await app.register(rateLimitPlugin);
+
+    await registerModules(app, modules);
+  }
 
   app.setErrorHandler((error, request, reply) => {
     handleRouteError(error, request, reply);

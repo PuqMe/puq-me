@@ -9,9 +9,9 @@ export function PageHeader({
 }) {
   return (
     <div>
-      <div className="text-xs uppercase tracking-[0.22em] text-black/45">{eyebrow}</div>
-      <h1 className="mt-3 text-3xl font-semibold text-ink">{title}</h1>
-      {description ? <p className="mt-2 text-sm leading-6 text-black/60">{description}</p> : null}
+      <div className="soft-pill inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">{eyebrow}</div>
+      <h1 className="mt-4 text-3xl font-semibold text-white">{title}</h1>
+      {description ? <p className="mt-3 text-sm leading-6 text-white/72">{description}</p> : null}
     </div>
   );
 }

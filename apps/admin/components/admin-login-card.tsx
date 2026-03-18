@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Card } from "@puqme/ui";
+import { BRAND_NAME } from "@puqme/config";
+import { Button, Card, LogoMark } from "@puqme/ui";
 import { useAdminAuth } from "@/lib/admin-auth";
 
 export function AdminLoginCard() {
@@ -26,8 +27,12 @@ export function AdminLoginCard() {
 
   return (
     <Card className="rounded-[2rem] border-white/10 bg-[linear-gradient(180deg,rgba(11,22,34,0.96),rgba(10,19,29,0.92))] p-7 text-white shadow-[0_40px_120px_rgba(0,0,0,0.38)]">
+      <div className="flex items-center gap-3">
+        <LogoMark className="h-8 w-8" size={32} />
+        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">{BRAND_NAME}</div>
+      </div>
       <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Admin access</div>
-      <h2 className="mt-4 text-3xl font-semibold tracking-tight">Sign in to PuQ.me Control</h2>
+      <h2 className="mt-4 text-3xl font-semibold tracking-tight">Sign in to {BRAND_NAME} Control</h2>
       <p className="mt-3 text-sm leading-6 text-slate-400">
         Protected access for moderation, incident response and marketplace operations.
       </p>

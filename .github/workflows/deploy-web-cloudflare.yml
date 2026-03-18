@@ -1,0 +1,73 @@
+name: deploy-web-cloudflare
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - "turbo.json"
+      - ".github/workflows/deploy-web-cloudflare.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@9.15.1 --activate
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        working-directory: .
+
+      - name: Build Next.js for Cloudflare
+        run: pnpm dlx @opennextjs/cloudflare@latest build
+        working-directory: apps/web
+
+      - name: Select Cloudflare environment
+        id: cf-env
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "name=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=staging" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: deploy --env ${{ steps.cf-env.outputs.name }}
+          secrets: |
+            NEXT_PUBLIC_API_BASE_URL
+            NEXT_PUBLIC_WS_BASE_URL
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_WS_BASE_URL: ${{ secrets.NEXT_PUBLIC_WS_BASE_URL }}
+
+      - name: Summarize deploy
+        run: |
+          echo "Cloudflare web deployment finished for ${GITHUB_REF_NAME}." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Frontend is deployed with Wrangler from apps/web/wrangler.jsonc." >> "$GITHUB_STEP_SUMMARY"
+          echo "API and WebSocket remain on the main compute host and stay behind Cloudflare DNS." >> "$GITHUB_STEP_SUMMARY"
+        working-directory: .

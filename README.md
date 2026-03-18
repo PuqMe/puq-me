@@ -41,8 +41,22 @@ puq-me/
 - Frontend: Next.js, TypeScript, Tailwind, PWA
 - Backend: Fastify, WebSocket, PostgreSQL, Redis
 - Storage: IDrive E2 (S3-compatible)
-- Edge: Cloudflare DNS, CDN, WAF, Rate Limiting
-- Delivery: GitHub Actions, Docker, Kubernetes
+- Edge: Cloudflare DNS, CDN, WAF, Rate Limiting, Wrangler web deploy
+- Delivery: GitHub Actions, Docker, optional Kubernetes
+
+## Recommended Production Baseline
+
+- `puq.me` frontend deployed through Cloudflare + Wrangler
+- `api.puq.me` and `ws.puq.me` served from the main compute host
+- media and backups stored in IDrive e2
+- GitHub Free handles source control and deployment workflows
+
+Start here:
+
+- Hosting guide: [`/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine Ablage/03. Akdeniz.Group/- con.ax/- puq.me/3.3.26 PuQ.me/PuQ.me/docs/hosting-stack.md`](/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine%20Ablage/03.%20Akdeniz.Group/-%20con.ax/-%20puq.me/3.3.26%20PuQ.me/PuQ.me/docs/hosting-stack.md)
+- Cloudflare deploy workflow: [`/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine Ablage/03. Akdeniz.Group/- con.ax/- puq.me/3.3.26 PuQ.me/PuQ.me/.github/workflows/deploy-web-cloudflare.yml`](/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine%20Ablage/03.%20Akdeniz.Group/-%20con.ax/-%20puq.me/3.3.26%20PuQ.me/PuQ.me/.github/workflows/deploy-web-cloudflare.yml)
+- Backend host workflow: [`/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine Ablage/03. Akdeniz.Group/- con.ax/- puq.me/3.3.26 PuQ.me/PuQ.me/.github/workflows/deploy-backend-host.yml`](/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine%20Ablage/03.%20Akdeniz.Group/-%20con.ax/-%20puq.me/3.3.26%20PuQ.me/PuQ.me/.github/workflows/deploy-backend-host.yml)
+- Wrangler config: [`/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine Ablage/03. Akdeniz.Group/- con.ax/- puq.me/3.3.26 PuQ.me/PuQ.me/apps/web/wrangler.jsonc`](/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine%20Ablage/03.%20Akdeniz.Group/-%20con.ax/-%20puq.me/3.3.26%20PuQ.me/PuQ.me/apps/web/wrangler.jsonc)
 
 ## Key Paths
 
@@ -55,6 +69,7 @@ puq-me/
 - Terraform / Cloudflare: [`/Users/abest/Projekte/PuQ.me/infrastructure/terraform/cloudflare`](/Users/abest/Projekte/PuQ.me/infrastructure/terraform/cloudflare)
 - Cloudflare guide: [`/Users/abest/Projekte/PuQ.me/docs/cloudflare-setup.md`](/Users/abest/Projekte/PuQ.me/docs/cloudflare-setup.md)
 - IDrive guide: [`/Users/abest/Projekte/PuQ.me/docs/idrive-e2-storage.md`](/Users/abest/Projekte/PuQ.me/docs/idrive-e2-storage.md)
+- Hosting stack: [`/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine Ablage/03. Akdeniz.Group/- con.ax/- puq.me/3.3.26 PuQ.me/PuQ.me/docs/hosting-stack.md`](/Users/abest/Library/CloudStorage/GoogleDrive-a17023373371@gmail.com/Meine%20Ablage/03.%20Akdeniz.Group/-%20con.ax/-%20puq.me/3.3.26%20PuQ.me/PuQ.me/docs/hosting-stack.md)
 - Backup strategy: [`/Users/abest/Projekte/PuQ.me/docs/backup-strategy.md`](/Users/abest/Projekte/PuQ.me/docs/backup-strategy.md)
 - Storage API: [`/Users/abest/Projekte/PuQ.me/docs/storage-api.md`](/Users/abest/Projekte/PuQ.me/docs/storage-api.md)
 
