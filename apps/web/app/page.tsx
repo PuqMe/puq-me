@@ -3,21 +3,21 @@ import { Card } from "@puqme/ui";
 
 export default function HomePage() {
   return (
-    <main className="safe-px safe-pb relative z-10 mx-auto flex min-h-screen w-full max-w-md flex-col justify-between py-6">
-      <section className="animate-slide-up">
+    <main className="page-shell safe-px safe-pb relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,28rem)] lg:items-end lg:gap-8">
+      <section className="animate-slide-up flex flex-col justify-between">
         <div className="glass-card mb-5 inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A855F7]">
           Browser installieren
         </div>
-        <h1 className="max-w-sm text-[3.1rem] font-semibold leading-[0.92] text-white">
+        <h1 className="max-w-2xl text-[2.9rem] font-semibold leading-[0.92] text-white md:text-[4rem] lg:text-[5rem]">
           Purple Glass, City Lights, Dating mit einem Tap.
         </h1>
-        <p className="mt-4 max-w-sm text-base leading-7 text-white/76">
+        <p className="mt-4 max-w-xl text-base leading-7 text-white/76 md:text-lg">
           Finde Menschen in deiner Naehe mit glasklarer UI, schnellem Chat, touch-optimiertem Radar und Homescreen-PWA.
         </p>
       </section>
 
-      <Card className="mesh-panel animate-fade-in rounded-[2rem] p-5 text-white">
-        <div className="mb-4 grid grid-cols-3 gap-2 text-center text-[11px] font-medium">
+      <Card className="mesh-panel animate-fade-in rounded-[2rem] p-5 text-white md:p-6">
+        <div className="mb-4 grid grid-cols-3 gap-2 text-center text-[11px] font-medium md:gap-3">
           <div className="surface-card rounded-[1rem] px-3 py-3 text-white/84">Geo radar</div>
           <div className="surface-card rounded-[1rem] px-3 py-3 text-white/84">Fast chat</div>
           <div className="surface-card rounded-[1rem] px-3 py-3 text-white/84">PWA install</div>
