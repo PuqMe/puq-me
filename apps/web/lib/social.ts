@@ -2,6 +2,17 @@
 
 import { env } from "@/lib/env";
 import { fetchWithSession } from "@/lib/auth";
+import {
+  createFallbackSwipe,
+  fetchFallbackConversationMessages,
+  fetchFallbackConversations,
+  fetchFallbackDiscoverFeed,
+  fetchFallbackMatches,
+  markFallbackConversationRead,
+  sendFallbackConversationMessage,
+  shouldUseLocalAppFallback,
+  shouldUseLocalAppFallbackForError
+} from "@/lib/local-app-fallback";
 
 export type DiscoverFeedItem = {
   userId: string;
@@ -149,72 +160,182 @@ async function expectOk(response: Response) {
 }
 
 export async function fetchDiscoverFeed(limit = 12, refresh = false) {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe/discover?limit=${limit}&refresh=${refresh}`);
-  await expectOk(response);
-  return (await response.json()) as DiscoverResponse;
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe/discover?limit=${limit}&refresh=${refresh}`);
+    if (shouldUseLocalAppFallback(response)) {
+      return fetchFallbackDiscoverFeed(limit) as DiscoverResponse;
+    }
+
+    await expectOk(response);
+    return (await response.json()) as DiscoverResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return fetchFallbackDiscoverFeed(limit) as DiscoverResponse;
+    }
+
+    throw error;
+  }
 }
 
 export async function createSwipe(targetUserId: string, direction: "left" | "right" | "super") {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ targetUserId, direction })
-  });
-  await expectOk(response);
-  return (await response.json()) as SwipeResponse;
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetUserId, direction })
+    });
+    if (shouldUseLocalAppFallback(response)) {
+      return createFallbackSwipe(targetUserId, direction) as SwipeResponse;
+    }
+
+    await expectOk(response);
+    return (await response.json()) as SwipeResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return createFallbackSwipe(targetUserId, direction) as SwipeResponse;
+    }
+
+    throw error;
+  }
 }
 
 export async function fetchMatches() {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/matches`);
-  await expectOk(response);
-  return (await response.json()) as MatchItem[];
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/matches`);
+    if (shouldUseLocalAppFallback(response)) {
+      return fetchFallbackMatches() as MatchItem[];
+    }
+
+    await expectOk(response);
+    return (await response.json()) as MatchItem[];
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return fetchFallbackMatches() as MatchItem[];
+    }
+
+    throw error;
+  }
 }
 
 export async function fetchConversations() {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations`);
-  await expectOk(response);
-  return (await response.json()) as {
-    items: ConversationSummary[];
-    meta: {
-      totalUnreadCount: number;
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations`);
+    if (shouldUseLocalAppFallback(response)) {
+      return fetchFallbackConversations() as {
+        items: ConversationSummary[];
+        meta: {
+          totalUnreadCount: number;
+        };
+      };
+    }
+
+    await expectOk(response);
+    return (await response.json()) as {
+      items: ConversationSummary[];
+      meta: {
+        totalUnreadCount: number;
+      };
     };
-  };
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return fetchFallbackConversations() as {
+        items: ConversationSummary[];
+        meta: {
+          totalUnreadCount: number;
+        };
+      };
+    }
+
+    throw error;
+  }
 }
 
 export async function fetchConversationMessages(conversationId: string) {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations/${conversationId}/messages`);
-  await expectOk(response);
-  return (await response.json()) as {
-    items: ConversationMessage[];
-    meta: {
-      nextCursor: string | null;
-      hasMore: boolean;
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations/${conversationId}/messages`);
+    if (shouldUseLocalAppFallback(response)) {
+      return fetchFallbackConversationMessages(conversationId) as {
+        items: ConversationMessage[];
+        meta: {
+          nextCursor: string | null;
+          hasMore: boolean;
+        };
+      };
+    }
+
+    await expectOk(response);
+    return (await response.json()) as {
+      items: ConversationMessage[];
+      meta: {
+        nextCursor: string | null;
+        hasMore: boolean;
+      };
     };
-  };
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return fetchFallbackConversationMessages(conversationId) as {
+        items: ConversationMessage[];
+        meta: {
+          nextCursor: string | null;
+          hasMore: boolean;
+        };
+      };
+    }
+
+    throw error;
+  }
 }
 
 export async function sendConversationMessage(conversationId: string, body: string) {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/messages`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      conversationId,
-      messageType: "text",
-      body
-    })
-  });
-  await expectOk(response);
-  return (await response.json()) as {
-    message: ConversationMessage;
-  };
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        conversationId,
+        messageType: "text",
+        body
+      })
+    });
+    if (shouldUseLocalAppFallback(response)) {
+      return sendFallbackConversationMessage(conversationId, body) as {
+        message: ConversationMessage;
+      };
+    }
+
+    await expectOk(response);
+    return (await response.json()) as {
+      message: ConversationMessage;
+    };
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return sendFallbackConversationMessage(conversationId, body) as {
+        message: ConversationMessage;
+      };
+    }
+
+    throw error;
+  }
 }
 
 export async function markConversationRead(conversationId: string) {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations/read`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ conversationId })
-  });
-  await expectOk(response);
-  return response.json();
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations/read`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId })
+    });
+    if (shouldUseLocalAppFallback(response)) {
+      return markFallbackConversationRead(conversationId);
+    }
+
+    await expectOk(response);
+    return response.json();
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return markFallbackConversationRead(conversationId);
+    }
+
+    throw error;
+  }
 }

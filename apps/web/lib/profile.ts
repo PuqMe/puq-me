@@ -2,6 +2,16 @@
 
 import { env } from "@/lib/env";
 import { fetchWithSession } from "@/lib/auth";
+import {
+  fetchFallbackProfile,
+  shouldUseLocalAppFallback,
+  shouldUseLocalAppFallbackForError,
+  updateFallbackInterests,
+  updateFallbackLocation,
+  updateFallbackPreferences,
+  updateFallbackProfile,
+  updateFallbackVisibility
+} from "@/lib/local-app-fallback";
 
 export type ProfileResponse = {
   userId: string;
@@ -92,81 +102,153 @@ async function readApiError(response: Response) {
 }
 
 export async function fetchMyProfile() {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me`);
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me`);
 
-  if (!response.ok) {
-    throw new Error(await readApiError(response));
+    if (!response.ok) {
+      if (shouldUseLocalAppFallback(response)) {
+        return fetchFallbackProfile() as ProfileResponse;
+      }
+
+      throw new Error(await readApiError(response));
+    }
+
+    return (await response.json()) as ProfileResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return fetchFallbackProfile() as ProfileResponse;
+    }
+
+    throw error;
   }
-
-  return (await response.json()) as ProfileResponse;
 }
 
 export async function updateMyProfile(input: UpdateProfileInput) {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input)
-  });
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input)
+    });
 
-  if (!response.ok) {
-    throw new Error(await readApiError(response));
+    if (!response.ok) {
+      if (shouldUseLocalAppFallback(response)) {
+        return updateFallbackProfile(input) as ProfileResponse;
+      }
+
+      throw new Error(await readApiError(response));
+    }
+
+    return (await response.json()) as ProfileResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return updateFallbackProfile(input) as ProfileResponse;
+    }
+
+    throw error;
   }
-
-  return (await response.json()) as ProfileResponse;
 }
 
 export async function updateMyInterests(interests: string[]) {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/interests`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ interests })
-  });
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/interests`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ interests })
+    });
 
-  if (!response.ok) {
-    throw new Error(await readApiError(response));
+    if (!response.ok) {
+      if (shouldUseLocalAppFallback(response)) {
+        return updateFallbackInterests(interests) as ProfileResponse;
+      }
+
+      throw new Error(await readApiError(response));
+    }
+
+    return (await response.json()) as ProfileResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return updateFallbackInterests(interests) as ProfileResponse;
+    }
+
+    throw error;
   }
-
-  return (await response.json()) as ProfileResponse;
 }
 
 export async function updateMyPreferences(input: UpdatePreferencesInput) {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/preferences`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input)
-  });
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/preferences`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input)
+    });
 
-  if (!response.ok) {
-    throw new Error(await readApiError(response));
+    if (!response.ok) {
+      if (shouldUseLocalAppFallback(response)) {
+        return updateFallbackPreferences(input as ProfileResponse["preferences"]) as ProfileResponse;
+      }
+
+      throw new Error(await readApiError(response));
+    }
+
+    return (await response.json()) as ProfileResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return updateFallbackPreferences(input as ProfileResponse["preferences"]) as ProfileResponse;
+    }
+
+    throw error;
   }
-
-  return (await response.json()) as ProfileResponse;
 }
 
 export async function updateMyLocation(input: UpdateLocationInput) {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/location`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input)
-  });
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/location`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input)
+    });
 
-  if (!response.ok) {
-    throw new Error(await readApiError(response));
+    if (!response.ok) {
+      if (shouldUseLocalAppFallback(response)) {
+        return updateFallbackLocation(input as NonNullable<ProfileResponse["location"]>) as ProfileResponse;
+      }
+
+      throw new Error(await readApiError(response));
+    }
+
+    return (await response.json()) as ProfileResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return updateFallbackLocation(input as NonNullable<ProfileResponse["location"]>) as ProfileResponse;
+    }
+
+    throw error;
   }
-
-  return (await response.json()) as ProfileResponse;
 }
 
 export async function updateMyVisibility(isVisible: boolean) {
-  const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/visibility`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ isVisible })
-  });
+  try {
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/visibility`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isVisible })
+    });
 
-  if (!response.ok) {
-    throw new Error(await readApiError(response));
+    if (!response.ok) {
+      if (shouldUseLocalAppFallback(response)) {
+        return updateFallbackVisibility(isVisible) as ProfileResponse;
+      }
+
+      throw new Error(await readApiError(response));
+    }
+
+    return (await response.json()) as ProfileResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return updateFallbackVisibility(isVisible) as ProfileResponse;
+    }
+
+    throw error;
   }
-
-  return (await response.json()) as ProfileResponse;
 }

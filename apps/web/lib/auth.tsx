@@ -9,6 +9,11 @@ import {
   type PropsWithChildren
 } from "react";
 import { env } from "./env";
+import {
+  createFallbackSession,
+  shouldUseLocalAppFallback,
+  shouldUseLocalAppFallbackForError
+} from "./local-app-fallback";
 
 type SessionUser = {
   id: string;
@@ -133,20 +138,49 @@ async function readAuthError(response: Response) {
 }
 
 async function refreshStoredSession(refreshToken: string) {
-  const response = await fetch(`${env.apiBaseUrl}/v1/auth/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken })
-  });
+  try {
+    const response = await fetch(`${env.apiBaseUrl}/v1/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken })
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      if (shouldUseLocalAppFallback(response)) {
+        const user = readStoredUser();
+        if (!user) {
+          clearSession();
+          return null;
+        }
+
+        const fallbackSession = createFallbackSession(user.email) as AuthResponse;
+        persistSession(fallbackSession);
+        return fallbackSession;
+      }
+
+      clearSession();
+      return null;
+    }
+
+    const session = (await response.json()) as AuthResponse;
+    persistSession(session);
+    return session;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      const user = readStoredUser();
+      if (!user) {
+        clearSession();
+        return null;
+      }
+
+      const fallbackSession = createFallbackSession(user.email) as AuthResponse;
+      persistSession(fallbackSession);
+      return fallbackSession;
+    }
+
     clearSession();
     return null;
   }
-
-  const session = (await response.json()) as AuthResponse;
-  persistSession(session);
-  return session;
 }
 
 export async function fetchWithSession(input: string, init: RequestInit = {}) {
@@ -208,62 +242,118 @@ export function AuthProvider({ children }: PropsWithChildren) {
       status,
       user,
       signIn: async (email: string, password: string) => {
-        const response = await fetch(`${env.apiBaseUrl}/v1/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
+        try {
+          const response = await fetch(`${env.apiBaseUrl}/v1/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+          });
 
-        if (!response.ok) {
-          throw new Error(await readAuthError(response));
+          if (!response.ok) {
+            if (shouldUseLocalAppFallback(response)) {
+              const fallbackSession = createFallbackSession(email) as AuthResponse;
+              persistSession(fallbackSession);
+              setUser(fallbackSession.user);
+              setStatus("authenticated");
+              return;
+            }
+
+            throw new Error(await readAuthError(response));
+          }
+
+          const session = (await response.json()) as AuthResponse;
+          persistSession(session);
+          setUser(session.user);
+          setStatus("authenticated");
+        } catch (error) {
+          if (shouldUseLocalAppFallbackForError(error)) {
+            const fallbackSession = createFallbackSession(email) as AuthResponse;
+            persistSession(fallbackSession);
+            setUser(fallbackSession.user);
+            setStatus("authenticated");
+            return;
+          }
+
+          throw error;
         }
-
-        const session = (await response.json()) as AuthResponse;
-        persistSession(session);
-        setUser(session.user);
-        setStatus("authenticated");
       },
       register: async (email: string, password: string) => {
-        const response = await fetch(`${env.apiBaseUrl}/v1/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
+        try {
+          const response = await fetch(`${env.apiBaseUrl}/v1/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+          });
 
-        if (!response.ok) {
-          throw new Error(await readAuthError(response));
+          if (!response.ok) {
+            if (shouldUseLocalAppFallback(response)) {
+              const fallbackSession = createFallbackSession(email) as AuthResponse;
+              persistSession(fallbackSession);
+              setUser(fallbackSession.user);
+              setStatus("authenticated");
+              return;
+            }
+
+            throw new Error(await readAuthError(response));
+          }
+
+          const session = (await response.json()) as AuthResponse;
+          persistSession(session);
+          setUser(session.user);
+          setStatus("authenticated");
+        } catch (error) {
+          if (shouldUseLocalAppFallbackForError(error)) {
+            const fallbackSession = createFallbackSession(email) as AuthResponse;
+            persistSession(fallbackSession);
+            setUser(fallbackSession.user);
+            setStatus("authenticated");
+            return;
+          }
+
+          throw error;
         }
-
-        const session = (await response.json()) as AuthResponse;
-        persistSession(session);
-        setUser(session.user);
-        setStatus("authenticated");
       },
       signInDemo: () => {
-        const sessionUser = {
-          id: "demo-user",
-          email: "lina@puq.me",
-          status: "active"
-        };
-        window.localStorage.setItem(storageKey, JSON.stringify(sessionUser));
-        setUser(sessionUser);
+        const fallbackSession = createFallbackSession("lina@puq.me") as AuthResponse;
+        persistSession(fallbackSession);
+        setUser(fallbackSession.user);
         setStatus("authenticated");
       },
       signInWithGoogle: async (credential: string) => {
-        const response = await fetch(`${env.apiBaseUrl}/v1/auth/google`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ credential })
-        });
+        try {
+          const response = await fetch(`${env.apiBaseUrl}/v1/auth/google`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ credential })
+          });
 
-        if (!response.ok) {
-          throw new Error(await readAuthError(response));
+          if (!response.ok) {
+            if (shouldUseLocalAppFallback(response)) {
+              const fallbackSession = createFallbackSession("google-user@puq.me") as AuthResponse;
+              persistSession(fallbackSession);
+              setUser(fallbackSession.user);
+              setStatus("authenticated");
+              return;
+            }
+
+            throw new Error(await readAuthError(response));
+          }
+
+          const session = (await response.json()) as AuthResponse;
+          persistSession(session);
+          setUser(session.user);
+          setStatus("authenticated");
+        } catch (error) {
+          if (shouldUseLocalAppFallbackForError(error)) {
+            const fallbackSession = createFallbackSession("google-user@puq.me") as AuthResponse;
+            persistSession(fallbackSession);
+            setUser(fallbackSession.user);
+            setStatus("authenticated");
+            return;
+          }
+
+          throw error;
         }
-
-        const session = (await response.json()) as AuthResponse;
-        persistSession(session);
-        setUser(session.user);
-        setStatus("authenticated");
       },
       signOut: () => {
         const rawTokens = window.localStorage.getItem(tokenKey);
