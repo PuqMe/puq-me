@@ -24,7 +24,30 @@ export class AuthRepository {
       [randomUUID(), email, passwordHash]
     );
 
-    return result.rows[0];
+    const row = result.rows[0];
+    if (!row) {
+      throw new Error("Failed to create user");
+    }
+    return row;
+  }
+
+  async createGoogleUser(email: string, googleSub: string): Promise<AuthUserRecord> {
+    const result = await this.app.db.query<{
+      id: string;
+      email: string;
+      status: string;
+    }>(
+      `insert into users (public_id, email, google_sub, status)
+       values ($1, $2, $3, 'active')
+       returning id::text, email::text, status`,
+      [randomUUID(), email, googleSub]
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      throw new Error("Failed to create Google user");
+    }
+    return row;
   }
 
   async findUserByEmail(email: string): Promise<AuthUserRecord | null> {
@@ -54,6 +77,31 @@ export class AuthRepository {
       passwordHash: row.password_hash,
       emailVerifiedAt: row.email_verified_at
     };
+  }
+
+  async findUserByGoogleSub(googleSub: string): Promise<AuthUserRecord | null> {
+    const result = await this.app.db.query<{
+      id: string;
+      email: string;
+      status: string;
+      email_verified_at: string | null;
+    }>(
+      `select id::text, email::text, status, email_verified_at::text
+       from users
+       where google_sub = $1 and deleted_at is null
+       limit 1`,
+      [googleSub]
+    );
+
+    const row = result.rows[0];
+    return row
+      ? {
+          id: row.id,
+          email: row.email,
+          status: row.status,
+          emailVerifiedAt: row.email_verified_at
+        }
+      : null;
   }
 
   async findUserById(userId: string): Promise<AuthUserRecord | null> {

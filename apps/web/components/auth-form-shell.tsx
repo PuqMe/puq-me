@@ -2,6 +2,9 @@ import Link from "next/link";
 import { BRAND_NAME } from "@puqme/config";
 import { Button, Card } from "@puqme/ui";
 import { LogoMark } from "@puqme/ui";
+import { GoogleSignInButton } from "./auth/google-sign-in-button";
+import { useAuth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 type AuthFormShellProps = {
   eyebrow: string;
@@ -22,6 +25,18 @@ export function AuthFormShell({
   altHref,
   children
 }: AuthFormShellProps) {
+  const { signInWithGoogle } = useAuth();
+  const router = useRouter();
+
+  const handleGoogleSuccess = async (credential: string) => {
+    try {
+      await signInWithGoogle(credential);
+      router.push("/");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <Card className="mesh-panel w-full rounded-[2rem] p-5 text-white md:p-6">
       <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#d7b8ff]">
@@ -38,6 +53,14 @@ export function AuthFormShell({
           {submitLabel}
         </Button>
       </form>
+
+      <div className="my-6 flex items-center gap-4 text-white/40">
+        <div className="h-px flex-1 bg-white/10" />
+        <span className="text-[10px] font-semibold uppercase tracking-wider">Oder</span>
+        <div className="h-px flex-1 bg-white/10" />
+      </div>
+
+      <GoogleSignInButton onSuccess={handleGoogleSuccess} text="continue_with" />
 
       <Link className="mt-4 inline-flex text-sm font-medium text-white/72" href={altHref}>
         {altLabel}

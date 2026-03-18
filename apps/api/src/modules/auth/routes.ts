@@ -3,6 +3,7 @@ import {
   emailVerificationConfirmBodySchema,
   emailVerificationRequestBodySchema,
   forgotPasswordBodySchema,
+  googleLoginBodySchema,
   loginBodySchema,
   logoutBodySchema,
   refreshTokenBodySchema,
@@ -16,7 +17,7 @@ const routes: FastifyPluginAsync = async (app) => {
   app.post("/register", async (request, reply) => {
     const payload = registerBodySchema.parse(request.body);
     const result = await service.register(payload.email, payload.password, {
-      userAgent: request.headers["user-agent"],
+      userAgent: request.headers["user-agent"] as string,
       ipAddress: request.ip
     });
     return reply.code(201).send(result);
@@ -35,16 +36,24 @@ const routes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const payload = loginBodySchema.parse(request.body);
       return service.login(payload.email, payload.password, {
-        userAgent: request.headers["user-agent"],
+        userAgent: request.headers["user-agent"] as string,
         ipAddress: request.ip
       });
     }
   );
 
+  app.post("/google", async (request) => {
+    const payload = googleLoginBodySchema.parse(request.body);
+    return service.googleLogin(payload.credential, {
+      userAgent: request.headers["user-agent"] as string,
+      ipAddress: request.ip
+    });
+  });
+
   app.post("/refresh", async (request) => {
     const payload = refreshTokenBodySchema.parse(request.body);
     return service.refresh(payload.refreshToken, {
-      userAgent: request.headers["user-agent"],
+      userAgent: request.headers["user-agent"] as string,
       ipAddress: request.ip
     });
   });

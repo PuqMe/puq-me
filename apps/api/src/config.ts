@@ -37,7 +37,8 @@ const apiEnvSchema = z.object({
   RATE_LIMIT_WINDOW: z.string().default("1 minute"),
   AUTH_LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
   AUTH_LOGIN_RATE_LIMIT_WINDOW: z.string().default("15 minutes"),
-  EXPERIMENT_SALT: z.string().min(16).default("replace-with-a-stable-experiment-salt")
+  EXPERIMENT_SALT: z.string().min(16).default("replace-with-a-stable-experiment-salt"),
+  GOOGLE_CLIENT_ID: z.string().min(1)
 });
 
 export type ApiConfig = z.infer<typeof apiEnvSchema>;
