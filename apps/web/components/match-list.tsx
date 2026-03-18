@@ -1,23 +1,74 @@
-import { AppShell } from "@/components/app-shell";
+"use client";
 
-const matches = [
-  { name: "Maya", note: "Matched 12 min ago", accent: "bg-gradient-to-br from-[#7cb596] to-[#2f6b5f]" },
-  { name: "Lina", note: "Sent you a wave", accent: "bg-gradient-to-br from-[#E6A77A] to-[#d3885f]" },
-  { name: "Noor", note: "Matched yesterday", accent: "bg-gradient-to-br from-[#405047] to-[#8c7d64]" }
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { AppShell } from "@/components/app-shell";
+import { fetchMatches, type MatchItem } from "@/lib/social";
+
+const accents = [
+  "bg-gradient-to-br from-[#7cb596] to-[#2f6b5f]",
+  "bg-gradient-to-br from-[#E6A77A] to-[#d3885f]",
+  "bg-gradient-to-br from-[#405047] to-[#8c7d64]",
+  "bg-gradient-to-br from-[#8b5cf6] to-[#4338ca]"
 ];
 
 export function MatchList() {
+  const [items, setItems] = useState<MatchItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const matches = await fetchMatches();
+        if (!cancelled) {
+          setItems(matches);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setErrorMessage(error instanceof Error ? error.message : "Matches konnten nicht geladen werden.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
-    <AppShell active="/matches" title="Matches" subtitle="Menschen, bei denen es auf beiden Seiten gepasst hat">
+    <AppShell active="/matches" title="Matches" subtitle="Menschen, bei denen es jetzt wirklich auf beiden Seiten gepasst hat">
       <section className="grid gap-3">
-        {matches.map((match) => (
-          <article key={match.name} className="glass-card flex items-center gap-4 rounded-[2rem] p-4">
-            <div className={`h-16 w-16 rounded-[1.5rem] ${match.accent}`} />
+        {isLoading ? <div className="glass-card rounded-[1.8rem] p-4 text-sm text-white/72">Matches werden geladen...</div> : null}
+        {errorMessage ? <div className="glass-card rounded-[1.8rem] p-4 text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
+
+        {!isLoading && !errorMessage && items.length === 0 ? (
+          <div className="glass-card rounded-[1.8rem] p-5 text-sm leading-6 text-white/72">
+            Noch keine echten Matches. Sobald du im Radar Likes verteilst und ein Mutual entsteht, erscheint es hier.
+          </div>
+        ) : null}
+
+        {items.map((match, index) => (
+          <article key={match.matchId} className="glass-card flex items-center gap-4 rounded-[2rem] p-4">
+            <div className={`h-16 w-16 rounded-[1.5rem] ${accents[index % accents.length] ?? accents[0]!}`} />
             <div className="flex-1">
-              <div className="text-base font-semibold text-white">{match.name}</div>
-              <div className="mt-1 text-sm text-white/68">{match.note}</div>
+              <div className="text-base font-semibold text-white">
+                {match.peer.displayName}, {match.peer.age}
+              </div>
+              <div className="mt-1 text-sm text-white/68">
+                {match.peer.city ?? "Unbekannt"} · {new Date(match.matchedAt).toLocaleDateString()}
+              </div>
+              <div className="mt-1 text-sm text-white/58">{match.peer.bio ?? "Bio folgt."}</div>
             </div>
-            <button className="glow-button rounded-[1rem] px-4 py-3 text-xs font-semibold text-white">Chat</button>
+            <Link className="glow-button rounded-[1rem] px-4 py-3 text-xs font-semibold text-white" href={match.conversation.conversationId ? `/chat?conversationId=${match.conversation.conversationId}` : "/chat"}>
+              Chat
+            </Link>
           </article>
         ))}
       </section>

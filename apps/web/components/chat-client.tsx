@@ -1,163 +1,151 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { ChatMessage, ChatSocketEvent } from "@/lib/chat-types";
-import { env } from "@/lib/env";
+import { useEffect, useState } from "react";
+import {
+  fetchConversationMessages,
+  fetchConversations,
+  markConversationRead,
+  sendConversationMessage,
+  type ConversationMessage,
+  type ConversationSummary
+} from "@/lib/social";
+import { readStoredUser } from "@/lib/auth";
 
-const DEMO_THREAD_ID = 1;
-const DEMO_SELF_ID = "101";
-const DEMO_TOKEN = "replace-with-jwt";
-const API_BASE_URL = env.apiBaseUrl;
-const WS_BASE_URL = env.websocketBaseUrl;
-
-const fallbackMessages: ChatMessage[] = [
-  {
-    id: 1,
-    threadId: DEMO_THREAD_ID,
-    senderUserId: "202",
-    senderPublicId: "demo-peer",
-    messageType: "text",
-    body: "You strike me as someone who knows the best late-night spots.",
-    imageUrl: null,
-    moderationStatus: "approved",
-    deliveryStatus: "read",
-    sentAt: new Date().toISOString()
-  }
-];
-
-export function useChatClient() {
-  const [messages, setMessages] = useState<ChatMessage[]>(fallbackMessages);
+export function useChatClient(initialConversationId?: string | null) {
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(initialConversationId ?? null);
   const [draft, setDraft] = useState("");
-  const [typing, setTyping] = useState(false);
-  const [peerTyping, setPeerTyping] = useState(false);
-  const [peerPresence, setPeerPresence] = useState<"online" | "offline">("online");
-  const typingTimeoutRef = useRef<number | null>(null);
-  const socketRef = useRef<WebSocket | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [metaUnreadCount, setMetaUnreadCount] = useState(0);
 
   useEffect(() => {
-    const socket = new WebSocket(`${WS_BASE_URL}/ws/chat?token=${encodeURIComponent(DEMO_TOKEN)}&threadId=${DEMO_THREAD_ID}`);
-    socketRef.current = socket;
+    let cancelled = false;
 
-    socket.addEventListener("message", (event) => {
+    void (async () => {
       try {
-        const data = JSON.parse(event.data) as ChatSocketEvent;
-
-        if (data.type === "message.created") {
-          setMessages((current) => {
-            if (current.some((message) => message.id === data.payload.id)) {
-              return current;
-            }
-            return [...current, data.payload];
-          });
-
-          if (data.payload.senderUserId !== DEMO_SELF_ID) {
-            socket.send(
-              JSON.stringify({
-                type: "message.status",
-                payload: {
-                  messageId: data.payload.id,
-                  status: "delivered"
-                }
-              })
-            );
-          }
+        const data = await fetchConversations();
+        if (cancelled) {
+          return;
         }
 
-        if (data.type === "message.status") {
-          setMessages((current) =>
-            current.map((message) =>
-              message.id === data.payload.messageId
-                ? {
-                    ...message,
-                    deliveryStatus: data.payload.status,
-                    deliveredAt: data.payload.status === "delivered" ? data.payload.updatedAt : message.deliveredAt,
-                    readAt: data.payload.status === "read" ? data.payload.updatedAt : message.readAt
-                  }
-                : message
-            )
-          );
-        }
+        setConversations(data.items);
+        setMetaUnreadCount(data.meta.totalUnreadCount);
 
-        if (data.type === "typing" && data.payload.userId !== DEMO_SELF_ID) {
-          setPeerTyping(data.payload.isTyping);
-        }
+        const preferredConversation =
+          (initialConversationId && data.items.find((item) => item.conversationId === initialConversationId)?.conversationId) ??
+          data.items[0]?.conversationId ??
+          null;
 
-        if (data.type === "presence" && data.payload.userId !== DEMO_SELF_ID) {
-          setPeerPresence(data.payload.state);
+        setSelectedConversationId(preferredConversation);
+      } catch (error) {
+        if (!cancelled) {
+          setErrorMessage(error instanceof Error ? error.message : "Conversations konnten nicht geladen werden.");
         }
-      } catch {
-        return;
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
-    });
+    })();
 
     return () => {
-      socket.close();
+      cancelled = true;
     };
-  }, []);
+  }, [initialConversationId]);
 
-  async function sendMessage(messageType: "text" | "image", imageUrl?: string) {
+  useEffect(() => {
+    if (!selectedConversationId) {
+      setMessages([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const data = await fetchConversationMessages(selectedConversationId);
+        if (cancelled) {
+          return;
+        }
+
+        setMessages(data.items);
+        await markConversationRead(selectedConversationId);
+        setConversations((current) =>
+          current.map((conversation) =>
+            conversation.conversationId === selectedConversationId ? { ...conversation, unreadCount: 0 } : conversation
+          )
+        );
+      } catch (error) {
+        if (!cancelled) {
+          setErrorMessage(error instanceof Error ? error.message : "Messages konnten nicht geladen werden.");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedConversationId]);
+
+  const selectedConversation =
+    conversations.find((conversation) => conversation.conversationId === selectedConversationId) ?? null;
+  const selfUserId = readStoredUser()?.id ?? "";
+
+  async function sendTextMessage() {
     const body = draft.trim();
-    if (messageType === "text" && !body) {
+    if (!selectedConversationId || !body || isSending) {
       return;
     }
 
-    const response = await fetch(`${API_BASE_URL}/v1/chat/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${DEMO_TOKEN}`
-      },
-      body: JSON.stringify({
-        threadId: DEMO_THREAD_ID,
-        messageType,
-        body: messageType === "text" ? body : null,
-        imageUrl: imageUrl ?? null
-      })
-    });
+    setIsSending(true);
+    setErrorMessage(null);
 
-    if (!response.ok) {
-      return;
+    try {
+      const result = await sendConversationMessage(selectedConversationId, body);
+      setMessages((current) => [...current, result.message]);
+      setDraft("");
+      setConversations((current) =>
+        current.map((conversation) =>
+          conversation.conversationId === selectedConversationId
+            ? {
+                ...conversation,
+                updatedAt: result.message.createdAt,
+                lastMessageAt: result.message.createdAt,
+                lastMessage: {
+                  messageId: result.message.messageId,
+                  senderUserId: result.message.senderUserId,
+                  messageType: result.message.messageType,
+                  body: result.message.body,
+                  mediaStorageKey: result.message.attachment?.storageKey ?? null,
+                  createdAt: result.message.createdAt
+                }
+              }
+            : conversation
+        )
+      );
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Message konnte nicht gesendet werden.");
+    } finally {
+      setIsSending(false);
     }
-
-    const message = (await response.json()) as ChatMessage;
-    setMessages((current) => [...current, message]);
-    setDraft("");
-    setTyping(false);
-    socketRef.current?.send(JSON.stringify({ type: "typing", payload: { isTyping: false } }));
-  }
-
-  function onDraftChange(value: string) {
-    setDraft(value);
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-      return;
-    }
-
-    if (!typing) {
-      setTyping(true);
-      socketRef.current.send(JSON.stringify({ type: "typing", payload: { isTyping: true } }));
-    }
-
-    if (typingTimeoutRef.current) {
-      window.clearTimeout(typingTimeoutRef.current);
-    }
-
-    typingTimeoutRef.current = window.setTimeout(() => {
-      setTyping(false);
-      socketRef.current?.send(JSON.stringify({ type: "typing", payload: { isTyping: false } }));
-    }, 1500);
-  }
-
-  async function sendDemoImage() {
-    await sendMessage("image", "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80");
   }
 
   return {
+    conversations,
     messages,
+    selectedConversation,
+    selectedConversationId,
+    selfUserId,
     draft,
-    peerTyping,
-    peerPresence,
-    setDraft: onDraftChange,
-    sendTextMessage: () => void sendMessage("text"),
-    sendDemoImage: () => void sendDemoImage()
+    isLoading,
+    isSending,
+    errorMessage,
+    metaUnreadCount,
+    setDraft,
+    setSelectedConversationId,
+    sendTextMessage
   };
 }
