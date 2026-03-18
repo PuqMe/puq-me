@@ -27,8 +27,8 @@
     "production": {
       "name": "puqme-web",
       "routes": [
-        { "pattern": "puq.me", "custom_domain": true },
-        { "pattern": "www.puq.me", "custom_domain": true }
+        { "pattern": "puq.me/*", "zone_name": "puq.me" },
+        { "pattern": "www.puq.me/*", "zone_name": "puq.me" }
       ],
       "vars": {
         "NEXT_PUBLIC_APP_ENV": "production"
