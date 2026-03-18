@@ -12,42 +12,91 @@ export type AuthUserRecord = {
 export class AuthRepository {
   constructor(private readonly app: FastifyInstance) {}
 
-  async createUser(email: string, passwordHash: string): Promise<AuthUserRecord> {
-    const result = await this.app.db.query<{
-      id: string;
-      email: string;
-      status: string;
-    }>(
-      `insert into users (public_id, email, password_hash, status)
-       values ($1, $2, $3, 'pending')
-       returning id::text, email::text, status`,
-      [randomUUID(), email, passwordHash]
-    );
+  private buildBootstrapDisplayName(email: string) {
+    const localPart = email.split("@")[0] ?? "PuQ User";
+    const cleaned = localPart.replace(/[._-]+/g, " ").trim();
+    const titleCased = cleaned
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
 
-    const row = result.rows[0];
-    if (!row) {
-      throw new Error("Failed to create user");
+    return (titleCased || "PuQ User").slice(0, 80);
+  }
+
+  private async createBootstrapProfile(client: { query: FastifyInstance["db"]["query"] }, userId: string, email: string) {
+    await client.query(
+      `insert into profiles (user_id, display_name, birth_date)
+       values ($1, $2, $3)
+       on conflict (user_id) do nothing`,
+      [userId, this.buildBootstrapDisplayName(email), "2000-01-01"]
+    );
+  }
+
+  async createUser(email: string, passwordHash: string): Promise<AuthUserRecord> {
+    const client = await this.app.db.connect();
+
+    try {
+      await client.query("begin");
+
+      const result = await client.query<{
+        id: string;
+        email: string;
+        status: string;
+      }>(
+        `insert into users (public_id, email, password_hash, status)
+         values ($1, $2, $3, 'pending')
+         returning id::text, email::text, status`,
+        [randomUUID(), email, passwordHash]
+      );
+
+      const row = result.rows[0];
+      if (!row) {
+        throw new Error("Failed to create user");
+      }
+
+      await this.createBootstrapProfile(client, row.id, row.email);
+      await client.query("commit");
+      return row;
+    } catch (error) {
+      await client.query("rollback");
+      throw error;
+    } finally {
+      client.release();
     }
-    return row;
   }
 
   async createGoogleUser(email: string, googleSub: string): Promise<AuthUserRecord> {
-    const result = await this.app.db.query<{
-      id: string;
-      email: string;
-      status: string;
-    }>(
-      `insert into users (public_id, email, google_sub, status)
-       values ($1, $2, $3, 'active')
-       returning id::text, email::text, status`,
-      [randomUUID(), email, googleSub]
-    );
+    const client = await this.app.db.connect();
 
-    const row = result.rows[0];
-    if (!row) {
-      throw new Error("Failed to create Google user");
+    try {
+      await client.query("begin");
+
+      const result = await client.query<{
+        id: string;
+        email: string;
+        status: string;
+      }>(
+        `insert into users (public_id, email, google_sub, status)
+         values ($1, $2, $3, 'active')
+         returning id::text, email::text, status`,
+        [randomUUID(), email, googleSub]
+      );
+
+      const row = result.rows[0];
+      if (!row) {
+        throw new Error("Failed to create Google user");
+      }
+
+      await this.createBootstrapProfile(client, row.id, row.email);
+      await client.query("commit");
+      return row;
+    } catch (error) {
+      await client.query("rollback");
+      throw error;
+    } finally {
+      client.release();
     }
-    return row;
   }
 
   async findUserByEmail(email: string): Promise<AuthUserRecord | null> {

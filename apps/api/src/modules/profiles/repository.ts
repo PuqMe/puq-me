@@ -41,8 +41,42 @@ type ProfileAggregate = {
 export class ProfilesRepository {
   constructor(private readonly app: FastifyInstance) {}
 
+  private buildBootstrapDisplayName(email: string) {
+    const localPart = email.split("@")[0] ?? "PuQ User";
+    const cleaned = localPart.replace(/[._-]+/g, " ").trim();
+    const titleCased = cleaned
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+
+    return (titleCased || "PuQ User").slice(0, 80);
+  }
+
+  private async ensureProfileRow(userId: string) {
+    const userResult = await this.app.db.query<{ email: string }>(
+      `select email::text
+       from users
+       where id = $1 and deleted_at is null
+       limit 1`,
+      [userId]
+    );
+
+    const user = userResult.rows[0];
+    if (!user) {
+      throw new NotFoundError("user_not_found");
+    }
+
+    await this.app.db.query(
+      `insert into profiles (user_id, display_name, birth_date)
+       values ($1, $2, $3)
+       on conflict (user_id) do nothing`,
+      [userId, this.buildBootstrapDisplayName(user.email), "2000-01-01"]
+    );
+  }
+
   async getCurrentProfile(userId: string): Promise<ProfileAggregate> {
-    const profileResult = await this.app.db.query<{
+    let profileResult = await this.app.db.query<{
       user_id: string;
       display_name: string;
       birth_date: string;
@@ -70,7 +104,40 @@ export class ProfilesRepository {
       [userId]
     );
 
-    const profile = profileResult.rows[0];
+    let profile = profileResult.rows[0];
+    if (!profile) {
+      await this.ensureProfileRow(userId);
+      profileResult = await this.app.db.query<{
+        user_id: string;
+        display_name: string;
+        birth_date: string;
+        bio: string | null;
+        gender: string | null;
+        dating_intent: string | null;
+        occupation: string | null;
+        city: string | null;
+        country_code: string | null;
+        is_visible: boolean;
+      }>(
+        `select user_id::text,
+                display_name,
+                birth_date::text,
+                bio,
+                gender,
+                dating_intent,
+                occupation,
+                city,
+                country_code,
+                is_visible
+         from profiles
+         where user_id = $1
+         limit 1`,
+        [userId]
+      );
+
+      profile = profileResult.rows[0];
+    }
+
     if (!profile) {
       throw new NotFoundError("profile_not_found");
     }
@@ -159,6 +226,8 @@ export class ProfilesRepository {
   }
 
   async updateProfile(userId: string, input: UpdateProfileBody) {
+    await this.ensureProfileRow(userId);
+
     const fields: string[] = [];
     const values: unknown[] = [userId];
     let index = 2;
@@ -190,6 +259,8 @@ export class ProfilesRepository {
   }
 
   async updateVisibility(userId: string, input: UpdateVisibilityBody) {
+    await this.ensureProfileRow(userId);
+
     await this.app.db.query(
       `update profiles
        set is_visible = $2,

@@ -70,12 +70,6 @@ export function AuthFormShell({
         </Button>
       </form>
 
-      <div className="my-6 flex items-center gap-4 text-white/40">
-        <div className="h-px flex-1 bg-white/10" />
-        <span className="text-[10px] font-semibold uppercase tracking-wider">Oder</span>
-        <div className="h-px flex-1 bg-white/10" />
-      </div>
-
       {env.googleClientId ? (
         <GoogleSignInButton onSuccess={handleGoogleSuccess} text="continue_with" />
       ) : (
