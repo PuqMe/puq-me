@@ -13,61 +13,78 @@ declare global {
   }
 }
 
+const DISMISS_KEY = "puq-install-dismissed";
+
 export function InstallNowFab() {
   const [available, setAvailable] = useState(false);
-  const [installed, setInstalled] = useState(false);
+  const [dismissed, setDismissed] = useState(true); // start hidden until we confirm
 
   useEffect(() => {
-    function syncInstallState() {
+    // Already installed as PWA → never show
+    if (window.matchMedia("(display-mode: standalone)").matches) return;
+
+    // User previously dismissed → never show
+    if (localStorage.getItem(DISMISS_KEY) === "1") return;
+
+    function syncState() {
       setAvailable(Boolean(window.__puqInstallPrompt));
-      setInstalled(window.matchMedia("(display-mode: standalone)").matches);
+      setDismissed(false);
     }
 
-    function handleBeforeInstallPrompt() {
-      syncInstallState();
-    }
+    window.addEventListener("beforeinstallprompt", syncState);
 
-    syncInstallState();
-    window.addEventListener("appinstalled", syncInstallState);
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    // If the event already fired (stored on window)
+    if (window.__puqInstallPrompt) {
+      syncState();
+    }
 
     return () => {
-      window.removeEventListener("appinstalled", syncInstallState);
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("beforeinstallprompt", syncState);
     };
   }, []);
 
   async function handleInstall() {
     const promptEvent = window.__puqInstallPrompt;
-
-    if (!promptEvent) {
-      return;
-    }
-
+    if (!promptEvent) return;
     await promptEvent.prompt();
     await promptEvent.userChoice;
     window.__puqInstallPrompt = undefined;
-    setAvailable(false);
+    handleDismiss();
   }
 
-  if (installed) {
-    return null;
+  function handleDismiss() {
+    localStorage.setItem(DISMISS_KEY, "1");
+    setDismissed(true);
   }
+
+  if (dismissed || !available) return null;
 
   return (
-    <div className="safe-px safe-pb pointer-events-none fixed bottom-0 right-0 z-[60] w-full max-w-md">
-      <div className="pointer-events-auto ml-auto flex w-[13rem] flex-col items-end gap-2 pb-3">
-          <div className="glass-card rounded-[1.4rem] px-4 py-3 text-right text-xs text-white/78">
-            <div className="font-semibold text-white">Browser installieren</div>
-            <div className="mt-1 text-[11px]">{available ? "Fuer Schnellzugriff und Vollbildmodus." : "Installation im Browser verfuegbar, sobald unterstuetzt."}</div>
-          </div>
+    <div className="fixed bottom-16 left-0 right-0 z-[60] flex justify-center px-4 lg:bottom-4">
+      <div className="glass-card flex w-full max-w-sm items-center gap-3 rounded-[1.2rem] px-4 py-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#a855f7]/20 text-lg">
+          📱
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold text-white">App installieren</div>
+          <div className="text-[11px] text-white/60">Vollbild &amp; Schnellzugriff</div>
+        </div>
         <button
-          className="glow-button rounded-full px-5 py-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-55"
-          disabled={!available}
-          onClick={handleInstall}
           type="button"
+          onClick={handleInstall}
+          className="glow-button shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-white"
         >
-          Jetzt installieren
+          Install
+        </button>
+        <button
+          type="button"
+          onClick={handleDismiss}
+          aria-label="Schließen"
+          className="shrink-0 rounded-full p-1 text-white/50 hover:text-white"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
     </div>

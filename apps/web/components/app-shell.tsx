@@ -95,7 +95,7 @@ export function AppShell({
   ));
 
   return (
-    <div className="relative z-10 pb-20 lg:pb-0">
+    <div className="relative z-10">
       <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start lg:gap-6">
         <aside className="glass-card hidden rounded-[2rem] p-4 lg:sticky lg:top-4 lg:block">
           <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-[#d7b8ff]">
@@ -109,30 +109,30 @@ export function AppShell({
         </aside>
 
         <div className="flex min-h-screen flex-col">
-          <header className="mb-4 flex items-start justify-between gap-4">
+          <header className="mb-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-[#d7b8ff]">
-                <LogoMark className="h-5 w-5 shrink-0" size={20} />
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-[#d7b8ff]">
+                <LogoMark className="h-4 w-4 shrink-0" size={16} />
                 {BRAND_NAME}
               </div>
-              <h1 className="mt-2 text-[2rem] font-semibold leading-none text-white md:text-[2.35rem]">{title}</h1>
-              {subtitle ? <p className="mt-2 max-w-[34rem] text-sm leading-6 text-white/72 md:text-[15px]">{subtitle}</p> : null}
+              <h1 className="mt-1 text-[1.6rem] font-semibold leading-none text-white">{title}</h1>
+              {subtitle ? <p className="mt-1 max-w-[34rem] text-xs leading-5 text-white/60">{subtitle}</p> : null}
             </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setIsMenuOpen((current) => !current)}
-                className="glass-card inline-flex h-11 w-11 items-center justify-center rounded-full text-white lg:hidden"
+                className="glass-card inline-flex h-9 w-9 items-center justify-center rounded-full text-white lg:hidden"
                 aria-expanded={isMenuOpen}
                 aria-label="Navigation öffnen"
               >
-                <span className="flex flex-col gap-1.5">
-                  <span className="h-0.5 w-4 rounded-full bg-white" />
-                  <span className="h-0.5 w-4 rounded-full bg-white" />
-                  <span className="h-0.5 w-4 rounded-full bg-white" />
+                <span className="flex flex-col gap-1">
+                  <span className="h-0.5 w-3.5 rounded-full bg-white" />
+                  <span className="h-0.5 w-3.5 rounded-full bg-white" />
+                  <span className="h-0.5 w-3.5 rounded-full bg-white" />
                 </span>
               </button>
-              <div className="glass-card rounded-full px-3 py-2 text-xs font-semibold text-[#A855F7]">Live</div>
+              <div className="glass-card rounded-full px-2.5 py-1.5 text-[10px] font-semibold text-[#A855F7]">Live</div>
             </div>
           </header>
 
@@ -157,14 +157,14 @@ export function AppShell({
         </div>
       ) : null}
 
-      <nav className="glass-card sticky bottom-0 mt-6 grid grid-cols-6 gap-2 rounded-[1.8rem] p-2 lg:hidden">
+      <nav className="glass-card fixed bottom-0 left-0 right-0 z-50 grid grid-cols-6 gap-1 rounded-t-[1.5rem] border-b-0 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={clsx(
-              "flex min-h-14 flex-col items-center justify-center gap-1 rounded-[1.25rem] px-2 py-3 text-center text-[11px] font-semibold transition",
-              active === item.href ? "bg-white/12 text-white shadow-sm" : "text-white/66"
+              "flex flex-col items-center justify-center gap-0.5 rounded-[1rem] px-1 py-2 text-center text-[10px] font-semibold transition",
+              active === item.href ? "bg-white/12 text-white shadow-sm" : "text-white/55"
             )}
           >
             <NavIcon type={item.icon} />

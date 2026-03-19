@@ -61,17 +61,15 @@ export function AuthFormShell({
   };
 
   return (
-    <Card className="mesh-panel w-full rounded-[2rem] p-5 text-white md:p-6">
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#d7b8ff]">
-        <LogoMark className="h-5 w-5 shrink-0" size={20} />
+    <Card className="mesh-panel w-full rounded-[1.75rem] p-4 text-white">
+      <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#d7b8ff]">
+        <LogoMark className="h-4 w-4 shrink-0" size={16} />
         {BRAND_NAME}
       </div>
-      <div className="soft-pill inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">{eyebrow}</div>
-      <h1 className="mt-4 text-[2rem] font-semibold leading-none text-white">{title}</h1>
-      <p className="mt-3 max-w-sm text-sm leading-6 text-white/72">{description}</p>
+      <h1 className="text-[1.6rem] font-semibold leading-none text-white">{title}</h1>
 
       <form
-        className="mt-6 grid gap-3"
+        className="mt-4 grid gap-2.5"
         onSubmit={(event) => {
           event.preventDefault();
           void onSubmit?.();
@@ -79,7 +77,7 @@ export function AuthFormShell({
       >
         {children}
         {errorMessage ? <p className="text-sm text-[#ffb4c7]">{errorMessage}</p> : null}
-        <Button className="mt-1 rounded-[1.2rem] bg-[#17201B] py-3.5 text-sm disabled:opacity-60" disabled={isSubmitting} type="submit">
+        <Button className="rounded-[1.1rem] bg-[#17201B] py-3 text-sm disabled:opacity-60" disabled={isSubmitting} type="submit">
           {isSubmitting ? pendingLabel : submitLabel}
         </Button>
       </form>
@@ -87,14 +85,12 @@ export function AuthFormShell({
       {env.googleClientId ? (
         <>
           <GoogleSignInButton onSuccess={handleGoogleSuccess} text="continue_with" />
-          {googleErrorMessage ? <p className="mt-3 text-sm text-[#ffb4c7]">{googleErrorMessage}</p> : null}
+          {googleErrorMessage ? <p className="mt-2 text-sm text-[#ffb4c7]">{googleErrorMessage}</p> : null}
         </>
-      ) : (
-        <p className="text-sm text-white/55">Google Login wird sichtbar, sobald eine `NEXT_PUBLIC_GOOGLE_CLIENT_ID` gesetzt ist.</p>
-      )}
+      ) : null}
 
-      <Link className="mt-4 inline-flex text-sm font-medium text-white/72" href={altHref}>
-        {altLabel}
+      <Link className="mt-3 inline-flex text-sm font-medium text-white/60 hover:text-white" href={altHref}>
+        {altLabel} →
       </Link>
     </Card>
   );

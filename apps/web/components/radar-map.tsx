@@ -1,194 +1,256 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@/lib/auth";
 
-/**
- * Simple SVG-based Radar Map
- * Shows nearby users without external dependencies
- */
+interface NearbyUser {
+  id: string;
+  name: string;
+  age: number;
+  emoji: string;
+  distance: string;
+  lat: number;
+  lng: number;
+}
+
+interface LocationInfo {
+  lat: number;
+  lng: number;
+  displayName: string;
+}
+
+const SIMULATED_USERS: Omit<NearbyUser, "lat" | "lng">[] = [
+  { id: "u1", name: "Alex", age: 28, emoji: "😊", distance: "1.8 km" },
+  { id: "u2", name: "Jordan", age: 26, emoji: "🎵", distance: "2.4 km" },
+  { id: "u3", name: "Casey", age: 30, emoji: "🌟", distance: "3.1 km" },
+  { id: "u4", name: "Morgan", age: 27, emoji: "🎨", distance: "3.8 km" },
+  { id: "u5", name: "Riley", age: 25, emoji: "🎮", distance: "4.5 km" },
+];
+
 export function RadarMap() {
-  const { user } = useAuth();
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [coordinates] = useState({ lat: 48.1351, lng: 11.5820 }); // Munich, default
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const [location, setLocation] = useState<LocationInfo>({
+    lat: 48.1351,
+    lng: 11.582,
+    displayName: "München, Bayern",
+  });
+  const [selectedUser, setSelectedUser] = useState<NearbyUser | null>(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [locating, setLocating] = useState(true);
 
+  // Load Leaflet from CDN once
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (typeof window === "undefined") return;
 
-    // Draw SVG radar
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", "100%");
-    svg.setAttribute("height", "100%");
-    svg.setAttribute("viewBox", "0 0 400 400");
-    svg.setAttribute("class", "w-full h-full");
+    const cssId = "leaflet-css";
+    const jsId = "leaflet-js";
 
-    // Background
-    const bg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    bg.setAttribute("cx", "200");
-    bg.setAttribute("cy", "200");
-    bg.setAttribute("r", "200");
-    bg.setAttribute("fill", "#0f172a");
-    svg.appendChild(bg);
-
-    // Radar circles
-    for (let i = 1; i <= 3; i++) {
-      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      circle.setAttribute("cx", "200");
-      circle.setAttribute("cy", "200");
-      circle.setAttribute("r", String(i * 60));
-      circle.setAttribute("fill", "none");
-      circle.setAttribute("stroke", "#a855f7");
-      circle.setAttribute("stroke-width", "1");
-      circle.setAttribute("opacity", "0.3");
-      svg.appendChild(circle);
+    if (!document.getElementById(cssId)) {
+      const link = document.createElement("link");
+      link.id = cssId;
+      link.rel = "stylesheet";
+      link.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+      document.head.appendChild(link);
     }
 
-    // Crosshairs
-    const hLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    hLine.setAttribute("x1", "0");
-    hLine.setAttribute("y1", "200");
-    hLine.setAttribute("x2", "400");
-    hLine.setAttribute("y2", "200");
-    hLine.setAttribute("stroke", "#a855f7");
-    hLine.setAttribute("stroke-width", "1");
-    hLine.setAttribute("opacity", "0.2");
-    svg.appendChild(hLine);
+    if (document.getElementById(jsId)) {
+      setMapReady(true);
+      return;
+    }
 
-    const vLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    vLine.setAttribute("x1", "200");
-    vLine.setAttribute("y1", "0");
-    vLine.setAttribute("x2", "200");
-    vLine.setAttribute("y2", "400");
-    vLine.setAttribute("stroke", "#a855f7");
-    vLine.setAttribute("stroke-width", "1");
-    vLine.setAttribute("opacity", "0.2");
-    svg.appendChild(vLine);
+    const script = document.createElement("script");
+    script.id = jsId;
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    script.onload = () => setMapReady(true);
+    document.head.appendChild(script);
+  }, []);
 
-    // User position (center)
-    const userDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    userDot.setAttribute("cx", "200");
-    userDot.setAttribute("cy", "200");
-    userDot.setAttribute("r", "8");
-    userDot.setAttribute("fill", "#a855f7");
-    userDot.setAttribute("class", "animate-pulse");
-    svg.appendChild(userDot);
+  // Detect user geolocation and reverse-geocode
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocating(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=de`,
+            { headers: { "Accept-Language": "de" } }
+          );
+          const data = await res.json();
+          const city =
+            data.address?.city ||
+            data.address?.town ||
+            data.address?.village ||
+            data.address?.county ||
+            "Unbekannt";
+          const state = data.address?.state || "";
+          setLocation({ lat, lng, displayName: `${city}${state ? ", " + state : ""}` });
+        } catch {
+          setLocation((prev) => ({ ...prev, lat, lng }));
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => setLocating(false),
+      { timeout: 8000, maximumAge: 60000 }
+    );
+  }, []);
 
-    // Simulated nearby users
-    const users = [
-      { x: 220, y: 160, name: "Alex, 28", distance: "2.4 km" },
-      { x: 170, y: 220, name: "Jordan, 26", distance: "3.1 km" },
-      { x: 240, y: 200, name: "Casey, 30", distance: "1.8 km" },
-      { x: 200, y: 130, name: "Morgan, 27", distance: "4.2 km" },
-      { x: 150, y: 150, name: "Riley, 25", distance: "3.8 km" }
-    ];
+  // Initialize map once Leaflet is ready and we have location
+  useEffect(() => {
+    if (!mapReady || !mapContainerRef.current || mapInstanceRef.current) return;
 
-    users.forEach((u, i) => {
-      const userCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      userCircle.setAttribute("cx", String(u.x));
-      userCircle.setAttribute("cy", String(u.y));
-      userCircle.setAttribute("r", "6");
-      userCircle.setAttribute("fill", `hsl(${280 + i * 15}, 80%, 60%)`);
-      userCircle.setAttribute("class", "hover:r-8 transition-all cursor-pointer");
-      userCircle.setAttribute("data-name", u.name);
-      userCircle.setAttribute("data-distance", u.distance);
+    const L = (window as any).L;
+    if (!L) return;
 
-      // Hover tooltip
-      userCircle.addEventListener("mouseenter", (e) => {
-        const target = e.target as SVGCircleElement;
-        const name = target.getAttribute("data-name");
-        const distance = target.getAttribute("data-distance");
-
-        // Show tooltip
-        const tooltip = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        tooltip.setAttribute("x", String(u.x + 10));
-        tooltip.setAttribute("y", String(u.y - 10));
-        tooltip.setAttribute("fill", "white");
-        tooltip.setAttribute("font-size", "12");
-        tooltip.setAttribute("class", "pointer-events-none");
-        tooltip.setAttribute("id", "radar-tooltip");
-        tooltip.textContent = `${name} (${distance})`;
-        svg.appendChild(tooltip);
-      });
-
-      userCircle.addEventListener("mouseleave", () => {
-        const tooltip = svg.querySelector("#radar-tooltip");
-        if (tooltip) tooltip.remove();
-      });
-
-      svg.appendChild(userCircle);
+    // Create map
+    const map = L.map(mapContainerRef.current, {
+      center: [location.lat, location.lng],
+      zoom: 13,
+      zoomControl: false,
+      attributionControl: false,
     });
 
-    // Add legend
-    const legend = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    legend.setAttribute("x", "10");
-    legend.setAttribute("y", "30");
-    legend.setAttribute("fill", "#a855f7");
-    legend.setAttribute("font-size", "14");
-    legend.setAttribute("font-weight", "bold");
-    legend.textContent = `📍 Radar • Hier sind jetzt Leute • Klick zum chatten!`;
-    svg.appendChild(legend);
+    // Dark styled OSM tiles
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      maxZoom: 19,
+      minZoom: 1,
+      subdomains: "abcd",
+    }).addTo(map);
 
-    // Coordinates
-    const coords = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    coords.setAttribute("x", "10");
-    coords.setAttribute("y", "380");
-    coords.setAttribute("fill", "#a855f7");
-    coords.setAttribute("font-size", "11");
-    coords.setAttribute("opacity", "0.6");
-    coords.textContent = `📌 ${coordinates.lat.toFixed(4)}° N, ${coordinates.lng.toFixed(4)}° O • München`;
-    svg.appendChild(coords);
+    // Compact attribution
+    L.control.attribution({ prefix: false, position: "bottomright" })
+      .addAttribution('© <a href="https://www.openstreetmap.org/copyright" style="color:#a855f7">OSM</a>')
+      .addTo(map);
 
-    canvasRef.current.innerHTML = "";
-    canvasRef.current.appendChild(svg);
-  }, [coordinates]);
+    // Zoom control bottom-right
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+
+    // Self marker (pulsing purple dot)
+    const selfIcon = L.divIcon({
+      html: `<div style="position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;width:40px;height:40px;border-radius:50%;background:rgba(168,85,247,0.25);animation:pulse 2s infinite;"></div>
+        <div style="width:18px;height:18px;border-radius:50%;background:#a855f7;border:3px solid white;box-shadow:0 0 12px rgba(168,85,247,0.8);z-index:1;"></div>
+      </div>
+      <style>@keyframes pulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.8);opacity:0}}</style>`,
+      className: "",
+      iconSize: [40, 40],
+      iconAnchor: [20, 20],
+    });
+
+    L.marker([location.lat, location.lng], { icon: selfIcon, zIndexOffset: 1000 })
+      .addTo(map)
+      .bindPopup('<div style="color:#111;font-weight:600;font-size:12px;">📍 Du bist hier</div>');
+
+    // Simulated nearby users as avatar markers
+    const offsets = [
+      [0.012, 0.018],
+      [-0.009, 0.021],
+      [0.017, -0.013],
+      [-0.02, -0.016],
+      [0.006, -0.024],
+    ];
+
+    const nearbyUsers: NearbyUser[] = SIMULATED_USERS.map((u, i) => ({
+      ...u,
+      lat: location.lat + (offsets[i]?.[0] ?? 0),
+      lng: location.lng + (offsets[i]?.[1] ?? 0),
+    }));
+
+    nearbyUsers.forEach((u) => {
+      const userIcon = L.divIcon({
+        html: `<div style="width:44px;height:44px;border-radius:50%;background:rgba(18,12,34,0.88);border:2.5px solid rgba(168,85,247,0.85);box-shadow:0 4px 16px rgba(0,0,0,0.5),0 0 0 1px rgba(168,85,247,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;backdrop-filter:blur(8px);cursor:pointer;transition:transform .15s;"
+          onmouseover="this.style.transform='scale(1.15)'"
+          onmouseout="this.style.transform='scale(1)'"
+        >${u.emoji}</div>`,
+        className: "",
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
+      });
+
+      L.marker([u.lat, u.lng], { icon: userIcon })
+        .addTo(map)
+        .bindPopup(
+          `<div style="color:#111;font-size:12px;min-width:120px;">
+            <strong style="font-size:13px;">${u.name}, ${u.age}</strong><br>
+            <span style="color:#888;">${u.distance} entfernt</span>
+          </div>`
+        );
+    });
+
+    mapInstanceRef.current = map;
+  }, [mapReady, location]);
+
+  // Update map center when location changes
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([location.lat, location.lng], 13);
+    }
+  }, [location]);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Map Container */}
-      <div
-        ref={canvasRef}
-        className="w-full h-[500px] rounded-[2rem] overflow-hidden border border-white/12 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900"
-      />
+    <div className="flex flex-col gap-3">
+      {/* Map */}
+      <div className="relative overflow-hidden rounded-[1.5rem] border border-white/10">
+        <div ref={mapContainerRef} style={{ height: "380px", width: "100%" }} />
+        {/* Loading overlay */}
+        {!mapReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#0f0a1e]">
+            <div className="text-center">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#a855f7] border-t-transparent" />
+              <p className="mt-2 text-xs text-white/50">Karte lädt…</p>
+            </div>
+          </div>
+        )}
+      </div>
 
-      {/* Info Panel */}
-      <div className="grid gap-3 md:grid-cols-3">
-        <div className="glass-card rounded-[1.2rem] p-4">
-          <div className="text-xs font-semibold uppercase text-white/60">Deine Position</div>
-          <div className="mt-2 text-sm text-white">📍 München, Bayern</div>
+      {/* Info row */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="glass-card rounded-[1rem] px-3 py-2.5">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/50">Position</div>
+          <div className="mt-1 flex items-center gap-1 text-xs font-medium text-white">
+            <span>📍</span>
+            <span className="truncate">{locating ? "Wird ermittelt…" : location.displayName}</span>
+          </div>
         </div>
-        <div className="glass-card rounded-[1.2rem] p-4">
-          <div className="text-xs font-semibold uppercase text-white/60">Jetzt aktiv</div>
-          <div className="mt-2 text-sm text-white">👥 5 Kandidaten in 2-4km</div>
+        <div className="glass-card rounded-[1rem] px-3 py-2.5">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/50">Aktiv</div>
+          <div className="mt-1 flex items-center gap-1 text-xs font-medium text-white">
+            <span>👥</span>
+            <span>5 in der Nähe</span>
+          </div>
         </div>
-        <div className="glass-card rounded-[1.2rem] p-4">
-          <div className="text-xs font-semibold uppercase text-white/60">Deine Sichtbarkeit</div>
-          <div className="mt-2 text-sm text-white">🟢 Sichtbar für alle</div>
+        <div className="glass-card rounded-[1rem] px-3 py-2.5">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/50">Sichtbar</div>
+          <div className="mt-1 flex items-center gap-1 text-xs font-medium text-white">
+            <span>🟢</span>
+            <span>Online</span>
+          </div>
         </div>
       </div>
 
-      {/* User List */}
-      <div className="grid gap-2">
-        <h3 className="text-sm font-semibold text-white/80">Kandidaten in der Nähe</h3>
-        <div className="grid gap-2">
-          {[
-            { name: "Alex, 28", distance: "2.4 km", city: "Schwabing" },
-            { name: "Jordan, 26", distance: "3.1 km", city: "Maxvorstadt" },
-            { name: "Casey, 30", distance: "1.8 km", city: "Altstadt" },
-            { name: "Morgan, 27", distance: "4.2 km", city: "Neuhausen" },
-            { name: "Riley, 25", distance: "3.8 km", city: "Bogenhausen" }
-          ].map((person, i) => (
-            <div
-              key={i}
-              className="glass-card rounded-[1rem] p-3 flex items-center justify-between hover:bg-white/10 transition-colors cursor-pointer"
-            >
-              <div>
-                <div className="text-sm font-semibold text-white">{person.name}</div>
-                <div className="text-xs text-white/60">{person.city}</div>
-              </div>
-              <div className="text-xs font-semibold text-[#a855f7]">{person.distance}</div>
+      {/* Nearby user list */}
+      <div className="grid gap-1.5">
+        {SIMULATED_USERS.map((u) => (
+          <button
+            key={u.id}
+            type="button"
+            onClick={() => setSelectedUser(selectedUser?.id === u.id ? null : { ...u, lat: 0, lng: 0 })}
+            className="glass-card flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-left transition hover:bg-white/8"
+          >
+            <span className="text-2xl">{u.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-white">{u.name}, {u.age}</div>
             </div>
-          ))}
-        </div>
+            <div className="text-xs font-semibold text-[#a855f7]">{u.distance}</div>
+            <svg className="h-4 w-4 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        ))}
       </div>
     </div>
   );
