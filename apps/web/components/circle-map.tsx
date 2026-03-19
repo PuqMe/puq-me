@@ -220,8 +220,9 @@ export function CircleMap() {
         overflow: "hidden", background: "#07050f",
       }}>
 
-        {/* MAP */}
-        <div ref={mapRef} style={{ position: "absolute", inset: 0 }} />
+        {/* MAP – zIndex:1 creates a stacking context so Leaflet's internal
+             panes (z-index:200–700) don't leak above our overlays (z-20/30) */}
+        <div ref={mapRef} style={{ position: "absolute", inset: 0, zIndex: 1 }} />
 
         {/* Loading */}
         {!ready && (
