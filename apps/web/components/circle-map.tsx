@@ -43,7 +43,7 @@ const ENCOUNTERS: Record<TimeFilter, Encounter[]> = {
 };
 
 const NAV_ITEMS = [
-  { href: "/radar",   label: "nearby" },
+  { href: "/nearby",  label: "nearby" },
   { href: "/circle",  label: "circle" },
   { href: "/matches", label: "matches" },
   { href: "/chat",    label: "chat" },
@@ -282,7 +282,7 @@ export function CircleMap() {
 
             {/* Right header: Nearby, Circle, Search, Bell, Menu */}
             <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Link href="/radar" aria-label="Nearby" style={headerBtn}><NearbyIcon /></Link>
+              <Link href="/nearby" aria-label="Nearby" style={headerBtn}><NearbyIcon /></Link>
               <Link href="/circle" aria-label="Circle" style={headerBtn}><CircleNavIcon /></Link>
               <button aria-label="Search" onClick={() => setShowSearch(true)} style={headerBtn}><SearchIcon /></button>
               <button aria-label="Benachrichtigungen" style={headerBtn}><BellIcon /></button>

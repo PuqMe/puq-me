@@ -323,7 +323,7 @@ export function OnboardingFlow() {
           </button>
         ) : null}
 
-        <Link className="glass-card rounded-[1.3rem] px-4 py-4 text-center text-sm font-semibold text-white" href={step === 2 ? "/radar" : "/profile/create"}>
+        <Link className="glass-card rounded-[1.3rem] px-4 py-4 text-center text-sm font-semibold text-white" href={step === 2 ? "/nearby" : "/profile/create"}>
           Vorerst ueberspringen
         </Link>
       </div>

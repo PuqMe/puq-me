@@ -20,7 +20,7 @@ const NEARBY = [
 ];
 
 const NAV_ITEMS = [
-  { href: "/radar",    label: "nearby" },
+  { href: "/nearby",  label: "nearby" },
   { href: "/circle",  label: "circle" },
   { href: "/matches", label: "matches" },
   { href: "/chat",    label: "chat" },
@@ -84,6 +84,8 @@ export function RadarMap() {
   const mapRef     = useRef<HTMLDivElement>(null);
   const mapObjRef  = useRef<any>(null);
   const tileRef    = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
+  const selfMarkerRef = useRef<any>(null);
   const [ready,    setReady]    = useState(false);
   const [location, setLocation] = useState<LocationInfo>({ lat: 48.1351, lng: 11.582, displayName: "München" });
   const [showSearch,  setShowSearch]  = useState(false);
@@ -122,7 +124,7 @@ export function RadarMap() {
     }, undefined, { timeout: 8000, maximumAge: 60000 });
   }, []);
 
-  /* Init Leaflet map */
+  /* Init Leaflet map — only depends on ready */
   useEffect(() => {
     if (!ready || !mapRef.current || mapObjRef.current) return;
     const L = (window as any).L;
@@ -140,19 +142,38 @@ export function RadarMap() {
     }).addTo(map);
     tileRef.current = tile;
 
-    L.marker([location.lat, location.lng], {
+    mapObjRef.current = map;
+  }, [ready]);
+
+  /* Place / update markers whenever location changes */
+  useEffect(() => {
+    if (!mapObjRef.current) return;
+    const L = (window as any).L;
+    if (!L) return;
+    const map = mapObjRef.current;
+
+    // Remove old markers
+    if (selfMarkerRef.current) { selfMarkerRef.current.remove(); }
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+
+    // Self marker
+    selfMarkerRef.current = L.marker([location.lat, location.lng], {
       icon: L.divIcon({ html: avatarHtml("Du", "#a855f7", 64, true), className: "", iconSize: [64,64], iconAnchor: [32,32] }),
       zIndexOffset: 1000,
     }).addTo(map).bindPopup("<b>Du bist hier</b>");
 
+    // Nearby markers
     NEARBY.forEach(u => {
-      L.marker([location.lat + u.off[0]!, location.lng + u.off[1]!], {
+      const m = L.marker([location.lat + u.off[0]!, location.lng + u.off[1]!], {
         icon: L.divIcon({ html: avatarHtml(u.initials, u.color, 46, Math.random() > 0.3), className: "", iconSize: [46,46], iconAnchor: [23,23] }),
       }).addTo(map).bindPopup(`<b>${u.name}</b><br><small>${u.dist}</small>`);
+      markersRef.current.push(m);
     });
 
-    mapObjRef.current = map;
-  }, [ready, location]);
+    // Pan map to new location
+    map.setView([location.lat, location.lng], 14);
+  }, [location, ready]);
 
   /* Switch tile layer */
   useEffect(() => {
@@ -164,10 +185,6 @@ export function RadarMap() {
       maxZoom: 19, subdomains: "abcd",
     }).addTo(mapObjRef.current);
   }, [tileKey]);
-
-  useEffect(() => {
-    if (mapObjRef.current) mapObjRef.current.setView([location.lat, location.lng], 14);
-  }, [location]);
 
   const zoomIn  = () => mapObjRef.current?.zoomIn();
   const zoomOut = () => mapObjRef.current?.zoomOut();
@@ -184,7 +201,6 @@ export function RadarMap() {
         const lng = parseFloat(d[0].lon);
         const name = d[0].display_name?.split(",")[0] || searchQuery;
         setLocation({ lat, lng, displayName: name });
-        mapObjRef.current?.setView([lat, lng], 14);
       }
     } catch { /* noop */ }
     setShowSearch(false);
@@ -235,7 +251,7 @@ export function RadarMap() {
 
           {/* Right header: Nearby, Circle, Search, Bell, Menu */}
           <div style={{ display: "flex", gap: 2 }}>
-            <Link href="/radar" aria-label="Nearby" style={headerBtn}><NearbyIcon /></Link>
+            <Link href="/nearby" aria-label="Nearby" style={headerBtn}><NearbyIcon /></Link>
             <Link href="/circle" aria-label="Circle" style={headerBtn}><CircleIcon /></Link>
             <button aria-label="Search" onClick={() => setShowSearch(true)} style={headerBtn}><SearchIcon /></button>
             <button aria-label="Benachrichtigungen" style={headerBtn}><BellIcon /></button>
@@ -297,10 +313,10 @@ export function RadarMap() {
             <Link key={item.href} href={item.href} style={{
               display: "flex", flexDirection: "column", alignItems: "center",
               gap: 3, padding: "4px 8px", textDecoration: "none",
-              color: item.href === "/radar" ? "#a855f7" : "rgba(255,255,255,.70)",
+              color: item.href === "/nearby" ? "#a855f7" : "rgba(255,255,255,.70)",
             }}>
               <NavIcon type={item.label} />
-              {item.href === "/radar" && (
+              {item.href === "/nearby" && (
                 <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#a855f7" }} />
               )}
             </Link>
