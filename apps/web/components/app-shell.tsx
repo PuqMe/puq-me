@@ -105,29 +105,32 @@ export function AppShell({
         </div>
       </div>
 
-      {/* Mobile slide-in menu */}
+      {/* Mobile slide-in menu – transparent, icons only at right edge */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-50 lg:hidden"
           onClick={() => setIsMenuOpen(false)}
         >
           <div
-            className="glass-card absolute right-3 top-3 w-52 rounded-[1.5rem] p-3"
+            className="absolute right-0 top-0 bottom-0 flex flex-col items-center justify-center gap-6"
+            style={{ width: 44 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-2 flex items-center justify-between px-2">
-              <span className="text-[10px] uppercase tracking-widest text-white/50">{BRAND_NAME}</span>
-              <button
-                type="button"
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
                 onClick={() => setIsMenuOpen(false)}
-                className="text-white/50 hover:text-white"
+                className={clsx(
+                  "flex h-10 w-10 items-center justify-center rounded-full transition-all",
+                  active === item.href
+                    ? "text-[#a855f7] drop-shadow-[0_0_6px_rgba(168,85,247,0.7)]"
+                    : "text-white/60 hover:text-white"
+                )}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-            <div className="grid gap-0.5">{navContent}</div>
+                <NavIcon type={item.icon} size={24} />
+              </Link>
+            ))}
           </div>
         </div>
       )}
