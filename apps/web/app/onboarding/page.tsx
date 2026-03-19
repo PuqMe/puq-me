@@ -3,9 +3,11 @@ import { OnboardingFlow } from "@/components/onboarding-flow";
 
 export default function OnboardingPage() {
   return (
-    <main className="page-shell safe-px safe-pb">
+    <main className="auth-shell safe-px" style={{ position: "relative", zIndex: 10 }}>
       <AuthGuard>
-        <OnboardingFlow />
+        <div className="mx-auto w-full max-w-sm">
+          <OnboardingFlow />
+        </div>
       </AuthGuard>
     </main>
   );
