@@ -1,0 +1,20 @@
+{
+  "project": "puqme",
+  "version": "0.1.0",
+  "timestamp": "2026-03-19T08:30:00Z",
+  "deployment": {
+    "frontend": "cloudflare-workers",
+    "api": "docker-compose",
+    "database": "postgresql",
+    "cache": "redis",
+    "storage": "idrive-e2"
+  },
+  "files": [
+    "apps/web/**/*",
+    "apps/api/**/*",
+    "deploy/**/*",
+    "package.json",
+    "pnpm-lock.yaml"
+  ],
+  "status": "ready"
+}
