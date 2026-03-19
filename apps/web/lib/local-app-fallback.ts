@@ -368,11 +368,14 @@ function buildMessagesForConversation(conversation: FallbackConversationSummary)
 }
 
 export function shouldUseLocalAppFallback(response?: Response) {
-  return Boolean(response && response.status === 404 && env.apiBaseUrl.includes("api.puq.me"));
+  if (!response) return false;
+  // Fallback when API returns 404 (not deployed or route missing)
+  return response.status === 404;
 }
 
 export function shouldUseLocalAppFallbackForError(error: unknown) {
-  return env.apiBaseUrl.includes("api.puq.me") && error instanceof TypeError;
+  // Fallback on network errors (API unreachable)
+  return error instanceof TypeError;
 }
 
 export function createFallbackSession(email: string) {
