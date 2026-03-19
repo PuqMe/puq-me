@@ -85,7 +85,7 @@ export function SettingsPanel() {
   }
 
   return (
-    <AppShell active="/settings" title={t.settingsTitle} subtitle="Echte Radar- und Privacy-Steuerung">
+    <AppShell active="/settings" title={t.settingsTitle} subtitle={t.radarPrivacySubtitle}>
       <section className="grid gap-3">
         <PushPermissionCard />
 

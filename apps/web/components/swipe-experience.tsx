@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { SwipeCard, type SwipeCardData } from "@/components/swipe-card";
 import { useAuth } from "@/lib/auth";
+import { useLanguage } from "@/lib/i18n";
 import { createSwipe, fetchRadarFeed, type RadarFeedItem } from "@/lib/social";
 
 const gradients = [
@@ -13,22 +14,23 @@ const gradients = [
   "bg-gradient-to-br from-[#be185d] via-[#4c1d95] to-[#111827]"
 ];
 
-function toSwipeCard(item: RadarFeedItem, index: number): SwipeCardData {
+function toSwipeCard(item: RadarFeedItem, index: number, t: { unknown: string; bioMissing: string; qualityLabel: string; feedLabel: string }): SwipeCardData {
   return {
     id: item.userId,
     name: item.displayName,
     age: item.age,
-    city: item.city ?? "Unbekannt",
-    tagline: item.bio ?? "Profile is being completed. Start a conversation about interests.",
+    city: item.city ?? t.unknown,
+    tagline: item.bio ?? t.bioMissing,
     distance: `${Math.round(item.distanceKm)} km`,
     gradient: gradients[index % gradients.length] ?? gradients[0]!,
-    vibe: `Qualitaet ${Math.round(item.profileQualityScore)}`,
-    availability: `Feed ${Math.round(item.feedScore)}`
+    vibe: t.qualityLabel.replace("{score}", String(Math.round(item.profileQualityScore))),
+    availability: t.feedLabel.replace("{score}", String(Math.round(item.feedScore)))
   };
 }
 
 export function SwipeExperience() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [items, setItems] = useState<RadarFeedItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +50,7 @@ export function SwipeExperience() {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Could not load nearby.");
+          setErrorMessage(error instanceof Error ? error.message : t.couldNotLoadNearby);
         }
       } finally {
         if (!cancelled) {
@@ -64,8 +66,8 @@ export function SwipeExperience() {
 
   const currentItem = items[0] ?? null;
   const nextItem = items[1] ?? null;
-  const currentCard = useMemo(() => (currentItem ? toSwipeCard(currentItem, 0) : null), [currentItem]);
-  const nextCard = useMemo(() => (nextItem ? toSwipeCard(nextItem, 1) : null), [nextItem]);
+  const currentCard = useMemo(() => (currentItem ? toSwipeCard(currentItem, 0, t) : null), [currentItem, t]);
+  const nextCard = useMemo(() => (nextItem ? toSwipeCard(nextItem, 1, t) : null), [nextItem, t]);
 
   async function handleSwipe(nextDirection: "left" | "right" | "super") {
     if (!currentItem || isSubmitting) {
@@ -81,13 +83,13 @@ export function SwipeExperience() {
       setItems((current) => current.slice(1));
       setFeedback(
         result.isMatch
-          ? `Match mit ${currentItem.displayName}. Jetzt direkt in den Chat wechseln.`
+          ? t.matchFeedback.replace("{name}", currentItem.displayName)
           : nextDirection === "left"
-            ? `${currentItem.displayName} uebersprungen.`
-            : `${currentItem.displayName} wurde geliked.`
+            ? t.skippedFeedback.replace("{name}", currentItem.displayName)
+            : t.likedFeedback.replace("{name}", currentItem.displayName)
       );
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Could not save swipe.");
+      setErrorMessage(error instanceof Error ? error.message : t.couldNotSaveSwipe);
     } finally {
       window.setTimeout(() => setDirection(null), 220);
       setIsSubmitting(false);
@@ -95,17 +97,23 @@ export function SwipeExperience() {
   }
 
   return (
-    <AppShell active="/radar" title="Radar (Maps kommen)" subtitle="Echte Kandidaten aus dem Feed, echte Swipes und sofortiges Match-Feedback">
+    <AppShell active="/radar" title={t.nearby} subtitle={t.radarSubtitle}>
       <section className="grid gap-4">
         <div className="grid grid-cols-3 gap-2 text-[11px] font-medium">
-          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{items.length} offen</div>
-          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{isFallbackSession ? "Demo feed" : "Live feed"}</div>
-          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{isFallbackSession ? "Fallback aktiv" : "API aktiv"}</div>
+          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">
+            {t.openCards.replace("{count}", String(items.length))}
+          </div>
+          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">
+            {isFallbackSession ? t.demoFeed : t.liveFeed}
+          </div>
+          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">
+            {isFallbackSession ? t.fallbackActive : t.apiActive}
+          </div>
         </div>
 
         {isFallbackSession ? (
           <div className="glass-card rounded-[1.4rem] px-4 py-3 text-sm text-[#ffdca8]">
-            Diese Session laeuft aktuell mit lokalen Demo-Daten. Fuer echte Swipes und Matches muss die produktive API erreichbar sein.
+            {t.fallbackBanner}
           </div>
         ) : null}
 
@@ -114,14 +122,16 @@ export function SwipeExperience() {
 
         <div className="relative h-[31rem]">
           {isLoading ? (
-            <div className="glass-card flex h-full items-center justify-center rounded-[2rem] text-sm text-white/72">Radar wird geladen...</div>
+            <div className="glass-card flex h-full items-center justify-center rounded-[2rem] text-sm text-white/72">
+              {t.radarLoading}
+            </div>
           ) : null}
 
           {!isLoading && !currentCard ? (
             <div className="glass-card flex h-full flex-col items-center justify-center rounded-[2rem] p-6 text-center">
-              <div className="text-xl font-semibold text-white">Deck leer</div>
+              <div className="text-xl font-semibold text-white">{t.deckEmpty}</div>
               <p className="mt-3 max-w-xs text-sm leading-6 text-white/70">
-                Your first feed is ready. With new profiles, location and interests this will grow.
+                {t.deckEmptyDesc}
               </p>
             </div>
           ) : null}
@@ -136,31 +146,37 @@ export function SwipeExperience() {
               <div>
                 <div className="text-lg font-semibold text-white">{currentItem.displayName}</div>
                 <div className="mt-1 text-sm text-white/68">
-                  {currentItem.city ?? "Unbekannt"} · {Math.round(currentItem.distanceKm)} km
+                  {currentItem.city ?? t.unknown} · {Math.round(currentItem.distanceKm)} km
                 </div>
               </div>
               <div className="soft-pill rounded-full px-3 py-1.5 text-[11px] font-semibold">
-                Feed {Math.round(currentItem.feedScore)}
+                {t.feedLabel.replace("{score}", String(Math.round(currentItem.feedScore)))}
               </div>
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-2 text-[11px] text-white/72">
-              <div className="rounded-[1rem] bg-white/8 px-3 py-2">Qualitaet {Math.round(currentItem.profileQualityScore)}</div>
-              <div className="rounded-[1rem] bg-white/8 px-3 py-2">Aktiv {Math.round(currentItem.activityScore)}</div>
-              <div className="rounded-[1rem] bg-white/8 px-3 py-2">Antwort {Math.round(currentItem.responseProbabilityScore)}</div>
+              <div className="rounded-[1rem] bg-white/8 px-3 py-2">
+                {t.qualityLabel.replace("{score}", String(Math.round(currentItem.profileQualityScore)))}
+              </div>
+              <div className="rounded-[1rem] bg-white/8 px-3 py-2">
+                {t.activityLabel.replace("{score}", String(Math.round(currentItem.activityScore)))}
+              </div>
+              <div className="rounded-[1rem] bg-white/8 px-3 py-2">
+                {t.responseLabel.replace("{score}", String(Math.round(currentItem.responseProbabilityScore)))}
+              </div>
             </div>
           </div>
         ) : null}
 
         <div className="grid grid-cols-3 gap-3">
           <button className="glass-card rounded-[1.4rem] px-4 py-4 text-sm font-semibold text-white" disabled={!currentItem || isSubmitting} onClick={() => void handleSwipe("left")}>
-            Skip
+            {t.skip}
           </button>
           <button className="glass-card rounded-[1.4rem] px-4 py-4 text-sm font-semibold text-white" disabled={!currentItem || isSubmitting} onClick={() => void handleSwipe("super")}>
-            Super
+            {t.super}
           </button>
           <button className="glow-button rounded-[1.4rem] px-4 py-4 text-sm font-semibold text-white" disabled={!currentItem || isSubmitting} onClick={() => void handleSwipe("right")}>
-            Like
+            {t.like}
           </button>
         </div>
       </section>

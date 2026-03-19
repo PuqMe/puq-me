@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card } from "@puqme/ui";
 import { PageHeader } from "@/components/page-header";
 import { fetchMyProfile, updateMyProfile } from "@/lib/profile";
+import { useLanguage } from "@/lib/i18n";
 
 type FormState = {
   displayName: string;
@@ -24,6 +25,7 @@ const initialFormState: FormState = {
 
 export function ProfileBuilder() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [form, setForm] = useState<FormState>(initialFormState);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,7 +51,7 @@ export function ProfileBuilder() {
         });
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Could not load profile.");
+          setErrorMessage(error instanceof Error ? error.message : t.error);
         }
       } finally {
         if (!cancelled) {
@@ -96,24 +98,16 @@ export function ProfileBuilder() {
       const occupation = form.occupation.trim();
       const city = form.city.trim();
 
-      if (bio) {
-        profileInput.bio = bio;
-      }
-
-      if (occupation) {
-        profileInput.occupation = occupation;
-      }
-
-      if (city) {
-        profileInput.city = city;
-      }
+      if (bio) profileInput.bio = bio;
+      if (occupation) profileInput.occupation = occupation;
+      if (city) profileInput.city = city;
 
       await updateMyProfile(profileInput);
 
-      setSuccessMessage("Profile saved and live.");
+      setSuccessMessage(t.profileConnected);
       window.setTimeout(() => router.push("/profile"), 600);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Could not save profile.");
+      setErrorMessage(error instanceof Error ? error.message : t.error);
     } finally {
       setIsSaving(false);
     }
@@ -122,16 +116,15 @@ export function ProfileBuilder() {
   return (
     <section className="grid gap-4">
       <PageHeader
-        eyebrow="Create profile"
-        title="Show your best side"
-        description="A strong profile gets found more easily and builds trust."
+        eyebrow={t.createProfileEyebrow}
+        title={t.createProfileTitle}
+        description={t.createProfileDesc}
       />
 
       <Card className="mesh-panel rounded-[2rem] p-5 text-white">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <div className="text-sm font-semibold text-white">Key details first</div>
-            <div className="mt-1 text-sm text-white/70">Real save flow, not demo fields.</div>
+            <div className="text-sm font-semibold text-white">{t.keyDetails}</div>
           </div>
           <div className="soft-pill rounded-full px-3 py-1 text-[11px] font-semibold">Live</div>
         </div>
@@ -140,7 +133,7 @@ export function ProfileBuilder() {
           <input
             className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
             onChange={(event) => updateField("displayName", event.target.value)}
-            placeholder="Display name"
+            placeholder={t.displayNamePlaceholder}
             value={form.displayName}
           />
           <input
@@ -153,20 +146,20 @@ export function ProfileBuilder() {
             className="min-h-28 rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
             maxLength={500}
             onChange={(event) => updateField("bio", event.target.value)}
-            placeholder="Kurze Bio"
+            placeholder={t.bioLongPlaceholder}
             value={form.bio}
           />
           <div className="grid grid-cols-2 gap-3">
             <input
               className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
               onChange={(event) => updateField("occupation", event.target.value)}
-              placeholder="Occupation"
+              placeholder={t.occupationPlaceholder}
               value={form.occupation}
             />
             <input
               className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
               onChange={(event) => updateField("city", event.target.value)}
-              placeholder="City"
+              placeholder={t.cityPlaceholder}
               value={form.city}
             />
           </div>
@@ -176,14 +169,14 @@ export function ProfileBuilder() {
       <Card className="glass-card rounded-[2rem] p-5 text-white">
         <div className="text-sm font-semibold text-white">Status</div>
         <div className="mt-3 text-sm text-white/72">
-          {isLoading ? "Loading profile..." : "Your profile is connected."}
+          {isLoading ? t.loadingProfile : t.profileConnected}
         </div>
         {errorMessage ? <div className="mt-3 text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
         {successMessage ? <div className="mt-3 text-sm text-[#b8ffd9]">{successMessage}</div> : null}
       </Card>
 
       <Button className="glow-button rounded-[1.35rem] py-4 text-sm font-semibold" disabled={isLoading || isSaving} onClick={() => void handleSubmit()}>
-        {isSaving ? "Saving profile..." : "Save profile"}
+        {isSaving ? t.savingProfile : t.saveProfile}
       </Button>
     </section>
   );

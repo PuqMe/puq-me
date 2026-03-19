@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { apiClient } from "@/lib/api-client";
+import { useLanguage } from "@/lib/i18n";
 
 type TimeFilter = "24h" | "3d" | "7d" | "1m" | "3m" | "1y";
 type ViewMode = "map" | "list";
@@ -210,6 +211,7 @@ function markerPosition(base: GeoState, point: { lat: number; lon: number }) {
 }
 
 export function CircleExperience() {
+  const { t } = useLanguage();
   const [activeFilter, setActiveFilter] = useState<TimeFilter>("24h");
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [geo, setGeo] = useState<GeoState>(defaultGeo);
@@ -317,7 +319,7 @@ export function CircleExperience() {
   }, [activeFilter, geo.lat, geo.lon]);
 
   return (
-    <AppShell active="/circle" title="Circle" subtitle="Your encounters on a map or list, deliberately blurred for privacy">
+    <AppShell active="/circle" title={t.circle} subtitle={t.circleSubtitle}>
       <section className="grid gap-4">
         <div className="glass-card flex items-center gap-2 rounded-[1.6rem] p-2">
           <button
@@ -409,9 +411,9 @@ export function CircleExperience() {
                       <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-7 8a7 7 0 0 1 14 0" strokeWidth="1.8" />
                     </svg>
                   </div>
-                  <h2 className="text-3xl font-semibold">No encounters found</h2>
+                  <h2 className="text-3xl font-semibold">{t.noEncounters}</h2>
                   <p className="mt-3 max-w-sm text-base leading-7 text-white/72">
-                    Keep exploring. Users from your nearby area appear here as blurred encounter zones.
+                    {t.noEncountersDesc}
                   </p>
                 </div>
               )}
@@ -433,12 +435,12 @@ export function CircleExperience() {
                 <div className="mt-3 flex items-center justify-between text-sm text-white/72">
                   <span>
                     {locationState === "locating"
-                      ? "Detecting location..."
+                      ? t.detectingLocation
                       : locationState === "blocked"
-                        ? "Location not shared"
-                        : `Location detected: ${geo.city}`}
+                        ? t.locationBlocked
+                        : t.locationDetected.replace("{city}", geo.city)}
                   </span>
-                  <span>{encountersLoading ? "lade..." : "OSM · Nominatim"}</span>
+                  <span>{encountersLoading ? t.loading : "OSM · Nominatim"}</span>
                 </div>
               </div>
             </div>
@@ -464,11 +466,11 @@ export function CircleExperience() {
                         </span>
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-2 text-[12px] text-white/74">
-                        <div className="rounded-[1rem] bg-white/8 px-3 py-2">Gesehen in: {encounter.area}</div>
-                        <div className="rounded-[1rem] bg-white/8 px-3 py-2">Zeitfenster: {encounter.timeLabel}</div>
+                        <div className="rounded-[1rem] bg-white/8 px-3 py-2">{t.seenIn.replace("{area}", encounter.area)}</div>
+                        <div className="rounded-[1rem] bg-white/8 px-3 py-2">{t.timeWindow.replace("{time}", encounter.timeLabel)}</div>
                       </div>
                       <p className="mt-3 text-sm leading-6 text-white/72">
-                        Blurred encounter in the same area. Exact locations and times are hidden for privacy.
+                        {t.blurredEncounter}
                       </p>
                     </div>
                   </div>
@@ -476,9 +478,9 @@ export function CircleExperience() {
               ))
             ) : (
               <div className="glass-card rounded-[2rem] p-6 text-center text-white">
-                <h2 className="text-2xl font-semibold">No encounters in selected period</h2>
+                <h2 className="text-2xl font-semibold">{t.noEncountersPeriod}</h2>
                 <p className="mt-3 text-sm leading-6 text-white/72">
-                  Try a longer time period or keep exploring with nearby enabled.
+                  {t.noEncountersPeriodDesc}
                 </p>
               </div>
             )}

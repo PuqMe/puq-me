@@ -120,6 +120,65 @@ export const translations = {
     allSetDesc: "Your profile is live. People nearby can now find you.",
     goToRadar: "Go to Radar",
 
+    // ── Radar / Swipe ──
+    radarSubtitle: "Real profiles from the feed — swipe and get instant match feedback",
+    radarLoading: "Loading radar...",
+    deckEmpty: "Deck empty",
+    deckEmptyDesc: "Your feed is ready. With more profiles, location and interests this will grow.",
+    openCards: "{count} open",
+    demoFeed: "Demo feed",
+    liveFeed: "Live feed",
+    fallbackActive: "Fallback active",
+    apiActive: "API active",
+    fallbackBanner: "This session uses local demo data. For real swipes and matches the production API must be reachable.",
+    matchFeedback: "Match with {name}! Go to chat.",
+    skippedFeedback: "{name} skipped.",
+    likedFeedback: "{name} liked.",
+    skip: "Skip",
+    super: "Super",
+    like: "Like",
+    qualityLabel: "Quality {score}",
+    activityLabel: "Active {score}",
+    responseLabel: "Response {score}",
+    feedLabel: "Feed {score}",
+    couldNotLoadNearby: "Could not load nearby.",
+    couldNotSaveSwipe: "Could not save swipe.",
+
+    // ── Circle ──
+    circleSubtitle: "Your encounters on a map or list — deliberately blurred for privacy",
+    noEncounters: "No encounters found",
+    noEncountersDesc: "Keep exploring. Nearby users appear here as blurred encounter zones.",
+    detectingLocation: "Detecting location...",
+    locationBlocked: "Location not shared",
+    locationDetected: "Location: {city}",
+    noEncountersPeriod: "No encounters in selected period",
+    noEncountersPeriodDesc: "Try a longer time period or keep exploring with nearby enabled.",
+    seenIn: "Seen in: {area}",
+    timeWindow: "Time: {time}",
+    blurredEncounter: "Blurred encounter in the same area. Exact locations and times are hidden for privacy.",
+
+    // ── Settings subtitle ──
+    radarPrivacySubtitle: "Real radar and privacy controls",
+
+    // ── Profile Builder ──
+    createProfileEyebrow: "Edit profile",
+    createProfileTitle: "Show your best side",
+    createProfileDesc: "A strong profile gets found more easily and builds trust.",
+    keyDetails: "Key details",
+    profileConnected: "Your profile is connected.",
+    saveProfile: "Save profile",
+    savingProfile: "Saving...",
+    displayNamePlaceholder: "Display name",
+    occupationPlaceholder: "Occupation",
+    cityPlaceholder: "City",
+    bioLongPlaceholder: "Short bio",
+
+    // ── Push notifications ──
+    pushTitle: "Push notifications",
+    pushDesc: "Enable alerts for new matches, messages and updates.",
+    pushStatus: "Status: {status}",
+    pushEnable: "Enable",
+
     // ── Common ──
     save: "Save",
     cancel: "Cancel",
@@ -239,6 +298,65 @@ export const translations = {
     allSet: "Alles fertig!",
     allSetDesc: "Dein Profil ist live. Personen in deiner Nähe können dich jetzt finden.",
     goToRadar: "Zum Radar",
+
+    // ── Radar / Swipe ──
+    radarSubtitle: "Echte Profile aus dem Feed — swipe und erhalte sofortiges Match-Feedback",
+    radarLoading: "Radar wird geladen...",
+    deckEmpty: "Keine Profile mehr",
+    deckEmptyDesc: "Dein Feed ist bereit. Mit mehr Profilen, Standort und Interessen wird dieser wachsen.",
+    openCards: "{count} offen",
+    demoFeed: "Demo-Feed",
+    liveFeed: "Live-Feed",
+    fallbackActive: "Fallback aktiv",
+    apiActive: "API aktiv",
+    fallbackBanner: "Diese Session läuft mit lokalen Demo-Daten. Für echte Swipes und Matches muss die Produktiv-API erreichbar sein.",
+    matchFeedback: "Match mit {name}! Jetzt in den Chat wechseln.",
+    skippedFeedback: "{name} übersprungen.",
+    likedFeedback: "{name} geliked.",
+    skip: "Weiter",
+    super: "Super",
+    like: "Like",
+    qualityLabel: "Qualität {score}",
+    activityLabel: "Aktiv {score}",
+    responseLabel: "Antwort {score}",
+    feedLabel: "Feed {score}",
+    couldNotLoadNearby: "Konnte Nearby nicht laden.",
+    couldNotSaveSwipe: "Konnte Swipe nicht speichern.",
+
+    // ── Circle ──
+    circleSubtitle: "Deine Begegnungen auf Karte oder Liste — aus Datenschutzgründen verschwommen",
+    noEncounters: "Keine Begegnungen gefunden",
+    noEncountersDesc: "Erkunde weiter. Nutzer aus deiner Nähe erscheinen hier als verschwommene Begegnungszonen.",
+    detectingLocation: "Standort wird ermittelt...",
+    locationBlocked: "Standort nicht geteilt",
+    locationDetected: "Standort: {city}",
+    noEncountersPeriod: "Keine Begegnungen im gewählten Zeitraum",
+    noEncountersPeriodDesc: "Wähle einen längeren Zeitraum oder erkunde weiter mit aktiviertem Nearby.",
+    seenIn: "Gesehen in: {area}",
+    timeWindow: "Zeitfenster: {time}",
+    blurredEncounter: "Verschwommene Begegnung in der gleichen Gegend. Genaue Orte und Zeiten werden zum Datenschutz verborgen.",
+
+    // ── Settings subtitle ──
+    radarPrivacySubtitle: "Echte Radar- und Datenschutz-Einstellungen",
+
+    // ── Profile Builder ──
+    createProfileEyebrow: "Profil bearbeiten",
+    createProfileTitle: "Zeig deine beste Seite",
+    createProfileDesc: "Ein starkes Profil wird leichter gefunden und schafft Vertrauen.",
+    keyDetails: "Wichtige Details",
+    profileConnected: "Dein Profil ist verbunden.",
+    saveProfile: "Profil speichern",
+    savingProfile: "Wird gespeichert...",
+    displayNamePlaceholder: "Anzeigename",
+    occupationPlaceholder: "Beruf",
+    cityPlaceholder: "Stadt",
+    bioLongPlaceholder: "Kurze Bio",
+
+    // ── Push notifications ──
+    pushTitle: "Push-Benachrichtigungen",
+    pushDesc: "Aktiviere Benachrichtigungen für neue Matches, Nachrichten und Updates.",
+    pushStatus: "Status: {status}",
+    pushEnable: "Aktivieren",
 
     // ── Common ──
     save: "Speichern",
