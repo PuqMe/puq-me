@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AppShell } from "@/components/app-shell";
 
 interface NearbyUser {
   id: string;
@@ -192,6 +193,7 @@ export function RadarMap() {
   }, [location]);
 
   return (
+    <AppShell title="Radar" subtitle="Menschen in deiner Nähe" active="/radar">
     <div className="flex flex-col gap-3">
       {/* Map */}
       <div className="relative overflow-hidden rounded-[1.5rem] border border-white/10">
@@ -253,5 +255,6 @@ export function RadarMap() {
         ))}
       </div>
     </div>
+    </AppShell>
   );
 }
