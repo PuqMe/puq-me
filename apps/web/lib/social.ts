@@ -6,7 +6,7 @@ import {
   createFallbackSwipe,
   fetchFallbackConversationMessages,
   fetchFallbackConversations,
-  fetchFallbackDiscoverFeed,
+  fetchFallbackRadarFeed,
   fetchFallbackMatches,
   markFallbackConversationRead,
   sendFallbackConversationMessage,
@@ -14,7 +14,7 @@ import {
   shouldUseLocalAppFallbackForError
 } from "@/lib/local-app-fallback";
 
-export type DiscoverFeedItem = {
+export type RadarFeedItem = {
   userId: string;
   displayName: string;
   age: number;
@@ -38,8 +38,8 @@ export type DiscoverFeedItem = {
   };
 };
 
-export type DiscoverResponse = {
-  items: DiscoverFeedItem[];
+export type RadarResponse = {
+  items: RadarFeedItem[];
   cache: {
     hit: boolean;
     remaining: number;
@@ -159,18 +159,18 @@ async function expectOk(response: Response) {
   return response;
 }
 
-export async function fetchDiscoverFeed(limit = 12, refresh = false) {
+export async function fetchRadarFeed(limit = 12, refresh = false) {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe/discover?limit=${limit}&refresh=${refresh}`);
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe/radar?limit=${limit}&refresh=${refresh}`);
     if (shouldUseLocalAppFallback(response)) {
-      return fetchFallbackDiscoverFeed(limit) as DiscoverResponse;
+      return fetchFallbackRadarFeed(limit) as RadarResponse;
     }
 
     await expectOk(response);
-    return (await response.json()) as DiscoverResponse;
+    return (await response.json()) as RadarResponse;
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
-      return fetchFallbackDiscoverFeed(limit) as DiscoverResponse;
+      return fetchFallbackRadarFeed(limit) as RadarResponse;
     }
 
     throw error;

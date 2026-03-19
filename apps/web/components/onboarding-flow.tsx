@@ -85,7 +85,7 @@ export function OnboardingFlow() {
         text: "Gib dem ersten Matchgespraech direkt Stoff und steuere die Qualitaet deines Profils."
       },
       {
-        title: "Discovery filtern",
+        title: "Radar filtern",
         text: "Lege Alter, Distanz und Sichtbarkeit fest, damit dein Feed von Anfang an zu dir passt."
       }
     ],
@@ -200,7 +200,7 @@ export function OnboardingFlow() {
         showMeGlobally,
         onlyVerifiedProfiles
       });
-      router.push("/discover");
+      router.push("/radar");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Praeferenzen konnten nicht gespeichert werden.");
     } finally {
@@ -323,7 +323,7 @@ export function OnboardingFlow() {
           </button>
         ) : null}
 
-        <Link className="glass-card rounded-[1.3rem] px-4 py-4 text-center text-sm font-semibold text-white" href={step === 2 ? "/discover" : "/profile/create"}>
+        <Link className="glass-card rounded-[1.3rem] px-4 py-4 text-center text-sm font-semibold text-white" href={step === 2 ? "/radar" : "/profile/create"}>
           Vorerst ueberspringen
         </Link>
       </div>

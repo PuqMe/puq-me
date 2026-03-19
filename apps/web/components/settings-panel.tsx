@@ -65,7 +65,7 @@ export function SettingsPanel() {
         onlyVerifiedProfiles: input.onlyVerifiedProfiles ?? data.preferences.onlyVerifiedProfiles
       });
       setData(next);
-      setSuccessMessage("Discovery-Settings gespeichert.");
+      setSuccessMessage("Radar-Settings gespeichert.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Settings konnten nicht gespeichert werden.");
     } finally {
@@ -74,7 +74,7 @@ export function SettingsPanel() {
   }
 
   return (
-    <AppShell active="/settings" title="Settings" subtitle="Echte Discovery- und Privacy-Steuerung statt Platzhalter-Schalter">
+    <AppShell active="/settings" title="Settings" subtitle="Echte Radar- und Privacy-Steuerung statt Platzhalter-Schalter">
       <section className="grid gap-3">
         <PushPermissionCard />
 
@@ -100,7 +100,7 @@ export function SettingsPanel() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-medium text-white">Show me globally</div>
-              <div className="mt-1 text-xs text-white/58">Nicht nur lokale, sondern globale Discovery zulassen.</div>
+              <div className="mt-1 text-xs text-white/58">Nicht nur lokales, sondern globales Radar zulassen.</div>
             </div>
             <input
               checked={data?.preferences.showMeGlobally ?? false}

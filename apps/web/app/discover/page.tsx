@@ -1,12 +1,5 @@
-import { AuthGuard } from "@/components/auth-guard";
-import { SwipeExperience } from "@/components/swipe-experience";
+import { redirect } from "next/navigation";
 
-export default function DiscoverPage() {
-  return (
-    <main className="page-shell safe-px safe-pb">
-      <AuthGuard>
-        <SwipeExperience />
-      </AuthGuard>
-    </main>
-  );
+export default function LegacyRadarRedirectPage() {
+  redirect("/radar");
 }

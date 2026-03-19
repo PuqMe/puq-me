@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const discoverQuerySchema = z.object({
+export const radarQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
   refresh: z.coerce.boolean().optional().default(false)
 });
@@ -12,7 +12,7 @@ export const createSwipeBodySchema = z
   })
   .strict();
 
-export const discoverFeedItemSchema = z.object({
+export const radarFeedItemSchema = z.object({
   userId: z.string(),
   displayName: z.string(),
   age: z.number().int(),
@@ -36,8 +36,8 @@ export const discoverFeedItemSchema = z.object({
   })
 });
 
-export const discoverFeedResponseSchema = z.object({
-  items: z.array(discoverFeedItemSchema),
+export const radarFeedResponseSchema = z.object({
+  items: z.array(radarFeedItemSchema),
   cache: z.object({
     hit: z.boolean(),
     remaining: z.number().int().nonnegative()
@@ -51,5 +51,5 @@ export const swipeResponseSchema = z.object({
   isMatch: z.boolean()
 });
 
-export type DiscoverQuery = z.infer<typeof discoverQuerySchema>;
+export type RadarQuery = z.infer<typeof radarQuerySchema>;
 export type CreateSwipeBody = z.infer<typeof createSwipeBodySchema>;

@@ -50,7 +50,7 @@ export type FallbackProfileResponse = {
   } | null;
 };
 
-export type FallbackDiscoverFeedItem = {
+export type FallbackRadarFeedItem = {
   userId: string;
   displayName: string;
   age: number;
@@ -156,7 +156,7 @@ type FallbackState = {
 const fallbackStateKey = "puqme.local-app-fallback.v1";
 const sessionStorageKey = "puqme.session.user";
 
-const seededPeople: FallbackDiscoverFeedItem[] = [
+const seededPeople: FallbackRadarFeedItem[] = [
   {
     userId: "fall-jules",
     displayName: "Jules",
@@ -490,7 +490,7 @@ export function updateFallbackVisibility(isVisible: boolean) {
   return updateFallbackProfile({ isVisible });
 }
 
-export function fetchFallbackDiscoverFeed(limit = 12) {
+export function fetchFallbackRadarFeed(limit = 12) {
   const user = readStoredSessionUser();
   if (!user) {
     throw new Error("Bitte zuerst einloggen.");

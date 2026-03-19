@@ -25,7 +25,7 @@ export function getPostAuthPath(profile: ProfileResponse) {
     return "/profile/create";
   }
 
-  return "/discover";
+  return "/radar";
 }
 
 export async function resolvePostAuthPath() {

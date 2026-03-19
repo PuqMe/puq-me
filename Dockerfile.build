@@ -1,0 +1,21 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@9.15.1
+
+# Copy workspace files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+
+# Copy all packages
+COPY . .
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Build all packages
+RUN pnpm build
+
+# Output
+RUN ls -la apps/web/.open-next/ 2>/dev/null || echo "Build may need adjustment"

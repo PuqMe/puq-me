@@ -340,7 +340,7 @@ export class SwipeRepository {
 
     const result = await this.app.db.query<{ id: string }>(
       `insert into swipes (actor_user_id, target_user_id, direction, source)
-       values ($1, $2, $3, 'discover')
+       values ($1, $2, $3, 'radar')
        on conflict (actor_user_id, target_user_id)
        do update set direction = excluded.direction,
                      updated_at = now()

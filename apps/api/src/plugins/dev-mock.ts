@@ -88,7 +88,7 @@ const conversationStore = new Map<string, Array<{
     createdAt: string;
   } | null;
 }>>();
-const discoverPool = [
+const radarPool = [
   {
     userId: "202",
     displayName: "Maya",
@@ -578,6 +578,24 @@ const devMockPlugin: FastifyPluginAsync = async (app) => {
     return nextProfile;
   });
 
+  app.get("/v1/swipe/radar", async (request, reply) => {
+    const user = getUserFromAuthHeader(request.headers.authorization);
+    if (!user) {
+      return reply.code(401).send({ error: "unauthorized", message: "Please sign in first." });
+    }
+
+    const swipedTargets = userSwipes.get(user.id) ?? new Map<string, "left" | "right" | "super">();
+    const items = radarPool.filter((candidate) => !swipedTargets.has(candidate.userId));
+
+    return {
+      items,
+      cache: {
+        hit: false,
+        remaining: 0
+      }
+    };
+  });
+
   app.get("/v1/swipe/discover", async (request, reply) => {
     const user = getUserFromAuthHeader(request.headers.authorization);
     if (!user) {
@@ -585,7 +603,7 @@ const devMockPlugin: FastifyPluginAsync = async (app) => {
     }
 
     const swipedTargets = userSwipes.get(user.id) ?? new Map<string, "left" | "right" | "super">();
-    const items = discoverPool.filter((candidate) => !swipedTargets.has(candidate.userId));
+    const items = radarPool.filter((candidate) => !swipedTargets.has(candidate.userId));
 
     return {
       items,
@@ -620,7 +638,7 @@ const devMockPlugin: FastifyPluginAsync = async (app) => {
     if (isMatch) {
       const matches = ensureUserMatches(user.id);
       if (!matches.some((item) => item.peer.userId === payload.targetUserId)) {
-        const matchedCandidate = discoverPool.find((candidate) => candidate.userId === payload.targetUserId);
+        const matchedCandidate = radarPool.find((candidate) => candidate.userId === payload.targetUserId);
         const matchId = String(nextMatchId++);
         const conversationId = String(nextConversationId++);
         const createdAt = new Date().toISOString();

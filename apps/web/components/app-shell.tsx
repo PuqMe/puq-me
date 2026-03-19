@@ -7,7 +7,7 @@ import { BRAND_NAME } from "@puqme/config";
 import { LogoMark } from "@puqme/ui";
 
 const navItems = [
-  { href: "/discover", label: "Radar", icon: "radar" },
+  { href: "/radar", label: "Radar", icon: "radar" },
   { href: "/circle", label: "Circle", icon: "circle" },
   { href: "/matches", label: "Matches", icon: "heart" },
   { href: "/chat", label: "Chat", icon: "chat" },

@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { MatchService } from "../match/service.js";
 import { SwipeRepository } from "./repository.js";
 import { rankCandidates } from "./ranking.js";
-import type { CreateSwipeBody, DiscoverQuery } from "./schema.js";
+import type { CreateSwipeBody, RadarQuery } from "./schema.js";
 
 export class SwipeService {
   private readonly repository: SwipeRepository;
@@ -14,7 +14,7 @@ export class SwipeService {
   }
 
   private cacheKey(userId: string) {
-    return `discover:deck:${userId}`;
+    return `radar:deck:${userId}`;
   }
 
   private calculateAge(birthDate: string) {
@@ -37,7 +37,7 @@ export class SwipeService {
     await this.app.redis.set(this.cacheKey(userId), JSON.stringify(candidateIds), "EX", 600);
   }
 
-  async getDiscoverFeed(userId: string, query: DiscoverQuery) {
+  async getRadarFeed(userId: string, query: RadarQuery) {
     const viewer = await this.repository.getViewerPreferences(userId);
     let cacheHit = false;
     let cachedIds = query.refresh ? null : await this.loadCachedDeck(userId);

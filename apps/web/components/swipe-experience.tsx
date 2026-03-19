@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { SwipeCard, type SwipeCardData } from "@/components/swipe-card";
-import { createSwipe, fetchDiscoverFeed, type DiscoverFeedItem } from "@/lib/social";
+import { useAuth } from "@/lib/auth";
+import { createSwipe, fetchRadarFeed, type RadarFeedItem } from "@/lib/social";
 
 const gradients = [
   "bg-gradient-to-br from-[#8f4bd7] via-[#2b1144] to-[#111827]",
@@ -12,7 +13,7 @@ const gradients = [
   "bg-gradient-to-br from-[#be185d] via-[#4c1d95] to-[#111827]"
 ];
 
-function toSwipeCard(item: DiscoverFeedItem, index: number): SwipeCardData {
+function toSwipeCard(item: RadarFeedItem, index: number): SwipeCardData {
   return {
     id: item.userId,
     name: item.displayName,
@@ -27,19 +28,21 @@ function toSwipeCard(item: DiscoverFeedItem, index: number): SwipeCardData {
 }
 
 export function SwipeExperience() {
-  const [items, setItems] = useState<DiscoverFeedItem[]>([]);
+  const { user } = useAuth();
+  const [items, setItems] = useState<RadarFeedItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
+  const isFallbackSession = user?.id.startsWith("fallback-") ?? false;
 
   useEffect(() => {
     let cancelled = false;
 
     void (async () => {
       try {
-        const data = await fetchDiscoverFeed(12);
+        const data = await fetchRadarFeed(12);
         if (!cancelled) {
           setItems(data.items);
         }
@@ -92,13 +95,19 @@ export function SwipeExperience() {
   }
 
   return (
-    <AppShell active="/discover" title="Radar" subtitle="Echte Kandidaten aus dem Feed, echte Swipes und sofortiges Match-Feedback">
+    <AppShell active="/radar" title="Radar (Maps kommen)" subtitle="Echte Kandidaten aus dem Feed, echte Swipes und sofortiges Match-Feedback">
       <section className="grid gap-4">
         <div className="grid grid-cols-3 gap-2 text-[11px] font-medium">
           <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{items.length} offen</div>
-          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">Live feed</div>
-          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">API aktiv</div>
+          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{isFallbackSession ? "Demo feed" : "Live feed"}</div>
+          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{isFallbackSession ? "Fallback aktiv" : "API aktiv"}</div>
         </div>
+
+        {isFallbackSession ? (
+          <div className="glass-card rounded-[1.4rem] px-4 py-3 text-sm text-[#ffdca8]">
+            Diese Session laeuft aktuell mit lokalen Demo-Daten. Fuer echte Swipes und Matches muss die produktive API erreichbar sein.
+          </div>
+        ) : null}
 
         {errorMessage ? <div className="glass-card rounded-[1.4rem] px-4 py-3 text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
         {feedback ? <div className="glass-card rounded-[1.4rem] px-4 py-3 text-sm text-[#b8ffd9]">{feedback}</div> : null}
