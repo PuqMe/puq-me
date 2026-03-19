@@ -153,7 +153,7 @@ export function RadarMap() {
     <>
       {/* Darken only the map tiles, not the markers */}
       <style>{`
-        .leaflet-tile-pane { filter: brightness(0.6) saturate(0.8) contrast(1.15); }
+        .leaflet-tile-pane { filter: brightness(0.72) saturate(0.9) contrast(1.05); }
         .leaflet-attribution-flag { display:none!important; }
         .leaflet-control-attribution {
           font-size:9px!important; border-radius:4px!important;
@@ -194,9 +194,11 @@ export function RadarMap() {
         {/* ── TOP HEADER ── */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
-          background: "linear-gradient(180deg, rgba(7,5,15,.96) 0%, rgba(7,5,15,.75) 60%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(6,3,18,.97) 0%, rgba(6,3,18,.82) 55%, rgba(6,3,18,.0) 100%)",
+          backdropFilter: "blur(16px) saturate(160%)",
+          WebkitBackdropFilter: "blur(16px) saturate(160%)",
           paddingTop: "max(12px, env(safe-area-inset-top))",
-          paddingLeft: 12, paddingRight: 12, paddingBottom: 16,
+          paddingLeft: 12, paddingRight: 12, paddingBottom: 20,
           display: "flex", alignItems: "center", gap: 8,
         }}>
           {/* Logo + title */}
@@ -272,9 +274,10 @@ export function RadarMap() {
         }}>
           <button style={{
             display: "flex", alignItems: "center", gap: 6,
-            borderRadius: 999, border: "1px solid rgba(255,255,255,.1)",
-            background: "rgba(12,9,24,.78)", backdropFilter: "blur(12px)",
-            color: "rgba(255,255,255,.55)", padding: "7px 14px",
+            borderRadius: 999, border: "1px solid rgba(255,255,255,.18)",
+            background: "rgba(10,6,28,.82)", backdropFilter: "blur(14px) saturate(160%)",
+            WebkitBackdropFilter: "blur(14px) saturate(160%)",
+            color: "rgba(255,255,255,.75)", padding: "7px 14px",
             fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
             cursor: "pointer",
           }}>
@@ -287,8 +290,9 @@ export function RadarMap() {
         <nav style={{
           position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 30,
           display: "flex", alignItems: "center", justifyContent: "space-around",
-          background: "rgba(6,4,15,.92)", backdropFilter: "blur(20px)",
-          borderTop: "1px solid rgba(255,255,255,.07)",
+          background: "rgba(6,3,18,.94)", backdropFilter: "blur(22px) saturate(160%)",
+          WebkitBackdropFilter: "blur(22px) saturate(160%)",
+          borderTop: "1px solid rgba(255,255,255,.13)",
           paddingTop: 8,
           paddingBottom: "max(8px, env(safe-area-inset-bottom))",
         }}>
@@ -296,7 +300,7 @@ export function RadarMap() {
             <Link key={item.href} href={item.href} style={{
               display: "flex", flexDirection: "column", alignItems: "center",
               gap: 3, padding: "4px 8px", textDecoration: "none",
-              color: item.href === "/radar" ? "#a855f7" : "rgba(255,255,255,.28)",
+              color: item.href === "/radar" ? "#a855f7" : "rgba(255,255,255,.45)",
             }}>
               <NavIcon type={item.label} />
               {item.href === "/radar" && (
@@ -318,9 +322,10 @@ export function RadarMap() {
 /* Shared style for round control buttons */
 const ctrlBtn: React.CSSProperties = {
   width: 40, height: 40, borderRadius: "50%",
-  border: "1px solid rgba(255,255,255,.1)",
-  background: "rgba(12,9,24,.78)", backdropFilter: "blur(12px)",
-  color: "rgba(255,255,255,.6)",
+  border: "1px solid rgba(255,255,255,.18)",
+  background: "rgba(10,6,28,.82)", backdropFilter: "blur(14px) saturate(160%)",
+  WebkitBackdropFilter: "blur(14px) saturate(160%)",
+  color: "rgba(255,255,255,.75)",
   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-  cursor: "pointer", boxShadow: "0 4px 16px rgba(0,0,0,.4)",
+  cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.5)",
 };
