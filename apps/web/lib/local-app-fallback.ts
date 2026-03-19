@@ -374,8 +374,11 @@ export function shouldUseLocalAppFallback(response?: Response) {
 }
 
 export function shouldUseLocalAppFallbackForError(error: unknown) {
-  // Fallback on network errors (API unreachable)
-  return error instanceof TypeError;
+  // TypeError  → fetch could not reach the server at all (no network, DNS failure)
+  if (error instanceof TypeError) return true;
+  // DOMException AbortError → our AbortController timeout fired (server hangs, blocked by network)
+  if (error instanceof DOMException && error.name === "AbortError") return true;
+  return false;
 }
 
 export function createFallbackSession(email: string) {

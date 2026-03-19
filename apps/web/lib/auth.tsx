@@ -139,7 +139,7 @@ async function readAuthError(response: Response) {
 
 async function refreshStoredSession(refreshToken: string) {
   try {
-    const response = await fetch(`${env.apiBaseUrl}/v1/auth/refresh`, {
+    const response = await fetchWithTimeout(`${env.apiBaseUrl}/v1/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken })
@@ -183,6 +183,18 @@ async function refreshStoredSession(refreshToken: string) {
   }
 }
 
+// Wraps fetch with an AbortController timeout so restricted networks (e.g. public WiFi
+// that silently blocks api.puq.me) don't leave the app hanging forever.
+// On timeout the thrown DOMException(AbortError) is caught by shouldUseLocalAppFallbackForError.
+const API_TIMEOUT_MS = 10_000;
+
+function fetchWithTimeout(input: string, init: RequestInit = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 export async function fetchWithSession(input: string, init: RequestInit = {}) {
   const tokens = readStoredTokens();
   const headers = new Headers(init.headers);
@@ -191,7 +203,7 @@ export async function fetchWithSession(input: string, init: RequestInit = {}) {
     headers.set("Authorization", `Bearer ${tokens.accessToken}`);
   }
 
-  let response = await fetch(input, {
+  let response = await fetchWithTimeout(input, {
     ...init,
     headers
   });
@@ -208,7 +220,7 @@ export async function fetchWithSession(input: string, init: RequestInit = {}) {
   const retryHeaders = new Headers(init.headers);
   retryHeaders.set("Authorization", `Bearer ${refreshedSession.tokens.accessToken}`);
 
-  response = await fetch(input, {
+  response = await fetchWithTimeout(input, {
     ...init,
     headers: retryHeaders
   });
@@ -243,7 +255,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       user,
       signIn: async (email: string, password: string) => {
         try {
-          const response = await fetch(`${env.apiBaseUrl}/v1/auth/login`, {
+          const response = await fetchWithTimeout(`${env.apiBaseUrl}/v1/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password })
@@ -279,7 +291,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       },
       register: async (email: string, password: string) => {
         try {
-          const response = await fetch(`${env.apiBaseUrl}/v1/auth/register`, {
+          const response = await fetchWithTimeout(`${env.apiBaseUrl}/v1/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password })
@@ -321,7 +333,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       },
       signInWithGoogle: async (credential: string) => {
         try {
-          const response = await fetch(`${env.apiBaseUrl}/v1/auth/google`, {
+          const response = await fetchWithTimeout(`${env.apiBaseUrl}/v1/auth/google`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ credential })
