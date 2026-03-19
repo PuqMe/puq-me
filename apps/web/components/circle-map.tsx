@@ -352,7 +352,7 @@ export function CircleMap() {
         {/* ── EBENEN (bottom-left, above nav) ── */}
         <div style={{
           position: "absolute", left: 12, zIndex: 20,
-          bottom: "max(72px, calc(env(safe-area-inset-bottom) + 64px))",
+          bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
         }}>
           <button style={{
             display: "flex", alignItems: "center", gap: 6,
