@@ -8,10 +8,8 @@ export const metadata: Metadata = {
 
 export default function RadarPage() {
   return (
-    <main className="page-shell safe-px safe-pb">
-      <AuthGuard>
-        <RadarMap />
-      </AuthGuard>
-    </main>
+    <AuthGuard>
+      <RadarMap />
+    </AuthGuard>
   );
 }
