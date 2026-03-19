@@ -244,9 +244,7 @@ export function CircleMap() {
         {/* ── TOP HEADER ── */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
-          background: "linear-gradient(180deg, rgba(6,3,18,.97) 0%, rgba(6,3,18,.88) 70%, rgba(6,3,18,0) 100%)",
-          backdropFilter: "blur(16px) saturate(160%)",
-          WebkitBackdropFilter: "blur(16px) saturate(160%)",
+          background: "linear-gradient(180deg, rgba(20,12,42,.98) 0%, rgba(20,12,42,.85) 70%, rgba(20,12,42,0) 100%)",
           paddingTop: "max(10px, env(safe-area-inset-top))",
           paddingLeft: 12, paddingRight: 12, paddingBottom: 0,
         }}>
@@ -357,10 +355,9 @@ export function CircleMap() {
         }}>
           <button style={{
             display: "flex", alignItems: "center", gap: 6,
-            borderRadius: 999, border: "1px solid rgba(255,255,255,.18)",
-            background: "rgba(10,6,28,.82)", backdropFilter: "blur(14px) saturate(160%)",
-            WebkitBackdropFilter: "blur(14px) saturate(160%)",
-            color: "rgba(255,255,255,.75)", padding: "7px 14px",
+            borderRadius: 999, border: "1px solid rgba(255,255,255,.22)",
+            background: "rgba(20,12,42,.92)",
+            color: "rgba(255,255,255,.80)", padding: "7px 14px",
             fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
             cursor: "pointer",
           }}>
@@ -380,9 +377,8 @@ export function CircleMap() {
             display: "flex", alignItems: "center", gap: 8,
             borderRadius: 999,
             border: "1px solid rgba(168,85,247,.35)",
-            background: "rgba(10,6,28,.85)", backdropFilter: "blur(14px) saturate(160%)",
-            WebkitBackdropFilter: "blur(14px) saturate(160%)",
-            color: "rgba(255,255,255,.85)", padding: "7px 18px",
+            background: "rgba(20,12,42,.92)",
+            color: "rgba(255,255,255,.90)", padding: "7px 18px",
             fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
           }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#a855f7", boxShadow: "0 0 8px rgba(168,85,247,.8)" }} />
@@ -394,9 +390,8 @@ export function CircleMap() {
         <nav style={{
           position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 30,
           display: "flex", alignItems: "center", justifyContent: "space-around",
-          background: "rgba(6,3,18,.94)", backdropFilter: "blur(22px) saturate(160%)",
-          WebkitBackdropFilter: "blur(22px) saturate(160%)",
-          borderTop: "1px solid rgba(255,255,255,.13)",
+          background: "rgba(20,12,42,.97)",
+          borderTop: "1px solid rgba(255,255,255,.22)",
           paddingTop: 8,
           paddingBottom: "max(8px, env(safe-area-inset-bottom))",
         }}>
@@ -404,7 +399,7 @@ export function CircleMap() {
             <Link key={item.href} href={item.href} style={{
               display: "flex", flexDirection: "column", alignItems: "center",
               gap: 3, padding: "4px 8px", textDecoration: "none",
-              color: item.href === "/circle" ? "#a855f7" : "rgba(255,255,255,.45)",
+              color: item.href === "/circle" ? "#a855f7" : "rgba(255,255,255,.70)",
             }}>
               <NavIcon type={item.label} />
               {item.href === "/circle" && (
@@ -421,10 +416,9 @@ export function CircleMap() {
 
 const ctrlBtn: React.CSSProperties = {
   width: 40, height: 40, borderRadius: "50%",
-  border: "1px solid rgba(255,255,255,.18)",
-  background: "rgba(10,6,28,.82)", backdropFilter: "blur(14px) saturate(160%)",
-  WebkitBackdropFilter: "blur(14px) saturate(160%)",
-  color: "rgba(255,255,255,.75)",
+  border: "1px solid rgba(255,255,255,.22)",
+  background: "rgba(20,12,42,.92)",
+  color: "rgba(255,255,255,.80)",
   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
   cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.5)",
 };
