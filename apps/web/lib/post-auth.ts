@@ -1,5 +1,6 @@
 "use client";
 
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { fetchMyProfile, type ProfileResponse } from "@/lib/profile";
 
 function hasCompletedOnboarding(profile: ProfileResponse) {
@@ -30,4 +31,21 @@ export function getPostAuthPath(profile: ProfileResponse) {
 export async function resolvePostAuthPath() {
   const profile = await fetchMyProfile();
   return getPostAuthPath(profile);
+}
+
+export async function navigateToPostAuthPath(router: AppRouterInstance) {
+  let nextPath = "/onboarding";
+
+  try {
+    nextPath = await resolvePostAuthPath();
+  } catch {
+    nextPath = "/onboarding";
+  }
+
+  router.push(nextPath);
+  window.setTimeout(() => {
+    if (window.location.pathname === "/login" || window.location.pathname === "/register") {
+      window.location.assign(nextPath);
+    }
+  }, 180);
 }

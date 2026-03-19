@@ -9,7 +9,7 @@ type DeferredInstallPrompt = Event & {
 
 declare global {
   interface Window {
-    __puqInstallPrompt?: DeferredInstallPrompt;
+    __puqInstallPrompt: DeferredInstallPrompt | undefined;
   }
 }
 
@@ -23,13 +23,17 @@ export function InstallNowFab() {
       setInstalled(window.matchMedia("(display-mode: standalone)").matches);
     }
 
+    function handleBeforeInstallPrompt() {
+      syncInstallState();
+    }
+
     syncInstallState();
     window.addEventListener("appinstalled", syncInstallState);
-    window.addEventListener("beforeinstallprompt", syncInstallState as EventListener);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     return () => {
       window.removeEventListener("appinstalled", syncInstallState);
-      window.removeEventListener("beforeinstallprompt", syncInstallState as EventListener);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
 

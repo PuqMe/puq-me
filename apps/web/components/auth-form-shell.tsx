@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import Link from "next/link";
 import { BRAND_NAME } from "@puqme/config";
 import { Button, Card } from "@puqme/ui";
@@ -7,7 +7,7 @@ import { GoogleSignInButton } from "./auth/google-sign-in-button";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { env } from "@/lib/env";
-import { resolvePostAuthPath } from "@/lib/post-auth";
+import { navigateToPostAuthPath } from "@/lib/post-auth";
 
 type AuthFormShellProps = {
   eyebrow: string;
@@ -20,7 +20,7 @@ type AuthFormShellProps = {
   errorMessage?: string | null;
   isSubmitting?: boolean;
   onSubmit?: () => Promise<void> | void;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 export function AuthFormShell({
@@ -39,14 +39,24 @@ export function AuthFormShell({
   const { signInWithGoogle } = useAuth();
   const router = useRouter();
   const [googleErrorMessage, setGoogleErrorMessage] = useState<string | null>(null);
+  const isHandlingGoogleRef = useRef(false);
 
   const handleGoogleSuccess = async (credential: string) => {
+    if (isHandlingGoogleRef.current) {
+      return;
+    }
+
     try {
+      isHandlingGoogleRef.current = true;
       setGoogleErrorMessage(null);
       await signInWithGoogle(credential);
-      router.push(await resolvePostAuthPath());
+      await navigateToPostAuthPath(router);
     } catch (error) {
       setGoogleErrorMessage(error instanceof Error ? error.message : "Google Login konnte nicht abgeschlossen werden.");
+    } finally {
+      window.setTimeout(() => {
+        isHandlingGoogleRef.current = false;
+      }, 300);
     }
   };
 

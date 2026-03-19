@@ -87,13 +87,28 @@ export function ProfileBuilder() {
     setIsSaving(true);
 
     try {
-      await updateMyProfile({
+      const profileInput: Parameters<typeof updateMyProfile>[0] = {
         displayName: form.displayName.trim(),
-        birthDate: form.birthDate,
-        bio: form.bio.trim() || undefined,
-        occupation: form.occupation.trim() || undefined,
-        city: form.city.trim() || undefined
-      });
+        birthDate: form.birthDate
+      };
+
+      const bio = form.bio.trim();
+      const occupation = form.occupation.trim();
+      const city = form.city.trim();
+
+      if (bio) {
+        profileInput.bio = bio;
+      }
+
+      if (occupation) {
+        profileInput.occupation = occupation;
+      }
+
+      if (city) {
+        profileInput.city = city;
+      }
+
+      await updateMyProfile(profileInput);
 
       setSuccessMessage("Profil gespeichert. Dein Auftritt ist jetzt live.");
       window.setTimeout(() => router.push("/profile"), 600);

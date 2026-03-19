@@ -139,12 +139,20 @@ export function OnboardingFlow() {
         // Best effort reverse geocoding. Coordinates remain the source of truth.
       }
 
-      const nextProfile = await updateMyLocation({
+      const locationInput: Parameters<typeof updateMyLocation>[0] = {
         latitude,
-        longitude,
-        city,
-        countryCode
-      });
+        longitude
+      };
+
+      if (city) {
+        locationInput.city = city;
+      }
+
+      if (countryCode) {
+        locationInput.countryCode = countryCode;
+      }
+
+      const nextProfile = await updateMyLocation(locationInput);
 
       setProfile(nextProfile);
       setLocationStatus(`${city ?? "Standort"} gespeichert und aktiv.`);
@@ -212,7 +220,7 @@ export function OnboardingFlow() {
     );
   }
 
-  const current = steps[step] ?? steps[0];
+  const current = steps[step] ?? steps[0]!;
 
   return (
     <section className="flex min-h-[calc(100vh-3rem)] flex-col justify-between gap-4">

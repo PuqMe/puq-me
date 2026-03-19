@@ -414,10 +414,11 @@ export function updateFallbackProfile(input: Partial<FallbackProfileResponse["pr
   }
 
   const state = ensureUserState(user);
+  const currentProfile = state.profiles[user.id]!;
   state.profiles[user.id] = {
-    ...state.profiles[user.id],
+    ...currentProfile,
     profile: {
-      ...state.profiles[user.id]!.profile,
+      ...currentProfile.profile,
       ...input
     }
   };
