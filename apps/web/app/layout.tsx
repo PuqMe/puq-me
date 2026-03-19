@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import {
   BRAND_DESCRIPTION,
   BRAND_NAME,
@@ -66,9 +67,13 @@ export const viewport: Viewport = {
   themeColor: BRAND_THEME_COLOR
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get("puqme.lang")?.value;
+  const lang = langCookie === "de" ? "de" : "en";
+
   return (
-    <html lang="en">
+    <html lang={lang}>
       <body className="app-frame min-h-screen font-sans antialiased">
         <script dangerouslySetInnerHTML={{ __html: installPromptScript }} />
         <CityBackdrop />

@@ -5,15 +5,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import { BRAND_NAME } from "@puqme/config";
 import { LogoMark } from "@puqme/ui";
-
-const navItems = [
-  { href: "/nearby", label: "Nearby", icon: "radar" },
-  { href: "/circle", label: "Circle", icon: "circle" },
-  { href: "/matches", label: "Matches", icon: "heart" },
-  { href: "/chat", label: "Chat", icon: "chat" },
-  { href: "/profile", label: "Profile", icon: "user" },
-  { href: "/settings", label: "More", icon: "grid" }
-];
+import { useLanguage } from "@/lib/i18n";
 
 function NavIcon({ type, size = 22 }: { type: string; size?: number }) {
   const s = size;
@@ -51,6 +43,16 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useLanguage();
+
+  const navItems = [
+    { href: "/nearby",   label: t.nearby,   icon: "radar"  },
+    { href: "/circle",   label: t.circle,   icon: "circle" },
+    { href: "/matches",  label: t.matches,  icon: "heart"  },
+    { href: "/chat",     label: t.chat,     icon: "chat"   },
+    { href: "/profile",  label: t.profile,  icon: "user"   },
+    { href: "/settings", label: t.more,     icon: "grid"   },
+  ];
 
   const navContent = navItems.map((item) => (
     <Link
@@ -135,7 +137,7 @@ export function AppShell({
         </div>
       )}
 
-      {/* Bottom nav – icons only, no background */}
+      {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-white/8 bg-[#08070f]/80 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl lg:hidden">
         {navItems.map((item) => (
           <Link

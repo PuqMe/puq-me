@@ -6,10 +6,12 @@ import { AuthFormShell } from "@/components/auth-form-shell";
 import { FormField } from "@/components/form-field";
 import { useAuth } from "@/lib/auth";
 import { navigateToPostAuthPath } from "@/lib/post-auth";
+import { useLanguage } from "@/lib/i18n";
 
 export function RegisterCard() {
   const router = useRouter();
   const { register } = useAuth();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -18,7 +20,7 @@ export function RegisterCard() {
 
   async function handleSubmit() {
     if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match.");
+      setErrorMessage(t.passwordsMismatch);
       return;
     }
 
@@ -37,34 +39,34 @@ export function RegisterCard() {
 
   return (
     <AuthFormShell
-      eyebrow="Register"
-      title="Create account"
+      eyebrow={t.register}
+      title={t.registerTitle}
       description=""
-      submitLabel="Create account"
-      pendingLabel="Creating account..."
-      altLabel="Already have an account"
+      submitLabel={t.register}
+      pendingLabel={t.registering}
+      altLabel={t.backToLogin}
       altHref="/login"
       errorMessage={errorMessage}
       isSubmitting={isSubmitting}
       onSubmit={handleSubmit}
     >
-      <FormField autoComplete="email" label="Email" name="email" onChange={setEmail} placeholder="you@puq.me" required type="email" value={email} />
+      <FormField autoComplete="email" label={t.emailLabel} name="email" onChange={setEmail} placeholder="you@puq.me" required type="email" value={email} />
       <FormField
         autoComplete="new-password"
-        label="Password"
+        label={t.passwordLabel}
         name="password"
         onChange={setPassword}
-        placeholder="Min 10 chars, upper/lower, number, symbol"
+        placeholder={t.passwordHint}
         required
         type="password"
         value={password}
       />
       <FormField
         autoComplete="new-password"
-        label="Confirm password"
+        label={t.confirmPasswordLabel}
         name="confirmPassword"
         onChange={setConfirmPassword}
-        placeholder="Repeat password"
+        placeholder={t.confirmPasswordPlaceholder}
         required
         type="password"
         value={confirmPassword}

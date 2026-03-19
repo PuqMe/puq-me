@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { fetchMatches, type MatchItem } from "@/lib/social";
+import { useLanguage } from "@/lib/i18n";
 
 const accents = [
   "bg-gradient-to-br from-[#7cb596] to-[#2f6b5f]",
@@ -13,6 +14,7 @@ const accents = [
 ];
 
 export function MatchList() {
+  const { t } = useLanguage();
   const [items, setItems] = useState<MatchItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -43,14 +45,14 @@ export function MatchList() {
   }, []);
 
   return (
-    <AppShell active="/matches" title="Matches" subtitle="Menschen, bei denen es jetzt wirklich auf beiden Seiten gepasst hat">
+    <AppShell active="/matches" title={t.matchesTitle} subtitle={t.matchesSubtitle}>
       <section className="grid gap-3">
-        {isLoading ? <div className="glass-card rounded-[1.8rem] p-4 text-sm text-white/72">Matches werden geladen...</div> : null}
+        {isLoading ? <div className="glass-card rounded-[1.8rem] p-4 text-sm text-white/72">{t.matchesLoading}</div> : null}
         {errorMessage ? <div className="glass-card rounded-[1.8rem] p-4 text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
 
         {!isLoading && !errorMessage && items.length === 0 ? (
           <div className="glass-card rounded-[1.8rem] p-5 text-sm leading-6 text-white/72">
-            Noch keine echten Matches. Sobald du im Radar Likes verteilst und ein Mutual entsteht, erscheint es hier.
+            {t.matchesEmpty}
           </div>
         ) : null}
 
@@ -62,12 +64,12 @@ export function MatchList() {
                 {match.peer.displayName}, {match.peer.age}
               </div>
               <div className="mt-1 text-sm text-white/68">
-                {match.peer.city ?? "Unbekannt"} · {new Date(match.matchedAt).toLocaleDateString()}
+                {match.peer.city ?? t.unknown} · {new Date(match.matchedAt).toLocaleDateString()}
               </div>
-              <div className="mt-1 text-sm text-white/58">{match.peer.bio ?? "Bio folgt."}</div>
+              <div className="mt-1 text-sm text-white/58">{match.peer.bio ?? t.bioMissing}</div>
             </div>
             <Link className="glow-button rounded-[1rem] px-4 py-3 text-xs font-semibold text-white" href={match.conversation.conversationId ? `/chat?conversationId=${match.conversation.conversationId}` : "/chat"}>
-              Chat
+              {t.chat}
             </Link>
           </article>
         ))}

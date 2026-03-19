@@ -4,8 +4,10 @@ import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { useChatClient } from "@/components/chat-client";
+import { useLanguage } from "@/lib/i18n";
 
 export function ChatShell() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const initialConversationId = useMemo(() => searchParams.get("conversationId"), [searchParams]);
   const {
@@ -25,12 +27,12 @@ export function ChatShell() {
   } = useChatClient(initialConversationId);
 
   return (
-    <AppShell active="/chat" title="Chat" subtitle="Echte Conversations, echte Messages und echte Session statt Demo-Thread">
+    <AppShell active="/chat" title={t.chatTitle} subtitle={t.chatSubtitle}>
       <section className="grid h-[78vh] grid-rows-[auto,auto,1fr,auto] gap-3">
         <div className="grid grid-cols-3 gap-2 text-[11px] font-medium">
-          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{conversations.length} chats</div>
-          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{metaUnreadCount} unread</div>
-          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">Session live</div>
+          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{conversations.length} {t.chatsCount}</div>
+          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{metaUnreadCount} {t.unreadCount}</div>
+          <div className="glass-card rounded-[1.2rem] px-3 py-3 text-white/82">{t.sessionLive}</div>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1">
@@ -41,7 +43,9 @@ export function ChatShell() {
               onClick={() => setSelectedConversationId(conversation.conversationId)}
             >
               <div className="font-semibold">{conversation.peer.displayName}</div>
-              <div className="mt-1 text-xs text-white/62">{conversation.unreadCount ? `${conversation.unreadCount} unread` : "Open chat"}</div>
+              <div className="mt-1 text-xs text-white/62">
+                {conversation.unreadCount ? `${conversation.unreadCount} ${t.unreadCount}` : t.openChat}
+              </div>
             </button>
           ))}
         </div>
@@ -49,9 +53,13 @@ export function ChatShell() {
         <div className="glass-card flex items-center gap-3 rounded-[1.75rem] p-3">
           <div className="h-12 w-12 rounded-[1.1rem] bg-gradient-to-br from-[#E6A77A] to-[#e9c98b]" />
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-white">{selectedConversation?.peer.displayName ?? "Noch kein Chat aktiv"}</div>
+            <div className="text-sm font-semibold text-white">
+              {selectedConversation?.peer.displayName ?? t.noActiveChat}
+            </div>
             <div className="text-xs text-white/62">
-              {selectedConversation ? `${selectedConversation.peer.city ?? "Unbekannt"} · ${selectedConversation.peer.age}` : "Waehle links eine Conversation"}
+              {selectedConversation
+                ? `${selectedConversation.peer.city ?? t.unknown} · ${selectedConversation.peer.age}`
+                : t.chooseChat}
             </div>
           </div>
           <div className="ml-auto soft-pill rounded-full px-3 py-1.5 text-[11px] font-semibold">
@@ -60,11 +68,11 @@ export function ChatShell() {
         </div>
 
         <div className="glass-card flex flex-col gap-3 overflow-y-auto rounded-[1.9rem] p-4">
-          {isLoading ? <div className="text-sm text-white/72">Chat wird geladen...</div> : null}
+          {isLoading ? <div className="text-sm text-white/72">{t.chatLoading}</div> : null}
           {errorMessage ? <div className="text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
 
           {!isLoading && !errorMessage && !selectedConversation ? (
-            <div className="text-sm text-white/72">Sobald dein erster Match-Chat existiert, erscheint er hier.</div>
+            <div className="text-sm text-white/72">{t.noMatchChat}</div>
           ) : null}
 
           {messages.map((message) => {
@@ -89,11 +97,15 @@ export function ChatShell() {
           <textarea
             className="min-h-11 flex-1 resize-none rounded-[1rem] bg-white/10 px-3 py-3 text-white outline-none placeholder:text-white/45"
             onChange={(event) => setDraft(event.target.value)}
-            placeholder={selectedConversation ? "Write a simple message..." : "Waehle erst einen Chat"}
+            placeholder={selectedConversation ? t.messagePlaceholder : t.noConversation}
             value={draft}
           />
-          <button className="glow-button rounded-[1rem] px-4 py-3 text-sm font-semibold text-white" disabled={!selectedConversationId || isSending} onClick={() => void sendTextMessage()}>
-            {isSending ? "Send..." : "Send"}
+          <button
+            className="glow-button rounded-[1rem] px-4 py-3 text-sm font-semibold text-white"
+            disabled={!selectedConversationId || isSending}
+            onClick={() => void sendTextMessage()}
+          >
+            {isSending ? t.sending : t.send}
           </button>
         </div>
       </section>

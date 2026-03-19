@@ -13,6 +13,7 @@ import {
   type ProfileResponse
 } from "@/lib/profile";
 import { useAuth } from "@/lib/auth";
+import { useLanguage } from "@/lib/i18n";
 
 const interestOptions = [
   "Live music",
@@ -35,6 +36,7 @@ const interestOptions = [
 export function OnboardingFlow() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [step, setStep] = useState(0);
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -217,7 +219,7 @@ export function OnboardingFlow() {
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-sm text-white/60">Loading...</div>
+        <div className="text-sm text-white/60">{t.loading}</div>
       </div>
     );
   }
@@ -235,10 +237,10 @@ export function OnboardingFlow() {
 
         <div>
           <h1 className="text-3xl font-semibold text-white">
-            Hi {greetingName}!
+            {t.onboardingWelcomeTitle.replace("{name}", greetingName)}
           </h1>
           <p className="mx-auto mt-3 max-w-xs text-base leading-7 text-white/70">
-            Let&apos;s finish your profile so people can find and connect with you.
+            {t.onboardingWelcomeDesc}
           </p>
         </div>
 
@@ -246,14 +248,14 @@ export function OnboardingFlow() {
           className="glow-button mt-4 w-full max-w-xs rounded-[1.3rem] px-6 py-4 text-base font-semibold text-white"
           onClick={() => setStep(1)}
         >
-          Set up profile
+          {t.setupProfile}
         </button>
 
         <button
           className="text-sm text-white/50 underline underline-offset-4"
           onClick={() => router.push("/nearby")}
         >
-          Skip for now
+          {t.skipForNow}
         </button>
       </section>
     );
@@ -266,15 +268,15 @@ export function OnboardingFlow() {
         <div className="glass-card rounded-[2rem] p-6 text-white">
           <div className="flex items-center gap-2">
             <div className="warm-pill inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
-              Step 1 of 2
+              {t.step1of2}
             </div>
           </div>
 
           <h1 className="mt-6 text-3xl font-semibold leading-tight text-white">
-            Show yourself
+            {t.showYourself}
           </h1>
           <p className="mt-2 text-sm leading-6 text-white/70">
-            Add a profile picture and an optional short video.
+            {t.showYourselfDesc}
           </p>
 
           {/* Photo upload */}
@@ -293,7 +295,7 @@ export function OnboardingFlow() {
                     <circle cx="8.5" cy="8.5" r="1.5" />
                     <polyline points="21 15 16 10 5 21" />
                   </svg>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider">Photo*</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">{t.photoLabel}</span>
                 </div>
               )}
             </button>
@@ -311,7 +313,7 @@ export function OnboardingFlow() {
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
-                  <span className="text-xs font-medium">Video ready</span>
+                  <span className="text-xs font-medium">{t.videoReady}</span>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-1 text-white/40">
@@ -319,8 +321,8 @@ export function OnboardingFlow() {
                     <polygon points="23 7 16 12 23 17 23 7" />
                     <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                   </svg>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider">Video</span>
-                  <span className="text-[9px] text-white/30">optional · max 15s</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider">{t.videoLabel}</span>
+                  <span className="text-[9px] text-white/30">{t.videoOptional}</span>
                 </div>
               )}
             </button>
@@ -333,15 +335,16 @@ export function OnboardingFlow() {
         <div className="grid gap-3 pb-2">
           <button
             className="glow-button rounded-[1.3rem] px-4 py-4 text-sm font-semibold text-white"
+            disabled={isSaving}
             onClick={() => void saveMediaAndContinue()}
           >
-            Continue
+            {isSaving ? t.saving : t.continueStep}
           </button>
           <button
             className="rounded-[1.3rem] px-4 py-3 text-center text-sm text-white/50"
             onClick={() => setStep(0)}
           >
-            Back
+            {t.back}
           </button>
         </div>
       </section>
@@ -354,22 +357,22 @@ export function OnboardingFlow() {
       <section className="flex min-h-[calc(100vh-3rem)] flex-col justify-between gap-4">
         <div className="glass-card rounded-[2rem] p-6 text-white">
           <div className="warm-pill inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
-            Step 2 of 2
+            {t.step2of2}
           </div>
 
           <h1 className="mt-6 text-3xl font-semibold leading-tight text-white">
-            A few details
+            {t.fewDetails}
           </h1>
           <p className="mt-2 text-sm leading-6 text-white/70">
-            Your name, a short bio, and what you&apos;re into.
+            {t.fewDetailsDesc}
           </p>
 
           <div className="mt-6 grid gap-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-white/50">Name</label>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-white/50">{t.nameLabel}</label>
               <input
                 className="w-full rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-3.5 text-white outline-none placeholder:text-white/30 focus:border-[#A855F7]/50"
-                placeholder="Your name"
+                placeholder={t.namePlaceholder}
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 maxLength={40}
@@ -378,12 +381,12 @@ export function OnboardingFlow() {
 
             <div>
               <label className="mb-1.5 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-white/50">
-                <span>Bio</span>
+                <span>{t.bioLabel}</span>
                 <span className="normal-case tracking-normal text-white/30">{bio.length}/100</span>
               </label>
               <textarea
                 className="min-h-[5rem] w-full resize-none rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-3.5 text-white outline-none placeholder:text-white/30 focus:border-[#A855F7]/50"
-                placeholder="Two sentences about you..."
+                placeholder={t.bioPlaceholder}
                 value={bio}
                 onChange={(e) => setBio(e.target.value.slice(0, 100))}
                 maxLength={100}
@@ -392,7 +395,7 @@ export function OnboardingFlow() {
 
             <div>
               <label className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-white/50">
-                <span>Interests</span>
+                <span>{t.interestsStep}</span>
                 <span className="normal-case tracking-normal text-white/30">{selectedInterests.length}/5</span>
               </label>
               <div className="flex flex-wrap gap-2">
@@ -423,13 +426,13 @@ export function OnboardingFlow() {
             disabled={isSaving}
             onClick={() => void saveInfoAndFinish()}
           >
-            {isSaving ? "Saving..." : "Finish profile"}
+            {isSaving ? t.saving : t.finishProfile}
           </button>
           <button
             className="rounded-[1.3rem] px-4 py-3 text-center text-sm text-white/50"
             onClick={() => setStep(1)}
           >
-            Back
+            {t.back}
           </button>
         </div>
       </section>
@@ -447,9 +450,9 @@ export function OnboardingFlow() {
       </div>
 
       <div>
-        <h1 className="text-3xl font-semibold text-white">You&apos;re all set!</h1>
+        <h1 className="text-3xl font-semibold text-white">{t.allSet}</h1>
         <p className="mx-auto mt-3 max-w-xs text-base leading-7 text-white/70">
-          Your profile is live. People nearby can now find you.
+          {t.allSetDesc}
         </p>
       </div>
 
@@ -488,13 +491,13 @@ export function OnboardingFlow() {
           className="glow-button rounded-[1.3rem] px-6 py-4 text-base font-semibold text-white"
           onClick={() => router.push("/nearby")}
         >
-          Explore nearby
+          {t.goToRadar}
         </button>
         <Link
           className="rounded-[1.3rem] px-4 py-3 text-center text-sm text-white/50 underline underline-offset-4"
           href="/profile"
         >
-          Edit profile
+          {t.editProfile}
         </Link>
       </div>
     </section>
