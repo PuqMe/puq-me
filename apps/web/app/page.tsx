@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/auth-card";
 import { useAuth } from "@/lib/auth";
-import { resolvePostAuthPath } from "@/lib/post-auth";
+import { navigateToPostAuthPath } from "@/lib/post-auth";
 
 export default function HomePage() {
   const router = useRouter();
@@ -12,11 +12,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      void resolvePostAuthPath().then((path) => {
-        router.replace(path);
-      }).catch(() => {
-        router.replace("/nearby");
-      });
+      void navigateToPostAuthPath(router);
     }
   }, [status, router]);
 
