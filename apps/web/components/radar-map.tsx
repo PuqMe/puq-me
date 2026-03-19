@@ -122,7 +122,7 @@ export function RadarMap() {
 
     const map = L.map(mapRef.current, {
       center: [location.lat, location.lng],
-      zoom: 13,
+      zoom: 14,
       zoomControl: false,
       attributionControl: false,
     });
@@ -164,7 +164,7 @@ export function RadarMap() {
 
   /* Re-center when location updates */
   useEffect(() => {
-    if (mapObjRef.current) mapObjRef.current.setView([location.lat, location.lng], 13);
+    if (mapObjRef.current) mapObjRef.current.setView([location.lat, location.lng], 14);
   }, [location]);
 
   function handleLocate()  { if (mapObjRef.current) mapObjRef.current.setView([location.lat, location.lng], 15); }
@@ -174,12 +174,8 @@ export function RadarMap() {
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-[#03020b]">
 
-      {/* ── MAP (ultra-dark filter) ── */}
-      <div
-        ref={mapRef}
-        className="absolute inset-0"
-        style={{ filter: "brightness(0.55) saturate(0.9) contrast(1.15)" }}
-      />
+      {/* ── MAP ── */}
+      <div ref={mapRef} className="absolute inset-0" />
 
       {/* Loading */}
       {!ready && (
@@ -223,7 +219,7 @@ export function RadarMap() {
 
           {/* Right icons */}
           <div className="flex items-center gap-0.5 text-white/55">
-            {(["eye", "clock", "share", "plus", "search", "bell"] as const).map(t => (
+            {(["map", "eye", "clock", "share", "plus", "search", "bell"] as const).map(t => (
               <button key={t} aria-label={t}
                 className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 transition-colors">
                 <Icon type={t} size={17} />
@@ -240,29 +236,29 @@ export function RadarMap() {
       {/* ── RIGHT CONTROLS ── */}
       <div
         className="pointer-events-auto absolute right-3 z-20 flex flex-col items-center gap-2"
-        style={{ top: "max(5.5rem, calc(env(safe-area-inset-top) + 5rem))" }}
+        style={{ top: "max(5rem, calc(env(safe-area-inset-top) + 4.5rem))" }}
       >
         {/* User count */}
-        <button className="flex flex-col items-center justify-center h-11 w-11 rounded-full bg-[#0d0a1c]/85 backdrop-blur-md border border-white/10 text-white/65 hover:text-white transition-colors shadow-xl">
-          <Icon type="user" size={18} />
-          <span className="text-[9px] text-white/40 mt-0.5 leading-none">{NEARBY.length}</span>
+        <button className="flex flex-col items-center justify-center h-10 w-10 rounded-full bg-[#0c0918]/75 backdrop-blur-lg border border-white/[0.08] text-white/60 hover:text-white transition-colors shadow-lg">
+          <Icon type="user" size={17} />
+          <span className="text-[8px] text-white/35 mt-0.5 leading-none font-medium">{NEARBY.length}</span>
         </button>
 
         {/* Crosshair */}
         <button onClick={handleLocate}
-          className="flex items-center justify-center h-11 w-11 rounded-full bg-[#0d0a1c]/85 backdrop-blur-md border border-white/10 text-white/65 hover:text-white transition-colors shadow-xl">
-          <Icon type="crosshair" size={20} />
+          className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0c0918]/75 backdrop-blur-lg border border-white/[0.08] text-white/60 hover:text-white transition-colors shadow-lg">
+          <Icon type="crosshair" size={19} />
         </button>
 
         {/* Zoom + */}
         <button onClick={handleZoomIn}
-          className="flex items-center justify-center h-11 w-11 rounded-full bg-[#0d0a1c]/85 backdrop-blur-md border border-white/10 text-white/65 hover:text-white transition-colors shadow-xl text-xl font-light">
+          className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0c0918]/75 backdrop-blur-lg border border-white/[0.08] text-white/60 hover:text-white transition-colors shadow-lg text-lg font-light leading-none">
           +
         </button>
 
         {/* Zoom − */}
         <button onClick={handleZoomOut}
-          className="flex items-center justify-center h-11 w-11 rounded-full bg-[#0d0a1c]/85 backdrop-blur-md border border-white/10 text-white/65 hover:text-white transition-colors shadow-xl text-xl font-light">
+          className="flex items-center justify-center h-10 w-10 rounded-full bg-[#0c0918]/75 backdrop-blur-lg border border-white/[0.08] text-white/60 hover:text-white transition-colors shadow-lg text-lg font-light leading-none">
           −
         </button>
       </div>
@@ -272,7 +268,7 @@ export function RadarMap() {
         className="pointer-events-auto absolute left-3 z-20"
         style={{ bottom: "max(5rem, calc(env(safe-area-inset-bottom) + 4.5rem))" }}
       >
-        <button className="flex items-center gap-1.5 rounded-full bg-[#0d0a1c]/85 backdrop-blur-md border border-white/10 px-3 py-2 text-[11px] font-semibold tracking-widest text-white/55 hover:text-white uppercase transition-colors shadow-xl">
+        <button className="flex items-center gap-1.5 rounded-full bg-[#0c0918]/75 backdrop-blur-lg border border-white/[0.08] px-3.5 py-2 text-[10px] font-bold tracking-[0.18em] text-white/60 hover:text-white uppercase transition-colors shadow-lg">
           <Icon type="layers" size={14} />
           EBENEN
         </button>
@@ -332,6 +328,22 @@ export function RadarMap() {
           </div>
         </div>
       )}
+
+      {/* Dark tile filter – only tiles get darkened, NOT markers/popups */}
+      <style>{`
+        .leaflet-tile-pane {
+          filter: brightness(0.52) saturate(0.85) contrast(1.2);
+        }
+        .leaflet-attribution-flag { display: none !important; }
+        .leaflet-control-attribution {
+          font-size: 9px !important;
+          background: rgba(3,2,11,.55) !important;
+          color: rgba(255,255,255,.22) !important;
+          border-radius: 4px !important;
+          padding: 2px 5px !important;
+        }
+        .leaflet-control-attribution a { color: rgba(168,85,247,.45) !important; }
+      `}</style>
     </div>
   );
 }
