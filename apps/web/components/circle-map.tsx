@@ -59,7 +59,7 @@ function ChatIcon()      { return <svg width="22" height="22" viewBox="0 0 24 24
 function UserIcon({ size = 22 }: { size?: number }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>; }
 function GridIcon()      { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>; }
 function CrosshairIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg>; }
-function LayersIcon()    { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>; }
+function LayersIcon()    { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>; }
 function MapIcon()       { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6Zm6-2v14m6-12v14"/></svg>; }
 function ListIcon()      { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M8 7h11M8 12h11M8 17h11M4 7h.01M4 12h.01M4 17h.01" strokeWidth="1.8"/></svg>; }
 function EyeIcon()       { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><ellipse cx="12" cy="12" rx="8" ry="5.5"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/></svg>; }
@@ -157,7 +157,7 @@ export function CircleMap() {
     });
     L.marker([location.lat, location.lng], { icon: selfIcon, zIndexOffset: 1000 })
       .addTo(map)
-      .bindPopup("<b>📍 Du bist hier</b>");
+      .bindPopup("<b>Du bist hier</b>");
 
     mapObjRef.current = map;
   }, [ready, location]);
@@ -220,8 +220,7 @@ export function CircleMap() {
         overflow: "hidden", background: "#07050f",
       }}>
 
-        {/* MAP – zIndex:1 creates a stacking context so Leaflet's internal
-             panes (z-index:200–700) don't leak above our overlays (z-20/30) */}
+        {/* MAP – zIndex:1 creates a stacking context */}
         <div ref={mapRef} style={{ position: "absolute", inset: 0, zIndex: 1 }} />
 
         {/* Loading */}
@@ -252,8 +251,8 @@ export function CircleMap() {
           {/* Row 1: Logo + title + icon buttons */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 8 }}>
 
-            {/* Logo + title */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+            {/* Logo + title — clickable to homepage */}
+            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, textDecoration: "none" }}>
               <LogoMark className="h-5 w-5 shrink-0 text-[#a855f7]" size={20} />
               <div style={{ lineHeight: 1 }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
@@ -262,13 +261,12 @@ export function CircleMap() {
                 </div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,.45)", marginTop: 2 }}>Deine Begegnungen</div>
               </div>
-            </div>
+            </Link>
 
-            {/* Right icons */}
+            {/* Right header icons */}
             <div style={{ display: "flex", alignItems: "center", gap: 1 }}>
               {[
                 <MapIcon key="map" />,
-                /* Eye with green online dot */
                 <div key="eye" style={{ position: "relative", display: "flex" }}>
                   <EyeIcon />
                   <span style={{ position: "absolute", top: -1, right: -1, width: 6, height: 6, borderRadius: "50%", background: "#22c55e", border: "1px solid #06040f" }} />
@@ -334,10 +332,10 @@ export function CircleMap() {
           </div>
         </div>
 
-        {/* ── RIGHT CONTROLS ── */}
+        {/* ── RIGHT CONTROLS (bottom-right, transparent) ── */}
         <div style={{
           position: "absolute", right: 12, zIndex: 20,
-          top: "max(110px, calc(env(safe-area-inset-top) + 100px))",
+          bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
           display: "flex", flexDirection: "column", gap: 8,
         }}>
           <button style={ctrlBtn}>
@@ -349,42 +347,14 @@ export function CircleMap() {
           <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>−</button>
         </div>
 
-        {/* ── EBENEN (bottom-left, above nav) ── */}
+        {/* ── EBENEN (bottom-left, icon only) ── */}
         <div style={{
           position: "absolute", left: 12, zIndex: 20,
           bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
         }}>
-          <button style={{
-            display: "flex", alignItems: "center", gap: 6,
-            borderRadius: 999, border: "1px solid rgba(255,255,255,.22)",
-            background: "rgba(20,12,42,.92)",
-            color: "rgba(255,255,255,.80)", padding: "7px 14px",
-            fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
-            cursor: "pointer",
-          }}>
+          <button style={ctrlBtn} aria-label="Ebenen">
             <LayersIcon />
-            EBENEN
           </button>
-        </div>
-
-        {/* ── INTERAKTIVE KARTE AKTIV (bottom-center, above nav) ── */}
-        <div style={{
-          position: "absolute", left: 0, right: 0, zIndex: 20,
-          bottom: "max(72px, calc(env(safe-area-inset-bottom) + 64px))",
-          display: "flex", justifyContent: "center",
-          pointerEvents: "none",
-        }}>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 8,
-            borderRadius: 999,
-            border: "1px solid rgba(168,85,247,.35)",
-            background: "rgba(20,12,42,.92)",
-            color: "rgba(255,255,255,.90)", padding: "7px 18px",
-            fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-          }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#a855f7", boxShadow: "0 0 8px rgba(168,85,247,.8)" }} />
-            INTERAKTIVE KARTE AKTIV
-          </div>
         </div>
 
         {/* ── BOTTOM NAV ── */}
@@ -415,11 +385,12 @@ export function CircleMap() {
   );
 }
 
+/* Shared style for round control buttons — transparent, no background */
 const ctrlBtn: React.CSSProperties = {
   width: 40, height: 40, borderRadius: "50%",
-  border: "1px solid rgba(255,255,255,.22)",
-  background: "rgba(20,12,42,.92)",
-  color: "rgba(255,255,255,.80)",
+  border: "none",
+  background: "transparent",
+  color: "rgba(255,255,255,.70)",
   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-  cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.5)",
+  cursor: "pointer",
 };

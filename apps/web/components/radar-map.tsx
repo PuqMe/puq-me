@@ -36,8 +36,7 @@ function ChatIcon()      { return <svg width="22" height="22" viewBox="0 0 24 24
 function UserIcon({ size = 22 }: { size?: number }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>; }
 function GridIcon()      { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>; }
 function CrosshairIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="3" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="21" y2="12"/></svg>; }
-function LayersIcon()    { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>; }
-function GhostIcon()     { return <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10A8 8 0 0 0 12 2z" opacity=".9"/><circle cx="9" cy="10" r="1.5" fill="white"/><circle cx="15" cy="10" r="1.5" fill="white"/></svg>; }
+function LayersIcon()    { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>; }
 
 function NavIcon({ type }: { type: string }) {
   if (type === "radar")   return <RadarIcon />;
@@ -73,7 +72,6 @@ export function RadarMap() {
   const mapRef    = useRef<HTMLDivElement>(null);
   const mapObjRef = useRef<any>(null);
   const [ready,    setReady]    = useState(false);
-  const [ghost,    setGhost]    = useState(true);
   const [location, setLocation] = useState<LocationInfo>({ lat: 48.1351, lng: 11.582, displayName: "München" });
 
   /* Load Leaflet CSS + JS from CDN */
@@ -127,7 +125,7 @@ export function RadarMap() {
     L.marker([location.lat, location.lng], {
       icon: L.divIcon({ html: avatarHtml("Du", "#a855f7", 64, true), className: "", iconSize: [64,64], iconAnchor: [32,32] }),
       zIndexOffset: 1000,
-    }).addTo(map).bindPopup("<b>📍 Du bist hier</b>");
+    }).addTo(map).bindPopup("<b>Du bist hier</b>");
 
     /* Nearby markers */
     NEARBY.forEach(u => {
@@ -160,9 +158,10 @@ export function RadarMap() {
           background:rgba(6,4,15,.7)!important; color:rgba(255,255,255,.25)!important;
           padding:2px 6px!important;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
-      {/* Full-screen container — z-[999] to be above all page chrome */}
+      {/* Full-screen container */}
       <div style={{
         position: "fixed", inset: 0,
         zIndex: 999,
@@ -200,33 +199,16 @@ export function RadarMap() {
           paddingLeft: 12, paddingRight: 12, paddingBottom: 20,
           display: "flex", alignItems: "center", gap: 8,
         }}>
-          {/* Logo + title */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+          {/* Logo + title — clickable to homepage */}
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, textDecoration: "none" }}>
             <LogoMark className="h-5 w-5 shrink-0 text-[#a855f7]" size={20} />
             <div style={{ lineHeight: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#ffffff", letterSpacing: "-0.01em" }}>{BRAND_NAME}</div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", marginTop: 2 }}>Nearby</div>
             </div>
-          </div>
+          </Link>
 
-          {/* Ghost pill */}
-          <button
-            onClick={() => setGhost(g => !g)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              borderRadius: 999, border: ghost ? "1px solid rgba(168,85,247,.55)" : "1px solid rgba(255,255,255,.15)",
-              background: ghost ? "rgba(168,85,247,.12)" : "rgba(255,255,255,.05)",
-              color: ghost ? "#a855f7" : "rgba(255,255,255,.4)",
-              padding: "5px 12px", fontSize: 10, fontWeight: 700,
-              letterSpacing: "0.14em", textTransform: "uppercase",
-              cursor: "pointer", whiteSpace: "nowrap",
-            }}
-          >
-            <GhostIcon />
-            {ghost ? "GHOST MODE: INVISIBLE" : "GHOST MODE: AUS"}
-          </button>
-
-          {/* Right icon buttons */}
+          {/* Right header icon buttons */}
           <div style={{ display: "flex", gap: 2 }}>
             {(["eye", "search", "bell"] as const).map(icon => (
               <button key={icon} aria-label={icon} style={{
@@ -242,45 +224,30 @@ export function RadarMap() {
           </div>
         </div>
 
-        {/* ── RIGHT CONTROLS ── */}
+        {/* ── RIGHT CONTROLS (bottom-right, transparent) ── */}
         <div style={{
           position: "absolute", right: 12, zIndex: 20,
-          top: "max(80px, calc(env(safe-area-inset-top) + 72px))",
+          bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
           display: "flex", flexDirection: "column", gap: 8,
         }}>
-          {/* User count */}
           <button style={ctrlBtn}>
             <UserIcon size={16} />
-            <span style={{ fontSize: 8, color: "rgba(255,255,255,.35)", lineHeight: 1 }}>{NEARBY.length}</span>
+            <span style={{ fontSize: 8, color: "rgba(255,255,255,.4)", lineHeight: 1 }}>{NEARBY.length}</span>
           </button>
-
-          {/* Locate */}
           <button onClick={locate} style={ctrlBtn}>
             <CrosshairIcon />
           </button>
-
-          {/* Zoom + */}
           <button onClick={zoomIn} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>+</button>
-
-          {/* Zoom − */}
           <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>−</button>
         </div>
 
-        {/* ── EBENEN (bottom-left) ── */}
+        {/* ── EBENEN (bottom-left, icon only) ── */}
         <div style={{
           position: "absolute", left: 12, zIndex: 20,
           bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
         }}>
-          <button style={{
-            display: "flex", alignItems: "center", gap: 6,
-            borderRadius: 999, border: "1px solid rgba(255,255,255,.22)",
-            background: "rgba(20,12,42,.92)",
-            color: "rgba(255,255,255,.80)", padding: "7px 14px",
-            fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
-            cursor: "pointer",
-          }}>
+          <button style={ctrlBtn} aria-label="Ebenen">
             <LayersIcon />
-            EBENEN
           </button>
         </div>
 
@@ -308,20 +275,16 @@ export function RadarMap() {
         </nav>
 
       </div>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </>
   );
 }
 
-/* Shared style for round control buttons */
+/* Shared style for round control buttons — transparent, no background */
 const ctrlBtn: React.CSSProperties = {
   width: 40, height: 40, borderRadius: "50%",
-  border: "1px solid rgba(255,255,255,.22)",
-  background: "rgba(20,12,42,.92)",
-  color: "rgba(255,255,255,.80)",
+  border: "none",
+  background: "transparent",
+  color: "rgba(255,255,255,.70)",
   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-  cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.5)",
+  cursor: "pointer",
 };
