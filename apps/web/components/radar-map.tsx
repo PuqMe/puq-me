@@ -172,7 +172,7 @@ export function RadarMap() {
   function handleZoomOut() { if (mapObjRef.current) mapObjRef.current.zoomOut(); }
 
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden bg-[#03020b]">
+    <div className="fixed inset-0 z-10 overflow-hidden bg-[#03020b]">
 
       {/* ── MAP ── */}
       <div ref={mapRef} className="absolute inset-0" />
