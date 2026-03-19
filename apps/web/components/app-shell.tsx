@@ -15,60 +15,33 @@ const navItems = [
   { href: "/settings", label: "More", icon: "grid" }
 ];
 
-function NavIcon({ type }: { type: string }) {
-  const iconClass = "h-[18px] w-[18px] stroke-[#A855F7]";
+function NavIcon({ type, size = 22 }: { type: string; size?: number }) {
+  const s = size;
+  const cls = `shrink-0`;
 
-  if (type === "heart") {
-    return (
-      <svg className={iconClass} fill="none" viewBox="0 0 24 24">
-        <path d="M12 20s-6.5-4.2-8.5-8A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6C18.5 15.8 12 20 12 20Z" strokeWidth="1.8" />
-      </svg>
-    );
-  }
+  if (type === "radar")
+    return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="20" y2="5.5" strokeWidth="1.4"/></svg>;
 
-  if (type === "chat") {
-    return (
-      <svg className={iconClass} fill="none" viewBox="0 0 24 24">
-        <path d="M5 6.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" strokeWidth="1.8" />
-      </svg>
-    );
-  }
+  if (type === "heart")
+    return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="1.6"><path d="M12 20s-6.5-4.2-8.5-8A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6C18.5 15.8 12 20 12 20Z"/></svg>;
 
-  if (type === "user") {
-    return (
-      <svg className={iconClass} fill="none" viewBox="0 0 24 24">
-        <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-7 8a7 7 0 0 1 14 0" strokeWidth="1.8" />
-      </svg>
-    );
-  }
+  if (type === "chat")
+    return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="1.6"><path d="M5 6.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"/></svg>;
 
-  if (type === "grid") {
-    return (
-      <svg className={iconClass} fill="none" viewBox="0 0 24 24">
-        <path d="M5 5h5v5H5zM14 5h5v5h-5zM5 14h5v5H5zM14 14h5v5h-5z" strokeWidth="1.8" />
-      </svg>
-    );
-  }
+  if (type === "user")
+    return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>;
 
-  if (type === "circle") {
-    return (
-      <svg className={iconClass} fill="none" viewBox="0 0 24 24">
-        <path d="M12 21a9 9 0 1 0-9-9 9 9 0 0 0 9 9Zm0-13a4 4 0 1 1-4 4" strokeWidth="1.8" />
-      </svg>
-    );
-  }
+  if (type === "grid")
+    return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="1.6"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></svg>;
 
-  return (
-    <svg className={iconClass} fill="none" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="7" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="3" strokeWidth="1.8" />
-    </svg>
-  );
+  if (type === "circle")
+    return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>;
+
+  return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="7"/></svg>;
 }
 
 export function AppShell({
   title,
-  subtitle,
   active,
   children
 }: {
@@ -85,90 +58,95 @@ export function AppShell({
       href={item.href}
       onClick={() => setIsMenuOpen(false)}
       className={clsx(
-        "flex items-center gap-3 rounded-[1.25rem] px-3 py-3 text-sm font-semibold transition",
-        active === item.href ? "bg-white/12 text-white shadow-sm" : "text-white/68 hover:bg-white/6 hover:text-white"
+        "flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-sm font-medium transition",
+        active === item.href ? "bg-white/10 text-white" : "text-white/55 hover:bg-white/6 hover:text-white"
       )}
     >
-      <NavIcon type={item.icon} />
+      <NavIcon type={item.icon} size={18} />
       <span>{item.label}</span>
     </Link>
   ));
 
   return (
     <div className="relative z-10">
-      <div className="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start lg:gap-6">
-        <aside className="glass-card hidden rounded-[2rem] p-4 lg:sticky lg:top-4 lg:block">
-          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-[#d7b8ff]">
-            <LogoMark className="h-5 w-5 shrink-0" size={20} />
+      {/* Desktop sidebar + content */}
+      <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-5">
+        {/* Desktop sidebar */}
+        <aside className="glass-card hidden rounded-[1.5rem] p-3 lg:sticky lg:top-4 lg:block">
+          <div className="mb-3 flex items-center gap-2 px-2 text-[10px] uppercase tracking-[0.22em] text-[#d7b8ff]">
+            <LogoMark className="h-4 w-4 shrink-0" size={16} />
             {BRAND_NAME}
           </div>
-          <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#d7b8ff]">Navigation</div>
-            <div className="mt-4 grid gap-2">{navContent}</div>
-          </div>
+          <div className="grid gap-0.5">{navContent}</div>
         </aside>
 
-        <div className="flex min-h-screen flex-col">
-          <header className="mb-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-[#d7b8ff]">
-                <LogoMark className="h-4 w-4 shrink-0" size={16} />
-                {BRAND_NAME}
-              </div>
-              <h1 className="mt-1 text-[1.6rem] font-semibold leading-none text-white">{title}</h1>
-              {subtitle ? <p className="mt-1 max-w-[34rem] text-xs leading-5 text-white/60">{subtitle}</p> : null}
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsMenuOpen((current) => !current)}
-                className="glass-card inline-flex h-9 w-9 items-center justify-center rounded-full text-white lg:hidden"
-                aria-expanded={isMenuOpen}
-                aria-label="Navigation öffnen"
-              >
-                <span className="flex flex-col gap-1">
-                  <span className="h-0.5 w-3.5 rounded-full bg-white" />
-                  <span className="h-0.5 w-3.5 rounded-full bg-white" />
-                  <span className="h-0.5 w-3.5 rounded-full bg-white" />
-                </span>
-              </button>
-              <div className="glass-card rounded-full px-2.5 py-1.5 text-[10px] font-semibold text-[#A855F7]">Live</div>
-            </div>
+        <div className="flex flex-col">
+          {/* Single-line compact header */}
+          <header className="mb-3 flex h-10 items-center gap-2">
+            <LogoMark className="h-4 w-4 shrink-0 text-[#d7b8ff] lg:hidden" size={16} />
+            <h1 className="flex-1 text-base font-semibold text-white">{title}</h1>
+            {/* Hamburger – mobile only */}
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((c) => !c)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-white/70 hover:text-white lg:hidden"
+              aria-expanded={isMenuOpen}
+              aria-label="Navigation öffnen"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
           </header>
 
           <div className="flex-1">{children}</div>
         </div>
       </div>
 
-      {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 bg-[#05040d]/70 backdrop-blur-sm lg:hidden" onClick={() => setIsMenuOpen(false)}>
+      {/* Mobile slide-in menu */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={() => setIsMenuOpen(false)}
+        >
           <div
-            className="glass-card absolute right-4 top-4 w-[min(21rem,calc(100vw-2rem))] rounded-[2rem] p-4"
-            onClick={(event) => event.stopPropagation()}
+            className="glass-card absolute right-3 top-3 w-52 rounded-[1.5rem] p-3"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#d7b8ff]">Navigation</div>
-              <button type="button" onClick={() => setIsMenuOpen(false)} className="rounded-full px-3 py-2 text-sm text-white/72">
-                Schließen
+            <div className="mb-2 flex items-center justify-between px-2">
+              <span className="text-[10px] uppercase tracking-widest text-white/50">{BRAND_NAME}</span>
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-white/50 hover:text-white"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
               </button>
             </div>
-            <div className="mt-4 grid gap-2">{navContent}</div>
+            <div className="grid gap-0.5">{navContent}</div>
           </div>
         </div>
-      ) : null}
+      )}
 
-      <nav className="glass-card fixed bottom-0 left-0 right-0 z-50 grid grid-cols-6 gap-1 rounded-t-[1.5rem] border-b-0 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
+      {/* Bottom nav – icons only, no background */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-white/8 bg-[#08070f]/80 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl lg:hidden">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={clsx(
-              "flex flex-col items-center justify-center gap-0.5 rounded-[1rem] px-1 py-2 text-center text-[10px] font-semibold transition",
-              active === item.href ? "bg-white/12 text-white shadow-sm" : "text-white/55"
+              "flex flex-col items-center justify-center p-1.5 transition-all",
+              active === item.href ? "text-[#a855f7]" : "text-white/35 hover:text-white/70"
             )}
           >
-            <NavIcon type={item.icon} />
-            {item.label}
+            <NavIcon type={item.icon} size={22} />
+            {active === item.href && (
+              <span className="mt-0.5 h-1 w-1 rounded-full bg-[#a855f7]" />
+            )}
           </Link>
         ))}
       </nav>

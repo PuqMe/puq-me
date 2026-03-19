@@ -3,258 +3,207 @@
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 
-interface NearbyUser {
-  id: string;
-  name: string;
-  age: number;
-  emoji: string;
-  distance: string;
-  lat: number;
-  lng: number;
-}
-
 interface LocationInfo {
   lat: number;
   lng: number;
   displayName: string;
 }
 
-const SIMULATED_USERS: Omit<NearbyUser, "lat" | "lng">[] = [
-  { id: "u1", name: "Alex", age: 28, emoji: "😊", distance: "1.8 km" },
-  { id: "u2", name: "Jordan", age: 26, emoji: "🎵", distance: "2.4 km" },
-  { id: "u3", name: "Casey", age: 30, emoji: "🌟", distance: "3.1 km" },
-  { id: "u4", name: "Morgan", age: 27, emoji: "🎨", distance: "3.8 km" },
-  { id: "u5", name: "Riley", age: 25, emoji: "🎮", distance: "4.5 km" },
+const NEARBY = [
+  { id: "u1", emoji: "😊", name: "Alex, 28",   dist: "1.8 km", off: [ 0.012,  0.018] },
+  { id: "u2", emoji: "🎵", name: "Jordan, 26", dist: "2.4 km", off: [-0.009,  0.021] },
+  { id: "u3", emoji: "🌟", name: "Casey, 30",  dist: "3.1 km", off: [ 0.017, -0.013] },
+  { id: "u4", emoji: "🎨", name: "Morgan, 27", dist: "3.8 km", off: [-0.020, -0.016] },
+  { id: "u5", emoji: "🎮", name: "Riley, 25",  dist: "4.5 km", off: [ 0.006, -0.024] },
 ];
 
 export function RadarMap() {
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const [location, setLocation] = useState<LocationInfo>({
-    lat: 48.1351,
-    lng: 11.582,
-    displayName: "München, Bayern",
-  });
-  const [selectedUser, setSelectedUser] = useState<NearbyUser | null>(null);
-  const [mapReady, setMapReady] = useState(false);
-  const [locating, setLocating] = useState(true);
+  const mapRef     = useRef<HTMLDivElement>(null);
+  const mapObjRef  = useRef<any>(null);
+  const [ready,    setReady]    = useState(false);
+  const [location, setLocation] = useState<LocationInfo>({ lat: 48.1351, lng: 11.582, displayName: "München" });
+  const [selected, setSelected] = useState<string | null>(null);
 
-  // Load Leaflet from CDN once
+  /* ── Load Leaflet from CDN ── */
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const cssId = "leaflet-css";
-    const jsId = "leaflet-js";
-
-    if (!document.getElementById(cssId)) {
-      const link = document.createElement("link");
-      link.id = cssId;
-      link.rel = "stylesheet";
-      link.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
-      document.head.appendChild(link);
+    if (!document.getElementById("lf-css")) {
+      const l = document.createElement("link");
+      l.id = "lf-css"; l.rel = "stylesheet";
+      l.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+      document.head.appendChild(l);
     }
-
-    if (document.getElementById(jsId)) {
-      setMapReady(true);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = jsId;
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
-    script.onload = () => setMapReady(true);
-    document.head.appendChild(script);
+    if (document.getElementById("lf-js")) { setReady(true); return; }
+    const s = document.createElement("script");
+    s.id = "lf-js";
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    s.onload = () => setReady(true);
+    document.head.appendChild(s);
   }, []);
 
-  // Detect user geolocation and reverse-geocode
+  /* ── Geolocation + Nominatim ── */
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocating(false);
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=de`,
-            { headers: { "Accept-Language": "de" } }
-          );
-          const data = await res.json();
-          const city =
-            data.address?.city ||
-            data.address?.town ||
-            data.address?.village ||
-            data.address?.county ||
-            "Unbekannt";
-          const state = data.address?.state || "";
-          setLocation({ lat, lng, displayName: `${city}${state ? ", " + state : ""}` });
-        } catch {
-          setLocation((prev) => ({ ...prev, lat, lng }));
-        } finally {
-          setLocating(false);
-        }
-      },
-      () => setLocating(false),
-      { timeout: 8000, maximumAge: 60000 }
-    );
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      const { latitude: lat, longitude: lng } = coords;
+      try {
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=de`);
+        const d = await r.json();
+        const city = d.address?.city || d.address?.town || d.address?.village || d.address?.county || "Hier";
+        setLocation({ lat, lng, displayName: city });
+      } catch { setLocation(l => ({ ...l, lat, lng })); }
+    }, undefined, { timeout: 8000, maximumAge: 60000 });
   }, []);
 
-  // Initialize map once Leaflet is ready and we have location
+  /* ── Init map ── */
   useEffect(() => {
-    if (!mapReady || !mapContainerRef.current || mapInstanceRef.current) return;
-
+    if (!ready || !mapRef.current || mapObjRef.current) return;
     const L = (window as any).L;
     if (!L) return;
 
-    // Create map
-    const map = L.map(mapContainerRef.current, {
+    const map = L.map(mapRef.current, {
       center: [location.lat, location.lng],
-      zoom: 13,
+      zoom: 14,
       zoomControl: false,
       attributionControl: false,
     });
 
-    // Dark styled OSM tiles
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 19,
-      minZoom: 1,
-      subdomains: "abcd",
+      maxZoom: 19, minZoom: 1, subdomains: "abcd",
     }).addTo(map);
 
-    // Compact attribution
-    L.control.attribution({ prefix: false, position: "bottomright" })
-      .addAttribution('© <a href="https://www.openstreetmap.org/copyright" style="color:#a855f7">OSM</a>')
+    L.control.attribution({ prefix: false, position: "bottomleft" })
+      .addAttribution('© <a href="https://openstreetmap.org/copyright" style="color:#a855f7">OSM</a>')
       .addTo(map);
 
-    // Zoom control bottom-right
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    // Self marker (pulsing purple dot)
+    /* Self marker – pulsing ring */
     const selfIcon = L.divIcon({
-      html: `<div style="position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-        <div style="position:absolute;width:40px;height:40px;border-radius:50%;background:rgba(168,85,247,0.25);animation:pulse 2s infinite;"></div>
-        <div style="width:18px;height:18px;border-radius:50%;background:#a855f7;border:3px solid white;box-shadow:0 0 12px rgba(168,85,247,0.8);z-index:1;"></div>
-      </div>
-      <style>@keyframes pulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.8);opacity:0}}</style>`,
-      className: "",
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
+      html: `<div style="position:relative;width:48px;height:48px;">
+        <div style="position:absolute;inset:0;border-radius:50%;background:rgba(168,85,247,.18);animation:rping 2s ease-out infinite;"></div>
+        <div style="position:absolute;inset:8px;border-radius:50%;background:rgba(168,85,247,.28);animation:rping 2s ease-out infinite .4s;"></div>
+        <div style="position:absolute;inset:16px;border-radius:50%;background:#a855f7;box-shadow:0 0 16px rgba(168,85,247,.9);"></div>
+        <style>@keyframes rping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.2);opacity:0}}</style>
+      </div>`,
+      className: "", iconSize: [48, 48], iconAnchor: [24, 24],
     });
-
     L.marker([location.lat, location.lng], { icon: selfIcon, zIndexOffset: 1000 })
       .addTo(map)
-      .bindPopup('<div style="color:#111;font-weight:600;font-size:12px;">📍 Du bist hier</div>');
+      .bindPopup('<b style="color:#111">📍 Du bist hier</b>');
 
-    // Simulated nearby users as avatar markers
-    const offsets = [
-      [0.012, 0.018],
-      [-0.009, 0.021],
-      [0.017, -0.013],
-      [-0.02, -0.016],
-      [0.006, -0.024],
-    ];
-
-    const nearbyUsers: NearbyUser[] = SIMULATED_USERS.map((u, i) => ({
-      ...u,
-      lat: location.lat + (offsets[i]?.[0] ?? 0),
-      lng: location.lng + (offsets[i]?.[1] ?? 0),
-    }));
-
-    nearbyUsers.forEach((u) => {
-      const userIcon = L.divIcon({
-        html: `<div style="width:44px;height:44px;border-radius:50%;background:rgba(18,12,34,0.88);border:2.5px solid rgba(168,85,247,0.85);box-shadow:0 4px 16px rgba(0,0,0,0.5),0 0 0 1px rgba(168,85,247,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;backdrop-filter:blur(8px);cursor:pointer;transition:transform .15s;"
-          onmouseover="this.style.transform='scale(1.15)'"
-          onmouseout="this.style.transform='scale(1)'"
-        >${u.emoji}</div>`,
-        className: "",
-        iconSize: [44, 44],
-        iconAnchor: [22, 22],
+    /* Nearby user markers */
+    NEARBY.forEach(u => {
+      const icon = L.divIcon({
+        html: `<div style="width:46px;height:46px;border-radius:50%;background:rgba(10,6,24,.88);border:2.5px solid rgba(168,85,247,.8);box-shadow:0 4px 20px rgba(0,0,0,.5),0 0 0 1px rgba(168,85,247,.15);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;">${u.emoji}</div>`,
+        className: "", iconSize: [46, 46], iconAnchor: [23, 23],
       });
-
-      L.marker([u.lat, u.lng], { icon: userIcon })
+      L.marker([location.lat + u.off[0]!, location.lng + u.off[1]!], { icon })
         .addTo(map)
-        .bindPopup(
-          `<div style="color:#111;font-size:12px;min-width:120px;">
-            <strong style="font-size:13px;">${u.name}, ${u.age}</strong><br>
-            <span style="color:#888;">${u.distance} entfernt</span>
-          </div>`
-        );
+        .bindPopup(`<b style="color:#111">${u.name}</b><br><span style="color:#666">${u.dist}</span>`);
     });
 
-    mapInstanceRef.current = map;
-  }, [mapReady, location]);
+    mapObjRef.current = map;
+  }, [ready, location]);
 
-  // Update map center when location changes
+  /* Re-center when location updates */
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView([location.lat, location.lng], 13);
-    }
+    if (mapObjRef.current) mapObjRef.current.setView([location.lat, location.lng], 14);
   }, [location]);
 
   return (
-    <AppShell title="Radar" subtitle="Menschen in deiner Nähe" active="/radar">
-    <div className="flex flex-col gap-3">
-      {/* Map */}
-      <div className="relative overflow-hidden rounded-[1.5rem] border border-white/10">
-        <div ref={mapContainerRef} style={{ height: "380px", width: "100%" }} />
-        {/* Loading overlay */}
-        {!mapReady && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#0f0a1e]">
+    <AppShell title="Radar" active="/radar">
+      {/* Full-bleed map with radar overlay */}
+      <div className="relative overflow-hidden rounded-[1.25rem]" style={{ height: "calc(100dvh - 7.5rem)" }}>
+        {/* Leaflet map */}
+        <div ref={mapRef} className="h-full w-full" />
+
+        {/* Loading */}
+        {!ready && (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#0a0614]">
             <div className="text-center">
               <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#a855f7] border-t-transparent" />
-              <p className="mt-2 text-xs text-white/50">Karte lädt…</p>
+              <p className="mt-2 text-xs text-white/40">Karte lädt…</p>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Info row */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="glass-card rounded-[1rem] px-3 py-2.5">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/50">Position</div>
-          <div className="mt-1 flex items-center gap-1 text-xs font-medium text-white">
-            <span>📍</span>
-            <span className="truncate">{locating ? "Wird ermittelt…" : location.displayName}</span>
-          </div>
-        </div>
-        <div className="glass-card rounded-[1rem] px-3 py-2.5">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/50">Aktiv</div>
-          <div className="mt-1 flex items-center gap-1 text-xs font-medium text-white">
-            <span>👥</span>
-            <span>5 in der Nähe</span>
-          </div>
-        </div>
-        <div className="glass-card rounded-[1rem] px-3 py-2.5">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/50">Sichtbar</div>
-          <div className="mt-1 flex items-center gap-1 text-xs font-medium text-white">
-            <span>🟢</span>
-            <span>Online</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Nearby user list */}
-      <div className="grid gap-1.5">
-        {SIMULATED_USERS.map((u) => (
-          <button
-            key={u.id}
-            type="button"
-            onClick={() => setSelectedUser(selectedUser?.id === u.id ? null : { ...u, lat: 0, lng: 0 })}
-            className="glass-card flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-left transition hover:bg-white/8"
+        {/* Radar ring overlay (SVG, pointer-events-none) */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <svg
+            viewBox="0 0 400 400"
+            className="h-full w-full"
+            style={{ mixBlendMode: "screen" }}
           >
-            <span className="text-2xl">{u.emoji}</span>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-white">{u.name}, {u.age}</div>
+            {[60, 120, 180, 240].map((r, i) => (
+              <circle
+                key={r}
+                cx="200" cy="200" r={r}
+                fill="none"
+                stroke="rgba(168,85,247,0.18)"
+                strokeWidth="1"
+                strokeDasharray={i === 0 ? "none" : "4 6"}
+              />
+            ))}
+            {/* Sweep line */}
+            <line
+              x1="200" y1="200" x2="200" y2="0"
+              stroke="rgba(168,85,247,0.55)"
+              strokeWidth="1.5"
+              style={{
+                transformOrigin: "200px 200px",
+                animation: "sweep 4s linear infinite",
+              }}
+            />
+            {/* Sweep gradient arc */}
+            <defs>
+              <radialGradient id="sweepGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="rgba(168,85,247,0.18)" />
+                <stop offset="100%" stopColor="rgba(168,85,247,0)" />
+              </radialGradient>
+            </defs>
+            <path
+              d="M200 200 L200 0 A200 200 0 0 1 370 270 Z"
+              fill="url(#sweepGrad)"
+              style={{
+                transformOrigin: "200px 200px",
+                animation: "sweep 4s linear infinite",
+              }}
+            />
+          </svg>
+          <style>{`@keyframes sweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+        </div>
+
+        {/* Bottom pill: location + active count */}
+        <div className="pointer-events-none absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+          <div className="glass-card flex items-center gap-2 rounded-full px-3 py-1.5 text-xs text-white/80">
+            <span className="h-2 w-2 rounded-full bg-[#a855f7]" />
+            {location.displayName}
+          </div>
+          <div className="glass-card rounded-full px-3 py-1.5 text-xs font-semibold text-[#a855f7]">
+            👥 5 in der Nähe
+          </div>
+        </div>
+
+        {/* Right pill: selected user info */}
+        {selected && (() => {
+          const u = NEARBY.find(x => x.id === selected);
+          if (!u) return null;
+          return (
+            <div className="pointer-events-auto absolute right-3 top-3 flex items-center gap-2 glass-card rounded-[1rem] px-3 py-2 text-sm text-white">
+              <span className="text-xl">{u.emoji}</span>
+              <div>
+                <div className="font-semibold">{u.name}</div>
+                <div className="text-[11px] text-white/60">{u.dist}</div>
+              </div>
+              <button onClick={() => setSelected(null)} className="ml-1 text-white/40 hover:text-white">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
-            <div className="text-xs font-semibold text-[#a855f7]">{u.distance}</div>
-            <svg className="h-4 w-4 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
-        ))}
+          );
+        })()}
       </div>
-    </div>
     </AppShell>
   );
 }
