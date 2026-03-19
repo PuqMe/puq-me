@@ -25,6 +25,8 @@ export type ProfileResponse = {
     city: string | null;
     countryCode: string | null;
     isVisible: boolean;
+    photoUrl: string | null;
+    videoUrl: string | null;
   };
   interests: string[];
   preferences: {
@@ -223,6 +225,58 @@ export async function updateMyLocation(input: UpdateLocationInput) {
       return updateFallbackLocation(input as NonNullable<ProfileResponse["location"]>) as ProfileResponse;
     }
 
+    throw error;
+  }
+}
+
+export async function uploadMyPhoto(file: File) {
+  try {
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/photo`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      if (shouldUseLocalAppFallback(response)) {
+        return fetchFallbackProfile() as ProfileResponse;
+      }
+      throw new Error(await readApiError(response));
+    }
+
+    return (await response.json()) as ProfileResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return fetchFallbackProfile() as ProfileResponse;
+    }
+    throw error;
+  }
+}
+
+export async function uploadMyVideo(file: File) {
+  try {
+    const formData = new FormData();
+    formData.append("video", file);
+
+    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/video`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      if (shouldUseLocalAppFallback(response)) {
+        return fetchFallbackProfile() as ProfileResponse;
+      }
+      throw new Error(await readApiError(response));
+    }
+
+    return (await response.json()) as ProfileResponse;
+  } catch (error) {
+    if (shouldUseLocalAppFallbackForError(error)) {
+      return fetchFallbackProfile() as ProfileResponse;
+    }
     throw error;
   }
 }

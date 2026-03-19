@@ -75,7 +75,15 @@ export function ProfileOverview() {
 
           {data ? (
             <div className="flex items-start gap-4">
-              <div className="h-24 w-20 rounded-[1.5rem] bg-gradient-to-br from-[#E6A77A] to-[#e9c98b]" />
+              {data.profile.photoUrl ? (
+                <img
+                  src={data.profile.photoUrl}
+                  alt={data.profile.displayName}
+                  className="h-24 w-20 rounded-[1.5rem] object-cover"
+                />
+              ) : (
+                <div className="h-24 w-20 rounded-[1.5rem] bg-gradient-to-br from-[#E6A77A] to-[#e9c98b]" />
+              )}
               <div className="flex-1">
                 <div className="text-2xl font-semibold text-white">
                   {data.profile.displayName}

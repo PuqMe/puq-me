@@ -8,6 +8,8 @@ import {
   updateMyProfile,
   updateMyInterests,
   updateMyLocation,
+  uploadMyPhoto,
+  uploadMyVideo,
   type ProfileResponse
 } from "@/lib/profile";
 import { useAuth } from "@/lib/auth";
@@ -42,6 +44,8 @@ export function OnboardingFlow() {
   // Step 1: Media
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,6 +85,7 @@ export function OnboardingFlow() {
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPhotoPreview(url);
+    setPhotoFile(file);
   }
 
   function handleVideoSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -92,6 +97,7 @@ export function OnboardingFlow() {
     }
     const url = URL.createObjectURL(file);
     setVideoPreview(url);
+    setVideoFile(file);
   }
 
   function toggleInterest(interest: string) {
@@ -110,8 +116,25 @@ export function OnboardingFlow() {
       setErrorMessage("A profile picture is required.");
       return;
     }
-    // Photo/video upload would go to a real API endpoint.
-    // For now we proceed — the preview confirms intent.
+
+    setIsSaving(true);
+    try {
+      // Upload photo to the server so it persists after re-login
+      if (photoFile) {
+        await uploadMyPhoto(photoFile);
+      }
+      // Upload video if selected
+      if (videoFile) {
+        await uploadMyVideo(videoFile).catch(() => {
+          // Video upload failure is non-fatal — continue
+        });
+      }
+    } catch {
+      // Upload failure is non-fatal during onboarding; proceed to next step
+    } finally {
+      setIsSaving(false);
+    }
+
     setStep(2);
   }
 
