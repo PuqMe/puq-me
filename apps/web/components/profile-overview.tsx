@@ -50,7 +50,7 @@ export function ProfileOverview() {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Profil konnte nicht geladen werden.");
+          setErrorMessage(error instanceof Error ? error.message : "Could not load profile.");
         }
       }
     })();
@@ -64,11 +64,11 @@ export function ProfileOverview() {
   const age = data?.profile.birthDate ? calculateAge(data.profile.birthDate) : null;
 
   return (
-    <AppShell active="/profile" title="Profil" subtitle="Dein Auftritt, deine Sichtbarkeit und deine wichtigsten Angaben">
+    <AppShell active="/profile" title="Profile" subtitle="Your profile, visibility and key details">
       <section className="grid gap-4">
         <Card className="mesh-panel rounded-[2rem] p-5 text-white">
           {!data && !errorMessage ? (
-            <div className="text-sm text-white/72">Profil wird geladen...</div>
+            <div className="text-sm text-white/72">Loading profile...</div>
           ) : null}
 
           {errorMessage ? <div className="text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
@@ -82,17 +82,17 @@ export function ProfileOverview() {
                   {age ? `, ${age}` : ""}
                 </div>
                 <div className="mt-1 text-sm text-white/68">
-                  {data.profile.city ?? "Stadt folgt"}
+                  {data.profile.city ?? "City pending"}
                   {" · "}
-                  {data.profile.isVisible ? "Sichtbar" : "Pausiert"}
+                  {data.profile.isVisible ? "Visible" : "Paused"}
                   {" · "}
-                  {data.location ? "Standort aktiv" : "Standort fehlt"}
+                  {data.location ? "Location active" : "Location missing"}
                 </div>
                 <p className="mt-3 text-sm leading-6 text-white/74">
-                  {data.profile.bio ?? "Deine Bio fehlt noch. Ein starker erster Eindruck beginnt mit zwei klaren Saetzen."}
+                  {data.profile.bio ?? "Your bio is missing. A strong first impression starts with two clear sentences."}
                 </p>
                 <Link className="mt-4 inline-flex rounded-full bg-white/10 px-3 py-2 text-xs font-semibold text-white" href="/profile/create">
-                  Profil bearbeiten
+                  Edit profile
                 </Link>
               </div>
             </div>
@@ -102,8 +102,8 @@ export function ProfileOverview() {
         <Card className="glass-card rounded-[2rem] p-5 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-semibold text-white">Profilqualitaet</div>
-              <div className="mt-1 text-sm text-white/68">Je kompletter dein Profil, desto besser wird es spaeter im Radar einsortiert.</div>
+              <div className="text-sm font-semibold text-white">Profile quality</div>
+              <div className="mt-1 text-sm text-white/68">The more complete your profile, the better it will rank in nearby.</div>
             </div>
             <div className="text-3xl font-semibold text-white">{completionScore}</div>
           </div>
@@ -113,7 +113,7 @@ export function ProfileOverview() {
         </Card>
 
         <Card className="glass-card rounded-[2rem] p-5 text-white">
-          <div className="text-sm font-semibold text-white">Interessen</div>
+          <div className="text-sm font-semibold text-white">Interests</div>
           <div className="mt-4 flex flex-wrap gap-2">
             {data?.interests.length ? (
               data.interests.map((interest) => (
@@ -122,7 +122,7 @@ export function ProfileOverview() {
                 </span>
               ))
             ) : (
-              <span className="text-sm text-white/65">Interessen folgen als naechster echter Datenblock.</span>
+              <span className="text-sm text-white/65">Interests will appear as your next data section.</span>
             )}
           </div>
         </Card>

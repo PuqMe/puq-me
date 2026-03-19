@@ -368,16 +368,10 @@ function buildMessagesForConversation(conversation: FallbackConversationSummary)
 }
 
 export function shouldUseLocalAppFallback(response?: Response) {
-  if (env.appEnv === "production") {
-    return false;
-  }
   return Boolean(response && response.status === 404 && env.apiBaseUrl.includes("api.puq.me"));
 }
 
 export function shouldUseLocalAppFallbackForError(error: unknown) {
-  if (env.appEnv === "production") {
-    return false;
-  }
   return env.apiBaseUrl.includes("api.puq.me") && error instanceof TypeError;
 }
 
@@ -406,7 +400,7 @@ export function createFallbackSession(email: string) {
 export function fetchFallbackProfile() {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);
@@ -416,7 +410,7 @@ export function fetchFallbackProfile() {
 export function updateFallbackProfile(input: Partial<FallbackProfileResponse["profile"]>) {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);
@@ -436,7 +430,7 @@ export function updateFallbackProfile(input: Partial<FallbackProfileResponse["pr
 export function updateFallbackInterests(interests: string[]) {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);
@@ -451,7 +445,7 @@ export function updateFallbackInterests(interests: string[]) {
 export function updateFallbackPreferences(input: FallbackProfileResponse["preferences"]) {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);
@@ -469,7 +463,7 @@ export function updateFallbackPreferences(input: FallbackProfileResponse["prefer
 export function updateFallbackLocation(input: NonNullable<FallbackProfileResponse["location"]>) {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);
@@ -493,7 +487,7 @@ export function updateFallbackVisibility(isVisible: boolean) {
 export function fetchFallbackRadarFeed(limit = 12) {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);
@@ -512,7 +506,7 @@ export function fetchFallbackRadarFeed(limit = 12) {
 export function createFallbackSwipe(targetUserId: string, direction: "left" | "right" | "super") {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);
@@ -564,7 +558,7 @@ export function createFallbackSwipe(targetUserId: string, direction: "left" | "r
 export function fetchFallbackMatches() {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);
@@ -574,7 +568,7 @@ export function fetchFallbackMatches() {
 export function fetchFallbackConversations() {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);
@@ -591,7 +585,7 @@ export function fetchFallbackConversations() {
 export function fetchFallbackConversationMessages(conversationId: string) {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   ensureUserState(user);
@@ -608,7 +602,7 @@ export function fetchFallbackConversationMessages(conversationId: string) {
 export function sendFallbackConversationMessage(conversationId: string, body: string) {
   const user = readStoredSessionUser();
   if (!user) {
-    throw new Error("Bitte zuerst einloggen.");
+    throw new Error("Please sign in first.");
   }
 
   const state = ensureUserState(user);

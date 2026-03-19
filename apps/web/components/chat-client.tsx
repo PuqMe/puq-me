@@ -42,7 +42,7 @@ export function useChatClient(initialConversationId?: string | null) {
         setSelectedConversationId(preferredConversation);
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Conversations konnten nicht geladen werden.");
+          setErrorMessage(error instanceof Error ? error.message : "Could not load conversations.");
         }
       } finally {
         if (!cancelled) {
@@ -80,7 +80,7 @@ export function useChatClient(initialConversationId?: string | null) {
         );
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Messages konnten nicht geladen werden.");
+          setErrorMessage(error instanceof Error ? error.message : "Could not load messages.");
         }
       }
     })();
@@ -127,7 +127,7 @@ export function useChatClient(initialConversationId?: string | null) {
         )
       );
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Message konnte nicht gesendet werden.");
+      setErrorMessage(error instanceof Error ? error.message : "Could not send message.");
     } finally {
       setIsSending(false);
     }

@@ -31,12 +31,12 @@ export function AuthCard() {
 
   return (
     <AuthFormShell
-      eyebrow="Schneller Login"
-      title="Willkommen zurück"
-      description="In Sekunden wieder rein, Chats fortsetzen und direkt nahe Matches sehen."
-      submitLabel="Weiter"
-      pendingLabel="Login laeuft..."
-      altLabel="Neues Konto erstellen"
+      eyebrow="Login"
+      title="Welcome back"
+      description=""
+      submitLabel="Continue"
+      pendingLabel="Logging in..."
+      altLabel="Create account"
       altHref="/register"
       errorMessage={errorMessage}
       isSubmitting={isSubmitting}
@@ -45,10 +45,10 @@ export function AuthCard() {
       <FormField autoComplete="email" label="Email" name="email" onChange={setEmail} placeholder="you@puq.me" required type="email" value={email} />
       <FormField
         autoComplete="current-password"
-        label="Passwort"
+        label="Password"
         name="password"
         onChange={setPassword}
-        placeholder="Passwort eingeben"
+        placeholder="Enter password"
         required
         type="password"
         value={password}

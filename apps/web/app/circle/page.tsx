@@ -3,7 +3,7 @@ import { AuthGuard } from "@/components/auth-guard";
 import { CircleMap } from "@/components/circle-map";
 
 export const metadata: Metadata = {
-  title: "Circle • Deine Begegnungen"
+  title: "Circle • Your encounters"
 };
 
 export default function CirclePage() {

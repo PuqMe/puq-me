@@ -19,7 +19,7 @@ function toSwipeCard(item: RadarFeedItem, index: number): SwipeCardData {
     name: item.displayName,
     age: item.age,
     city: item.city ?? "Unbekannt",
-    tagline: item.bio ?? "Profil wird gerade komplettiert. Starte das Gespraech ueber Interessen und Energie.",
+    tagline: item.bio ?? "Profile is being completed. Start a conversation about interests.",
     distance: `${Math.round(item.distanceKm)} km`,
     gradient: gradients[index % gradients.length] ?? gradients[0]!,
     vibe: `Qualitaet ${Math.round(item.profileQualityScore)}`,
@@ -48,7 +48,7 @@ export function SwipeExperience() {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Radar konnte nicht geladen werden.");
+          setErrorMessage(error instanceof Error ? error.message : "Could not load nearby.");
         }
       } finally {
         if (!cancelled) {
@@ -87,7 +87,7 @@ export function SwipeExperience() {
             : `${currentItem.displayName} wurde geliked.`
       );
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Swipe konnte nicht gespeichert werden.");
+      setErrorMessage(error instanceof Error ? error.message : "Could not save swipe.");
     } finally {
       window.setTimeout(() => setDirection(null), 220);
       setIsSubmitting(false);
@@ -121,7 +121,7 @@ export function SwipeExperience() {
             <div className="glass-card flex h-full flex-col items-center justify-center rounded-[2rem] p-6 text-center">
               <div className="text-xl font-semibold text-white">Deck leer</div>
               <p className="mt-3 max-w-xs text-sm leading-6 text-white/70">
-                Dein erster echter Feed ist verarbeitet. Mit neuen Profilen, Standort und Interessen wird hier jetzt Substanz reinkommen.
+                Your first feed is ready. With new profiles, location and interests this will grow.
               </p>
             </div>
           ) : null}

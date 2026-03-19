@@ -22,7 +22,7 @@ export function SettingsPanel() {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Settings konnten nicht geladen werden.");
+          setErrorMessage(error instanceof Error ? error.message : "Could not load settings.");
         }
       }
     })();
@@ -41,9 +41,9 @@ export function SettingsPanel() {
     try {
       const next = await updateMyVisibility(isVisible);
       setData(next);
-      setSuccessMessage("Sichtbarkeit aktualisiert.");
+      setSuccessMessage("Visibility updated.");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Sichtbarkeit konnte nicht gespeichert werden.");
+      setErrorMessage(error instanceof Error ? error.message : "Could not save visibility.");
     } finally {
       setIsSaving(false);
     }
@@ -67,7 +67,7 @@ export function SettingsPanel() {
       setData(next);
       setSuccessMessage("Radar-Settings gespeichert.");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Settings konnten nicht gespeichert werden.");
+      setErrorMessage(error instanceof Error ? error.message : "Could not save settings.");
     } finally {
       setIsSaving(false);
     }

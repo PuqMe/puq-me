@@ -67,7 +67,7 @@ export function InstallNowFab() {
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold text-white">App installieren</div>
-          <div className="text-[11px] text-white/60">Vollbild &amp; Schnellzugriff</div>
+          <div className="text-[11px] text-white/60">Fullscreen &amp; Quick access</div>
         </div>
         <button
           type="button"

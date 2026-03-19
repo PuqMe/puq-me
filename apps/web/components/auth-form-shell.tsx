@@ -14,7 +14,7 @@ type AuthFormShellProps = {
   title: string;
   description: string;
   submitLabel: string;
-  pendingLabel?: string;
+  pendingLabel: string;
   altLabel: string;
   altHref: string;
   errorMessage?: string | null;
@@ -28,7 +28,7 @@ export function AuthFormShell({
   title,
   description,
   submitLabel,
-  pendingLabel = "Bitte warten...",
+  pendingLabel = "Please wait...",
   altLabel,
   altHref,
   errorMessage,
@@ -52,7 +52,7 @@ export function AuthFormShell({
       await signInWithGoogle(credential);
       await navigateToPostAuthPath(router);
     } catch (error) {
-      setGoogleErrorMessage(error instanceof Error ? error.message : "Google Login konnte nicht abgeschlossen werden.");
+      setGoogleErrorMessage(error instanceof Error ? error.message : "Google Login failed.");
     } finally {
       window.setTimeout(() => {
         isHandlingGoogleRef.current = false;

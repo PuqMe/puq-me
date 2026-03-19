@@ -28,7 +28,7 @@ export function MatchList() {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Matches konnten nicht geladen werden.");
+          setErrorMessage(error instanceof Error ? error.message : "Could not load matches.");
         }
       } finally {
         if (!cancelled) {

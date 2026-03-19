@@ -49,7 +49,7 @@ export function ProfileBuilder() {
         });
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Profil konnte nicht geladen werden.");
+          setErrorMessage(error instanceof Error ? error.message : "Could not load profile.");
         }
       } finally {
         if (!cancelled) {
@@ -75,12 +75,12 @@ export function ProfileBuilder() {
     setSuccessMessage(null);
 
     if (form.displayName.trim().length < 2) {
-      setErrorMessage("Dein Anzeigename braucht mindestens 2 Zeichen.");
+      setErrorMessage("Display name needs at least 2 characters.");
       return;
     }
 
     if (!form.birthDate) {
-      setErrorMessage("Bitte trage dein Geburtsdatum ein.");
+      setErrorMessage("Please enter your date of birth.");
       return;
     }
 
@@ -110,10 +110,10 @@ export function ProfileBuilder() {
 
       await updateMyProfile(profileInput);
 
-      setSuccessMessage("Profil gespeichert. Dein Auftritt ist jetzt live.");
+      setSuccessMessage("Profile saved and live.");
       window.setTimeout(() => router.push("/profile"), 600);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Profil konnte nicht gespeichert werden.");
+      setErrorMessage(error instanceof Error ? error.message : "Could not save profile.");
     } finally {
       setIsSaving(false);
     }
@@ -122,16 +122,16 @@ export function ProfileBuilder() {
   return (
     <section className="grid gap-4">
       <PageHeader
-        eyebrow="Profil erstellen"
-        title="Zeig deine beste Seite"
-        description="Ein starkes Profil wird besser gefunden und fuehlt sich direkt vertrauenswuerdig an."
+        eyebrow="Create profile"
+        title="Show your best side"
+        description="A strong profile gets found more easily and builds trust."
       />
 
       <Card className="mesh-panel rounded-[2rem] p-5 text-white">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <div className="text-sm font-semibold text-white">Die wichtigsten Angaben zuerst</div>
-            <div className="mt-1 text-sm text-white/70">Echter Save-Flow statt Demo-Felder.</div>
+            <div className="text-sm font-semibold text-white">Key details first</div>
+            <div className="mt-1 text-sm text-white/70">Real save flow, not demo fields.</div>
           </div>
           <div className="soft-pill rounded-full px-3 py-1 text-[11px] font-semibold">Live</div>
         </div>
@@ -140,7 +140,7 @@ export function ProfileBuilder() {
           <input
             className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
             onChange={(event) => updateField("displayName", event.target.value)}
-            placeholder="Anzeigename"
+            placeholder="Display name"
             value={form.displayName}
           />
           <input
@@ -160,13 +160,13 @@ export function ProfileBuilder() {
             <input
               className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
               onChange={(event) => updateField("occupation", event.target.value)}
-              placeholder="Beruf"
+              placeholder="Occupation"
               value={form.occupation}
             />
             <input
               className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
               onChange={(event) => updateField("city", event.target.value)}
-              placeholder="Stadt"
+              placeholder="City"
               value={form.city}
             />
           </div>
@@ -176,14 +176,14 @@ export function ProfileBuilder() {
       <Card className="glass-card rounded-[2rem] p-5 text-white">
         <div className="text-sm font-semibold text-white">Status</div>
         <div className="mt-3 text-sm text-white/72">
-          {isLoading ? "Profil wird geladen..." : "Dein Profil ist jetzt mit dem Backend verbunden."}
+          {isLoading ? "Loading profile..." : "Your profile is connected."}
         </div>
         {errorMessage ? <div className="mt-3 text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
         {successMessage ? <div className="mt-3 text-sm text-[#b8ffd9]">{successMessage}</div> : null}
       </Card>
 
       <Button className="glow-button rounded-[1.35rem] py-4 text-sm font-semibold" disabled={isLoading || isSaving} onClick={() => void handleSubmit()}>
-        {isSaving ? "Profil wird gespeichert..." : "Profil speichern"}
+        {isSaving ? "Saving profile..." : "Save profile"}
       </Button>
     </section>
   );

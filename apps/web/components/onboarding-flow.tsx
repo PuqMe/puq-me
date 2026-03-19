@@ -40,7 +40,7 @@ export function OnboardingFlow() {
   const [maxDistanceKm, setMaxDistanceKm] = useState(25);
   const [showMeGlobally, setShowMeGlobally] = useState(false);
   const [onlyVerifiedProfiles, setOnlyVerifiedProfiles] = useState(false);
-  const [locationStatus, setLocationStatus] = useState("Standort noch nicht gesetzt.");
+  const [locationStatus, setLocationStatus] = useState("Location not set yet.");
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -60,11 +60,11 @@ export function OnboardingFlow() {
         setShowMeGlobally(data.preferences.showMeGlobally);
         setOnlyVerifiedProfiles(data.preferences.onlyVerifiedProfiles);
         if (data.location) {
-          setLocationStatus(`${data.location.city ?? "Standort aktiv"} gespeichert.`);
+          setLocationStatus(`${data.location.city ?? "Location active"} saved.`);
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Onboarding konnte nicht geladen werden.");
+          setErrorMessage(error instanceof Error ? error.message : "Could not load onboarding.");
         }
       }
     })();
@@ -77,16 +77,16 @@ export function OnboardingFlow() {
   const steps = useMemo(
     () => [
       {
-        title: "Standort aktivieren",
-        text: "Je praeziser dein Standort, desto besser wird dein Radar und desto relevanter sind spaetere Matches."
+        title: "Enable location",
+        text: "The more precise your location, the better your nearby results and future matches."
       },
       {
-        title: "Interessen setzen",
-        text: "Gib dem ersten Matchgespraech direkt Stoff und steuere die Qualitaet deines Profils."
+        title: "Set interests",
+        text: "Give your first conversations something to start with and improve your profile quality."
       },
       {
-        title: "Radar filtern",
-        text: "Lege Alter, Distanz und Sichtbarkeit fest, damit dein Feed von Anfang an zu dir passt."
+        title: "Filter preferences",
+        text: "Set age, distance and visibility so your feed fits you from the start."
       }
     ],
     []
@@ -98,7 +98,7 @@ export function OnboardingFlow() {
 
     try {
       if (typeof navigator === "undefined" || !navigator.geolocation) {
-        throw new Error("Geolocation wird auf diesem Geraet nicht unterstuetzt.");
+        throw new Error("Geolocation is not supported on this device.");
       }
 
       const position = await new Promise<GeolocationPosition>((resolve, reject) =>
@@ -155,10 +155,10 @@ export function OnboardingFlow() {
       const nextProfile = await updateMyLocation(locationInput);
 
       setProfile(nextProfile);
-      setLocationStatus(`${city ?? "Standort"} gespeichert und aktiv.`);
+      setLocationStatus(`${city ?? "Location"} saved and active.`);
       setStep(1);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Standort konnte nicht gespeichert werden.");
+      setErrorMessage(error instanceof Error ? error.message : "Could not save location.");
     } finally {
       setIsSaving(false);
     }
@@ -167,7 +167,7 @@ export function OnboardingFlow() {
   async function saveInterests() {
     setErrorMessage(null);
     if (selectedInterests.length === 0) {
-      setErrorMessage("Waehle mindestens ein Interesse.");
+      setErrorMessage("Select at least one interest.");
       return;
     }
 
@@ -177,7 +177,7 @@ export function OnboardingFlow() {
       setProfile(nextProfile);
       setStep(2);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Interessen konnten nicht gespeichert werden.");
+      setErrorMessage(error instanceof Error ? error.message : "Could not save interests.");
     } finally {
       setIsSaving(false);
     }
@@ -186,7 +186,7 @@ export function OnboardingFlow() {
   async function savePreferences() {
     setErrorMessage(null);
     if (interestedIn.length === 0) {
-      setErrorMessage("Waehle mindestens eine Zielgruppe.");
+      setErrorMessage("Select at least one preference.");
       return;
     }
 
@@ -200,9 +200,9 @@ export function OnboardingFlow() {
         showMeGlobally,
         onlyVerifiedProfiles
       });
-      router.push("/radar");
+      router.push("/nearby");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Praeferenzen konnten nicht gespeichert werden.");
+      setErrorMessage(error instanceof Error ? error.message : "Could not save preferences.");
     } finally {
       setIsSaving(false);
     }
@@ -225,7 +225,7 @@ export function OnboardingFlow() {
   return (
     <section className="flex min-h-[calc(100vh-3rem)] flex-col justify-between gap-4">
       <div className="mesh-panel glass-card rounded-[2rem] p-6 text-white">
-        <div className="warm-pill inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">Onboarding live</div>
+        <div className="warm-pill inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">Setup</div>
         <div className="mt-6 flex gap-2">
           {steps.map((_, index) => (
             <div key={index} className={`h-1.5 flex-1 rounded-full ${index <= step ? "bg-[#1F8F62]" : "bg-black/10"}`} />
@@ -236,10 +236,10 @@ export function OnboardingFlow() {
 
         {step === 0 ? (
           <div className="mt-6 rounded-[1.4rem] bg-white/8 p-4">
-            <div className="text-sm font-semibold text-white">Standortstatus</div>
+            <div className="text-sm font-semibold text-white">Location status</div>
             <div className="mt-2 text-sm text-white/72">{locationStatus}</div>
             <div className="mt-3 text-xs uppercase tracking-[0.18em] text-white/45">
-              {profile?.location ? `${profile.location.latitude.toFixed(3)}, ${profile.location.longitude.toFixed(3)}` : "Kein aktiver Standort"}
+              {profile?.location ? `${profile.location.latitude.toFixed(3)}, ${profile.location.longitude.toFixed(3)}` : "No active location"}
             </div>
           </div>
         ) : null}
@@ -262,7 +262,7 @@ export function OnboardingFlow() {
         {step === 2 ? (
           <div className="mt-6 grid gap-4">
             <div>
-              <div className="text-sm font-semibold text-white">Ich moechte sehen</div>
+              <div className="text-sm font-semibold text-white">I want to see</div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {interestedInOptions.map((option) => (
                   <button
@@ -307,24 +307,24 @@ export function OnboardingFlow() {
       <div className="grid gap-3">
         {step === 0 ? (
           <button className="glow-button rounded-[1.3rem] px-4 py-4 text-sm font-semibold text-white" disabled={isSaving} onClick={() => void saveLocation()}>
-            {isSaving ? "Standort wird gespeichert..." : "Standort aktivieren"}
+            {isSaving ? "Saving location..." : "Enable location"}
           </button>
         ) : null}
 
         {step === 1 ? (
           <button className="glow-button rounded-[1.3rem] px-4 py-4 text-sm font-semibold text-white" disabled={isSaving} onClick={() => void saveInterests()}>
-            {isSaving ? "Interessen werden gespeichert..." : "Interessen speichern"}
+            {isSaving ? "Saving interests..." : "Save interests"}
           </button>
         ) : null}
 
         {step === 2 ? (
           <button className="glow-button rounded-[1.3rem] px-4 py-4 text-sm font-semibold text-white" disabled={isSaving} onClick={() => void savePreferences()}>
-            {isSaving ? "Radar wird vorbereitet..." : "Radar starten"}
+            {isSaving ? "Preparing..." : "Start exploring"}
           </button>
         ) : null}
 
         <Link className="glass-card rounded-[1.3rem] px-4 py-4 text-center text-sm font-semibold text-white" href={step === 2 ? "/nearby" : "/profile/create"}>
-          Vorerst ueberspringen
+          Skip for now
         </Link>
       </div>
     </section>

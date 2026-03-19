@@ -3,7 +3,7 @@ import { AuthGuard } from "@/components/auth-guard";
 import { RadarMap } from "@/components/radar-map";
 
 export const metadata: Metadata = {
-  title: "Nearby • Finde Menschen in deiner Nähe"
+  title: "Nearby • Find people near you"
 };
 
 export default function NearbyPage() {

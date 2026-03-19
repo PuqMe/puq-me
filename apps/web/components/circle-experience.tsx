@@ -317,7 +317,7 @@ export function CircleExperience() {
   }, [activeFilter, geo.lat, geo.lon]);
 
   return (
-    <AppShell active="/circle" title="Circle" subtitle="Deine Begegnungen als Karte oder Liste, bewusst unscharf und datenschutzfreundlich">
+    <AppShell active="/circle" title="Circle" subtitle="Your encounters on a map or list, deliberately blurred for privacy">
       <section className="grid gap-4">
         <div className="glass-card flex items-center gap-2 rounded-[1.6rem] p-2">
           <button
@@ -409,9 +409,9 @@ export function CircleExperience() {
                       <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-7 8a7 7 0 0 1 14 0" strokeWidth="1.8" />
                     </svg>
                   </div>
-                  <h2 className="text-3xl font-semibold">Keine Begegnungen gefunden</h2>
+                  <h2 className="text-3xl font-semibold">No encounters found</h2>
                   <p className="mt-3 max-w-sm text-base leading-7 text-white/72">
-                    Beweg dich weiter und entdecke. Nutzer aus deinem aktiven Nearby-Umfeld erscheinen hier als unscharfe Begegnungszonen.
+                    Keep exploring. Users from your nearby area appear here as blurred encounter zones.
                   </p>
                 </div>
               )}
@@ -433,10 +433,10 @@ export function CircleExperience() {
                 <div className="mt-3 flex items-center justify-between text-sm text-white/72">
                   <span>
                     {locationState === "locating"
-                      ? "Ort wird erkannt..."
+                      ? "Detecting location..."
                       : locationState === "blocked"
-                        ? "Standort nicht freigegeben"
-                        : `Ort erkannt: ${geo.city}`}
+                        ? "Location not shared"
+                        : `Location detected: ${geo.city}`}
                   </span>
                   <span>{encountersLoading ? "lade..." : "OSM · Nominatim"}</span>
                 </div>
@@ -468,7 +468,7 @@ export function CircleExperience() {
                         <div className="rounded-[1rem] bg-white/8 px-3 py-2">Zeitfenster: {encounter.timeLabel}</div>
                       </div>
                       <p className="mt-3 text-sm leading-6 text-white/72">
-                        Unscharfe Begegnung in derselben Gegend. Exakte Orte und Zeiten werden bewusst nicht angezeigt.
+                        Blurred encounter in the same area. Exact locations and times are hidden for privacy.
                       </p>
                     </div>
                   </div>
@@ -476,9 +476,9 @@ export function CircleExperience() {
               ))
             ) : (
               <div className="glass-card rounded-[2rem] p-6 text-center text-white">
-                <h2 className="text-2xl font-semibold">Keine Begegnungen im gewählten Zeitraum</h2>
+                <h2 className="text-2xl font-semibold">No encounters in selected period</h2>
                 <p className="mt-3 text-sm leading-6 text-white/72">
-                  Versuch einen längeren Zeitraum oder bleib mit aktiviertem Nearby weiter unterwegs.
+                  Try a longer time period or keep exploring with nearby enabled.
                 </p>
               </div>
             )}

@@ -18,7 +18,7 @@ export function RegisterCard() {
 
   async function handleSubmit() {
     if (password !== confirmPassword) {
-      setErrorMessage("Die Passwoerter stimmen noch nicht ueberein.");
+      setErrorMessage("Passwords do not match.");
       return;
     }
 
@@ -37,12 +37,12 @@ export function RegisterCard() {
 
   return (
     <AuthFormShell
-      eyebrow="Einfach starten"
-      title="Profil schnell anlegen"
-      description="Nur Email und ein starkes Passwort. Deinen Anzeigenamen legst du direkt im Onboarding fest."
-      submitLabel="Konto erstellen"
-      pendingLabel="Konto wird erstellt..."
-      altLabel="Ich habe schon ein Konto"
+      eyebrow="Register"
+      title="Create account"
+      description=""
+      submitLabel="Create account"
+      pendingLabel="Creating account..."
+      altLabel="Already have an account"
       altHref="/login"
       errorMessage={errorMessage}
       isSubmitting={isSubmitting}
@@ -51,20 +51,20 @@ export function RegisterCard() {
       <FormField autoComplete="email" label="Email" name="email" onChange={setEmail} placeholder="you@puq.me" required type="email" value={email} />
       <FormField
         autoComplete="new-password"
-        label="Passwort"
+        label="Password"
         name="password"
         onChange={setPassword}
-        placeholder="Mindestens 10 Zeichen, Gross/Klein, Zahl, Symbol"
+        placeholder="Min 10 chars, upper/lower, number, symbol"
         required
         type="password"
         value={password}
       />
       <FormField
         autoComplete="new-password"
-        label="Passwort bestaetigen"
+        label="Confirm password"
         name="confirmPassword"
         onChange={setConfirmPassword}
-        placeholder="Passwort wiederholen"
+        placeholder="Repeat password"
         required
         type="password"
         value={confirmPassword}

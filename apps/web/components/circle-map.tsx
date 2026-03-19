@@ -8,12 +8,12 @@ import { BRAND_NAME } from "@puqme/config";
 /* ── Time filters ── */
 type TimeFilter = "24h" | "3d" | "7d" | "1m" | "3m" | "1y";
 const TIME_FILTERS: { key: TimeFilter; label: string }[] = [
-  { key: "24h", label: "24 Std" },
-  { key: "3d",  label: "3 Tage" },
-  { key: "7d",  label: "7 Tage" },
-  { key: "1m",  label: "1 Monat" },
-  { key: "3m",  label: "3 Monate" },
-  { key: "1y",  label: "1 Jahr" },
+  { key: "24h", label: "24h" },
+  { key: "3d",  label: "3d" },
+  { key: "7d",  label: "7d" },
+  { key: "1m",  label: "1 month" },
+  { key: "3m",  label: "3 months" },
+  { key: "1y",  label: "1 year" },
 ];
 
 /* ── Mock encounters ── */
@@ -53,10 +53,10 @@ const NAV_ITEMS = [
 
 /* ── Tile layer configs ── */
 const TILE_LAYERS: Record<string, { url: string; label: string }> = {
-  dunkel:   { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",  label: "Dunkel" },
+  dunkel:   { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",  label: "Dark" },
   standard: { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", label: "Standard" },
-  gebaeude: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", label: "Gebäude" },
-  oepnv:    { url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38", label: "ÖPNV" },
+  gebaeude: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", label: "Light" },
+  oepnv:    { url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38", label: "Transit" },
 };
 
 /* ── SVG icons ── */
@@ -106,8 +106,9 @@ export function CircleMap() {
   const [location, setLocation] = useState({ lat: 52.52, lng: 13.405 });
   const [showSearch,  setShowSearch]  = useState(false);
   const [showLayers,  setShowLayers]  = useState(false);
+  const [showMenu,    setShowMenu]    = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [genderFilter, setGenderFilter] = useState<string>("alle");
+  const [genderFilter, setGenderFilter] = useState<string>("all");
   const [tileKey, setTileKey] = useState<string>("dunkel");
 
   /* Load Leaflet CSS + JS */
@@ -168,7 +169,7 @@ export function CircleMap() {
     });
     L.marker([location.lat, location.lng], { icon: selfIcon, zIndexOffset: 1000 })
       .addTo(map)
-      .bindPopup("<b>Du bist hier</b>");
+      .bindPopup("<b>You are here</b>");
 
     mapObjRef.current = map;
   }, [ready, location]);
@@ -255,7 +256,7 @@ export function CircleMap() {
           <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "#07050f" }}>
             <div style={{ textAlign: "center" }}>
               <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-              <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Karte lädt…</p>
+              <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Loading map…</p>
             </div>
           </div>
         )}
@@ -276,7 +277,7 @@ export function CircleMap() {
                   <span style={{ fontSize: 13, fontWeight: 800, color: "#a855f7", letterSpacing: "0.01em" }}>{BRAND_NAME}</span>
                   <span style={{ fontSize: 15, fontWeight: 700, color: "#ffffff", letterSpacing: "-0.01em" }}>Circle</span>
                 </div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,.45)", marginTop: 2 }}>Deine Begegnungen</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,.45)", marginTop: 2 }}>Your encounters</div>
               </div>
             </Link>
 
@@ -285,8 +286,8 @@ export function CircleMap() {
               <Link href="/nearby" aria-label="Nearby" style={headerBtn}><NearbyIcon /></Link>
               <Link href="/circle" aria-label="Circle" style={headerBtn}><CircleNavIcon /></Link>
               <button aria-label="Search" onClick={() => setShowSearch(true)} style={headerBtn}><SearchIcon /></button>
-              <button aria-label="Benachrichtigungen" style={headerBtn}><BellIcon /></button>
-              <button aria-label="Menu" style={headerBtn}><MenuIcon /></button>
+              <button aria-label="Notifications" style={headerBtn}><BellIcon /></button>
+              <button aria-label="Menu" onClick={() => setShowMenu(true)} style={headerBtn}><MenuIcon /></button>
             </div>
           </div>
 
@@ -344,7 +345,7 @@ export function CircleMap() {
 
         {/* ── EBENEN (bottom-left) ── */}
         <div style={{ position: "absolute", left: 12, zIndex: 20, bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))" }}>
-          <button style={ctrlBtn} aria-label="Ebenen" onClick={() => setShowLayers(l => !l)}>
+          <button style={ctrlBtn} aria-label="Layers" onClick={() => setShowLayers(l => !l)}>
             <LayersIcon />
           </button>
         </div>
@@ -358,7 +359,7 @@ export function CircleMap() {
             border: "1px solid rgba(255,255,255,.12)",
             padding: "12px 8px", minWidth: 130,
           }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,.45)", letterSpacing: "0.08em", textTransform: "uppercase", padding: "0 8px 8px" }}>Kartenstil</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,.45)", letterSpacing: "0.08em", textTransform: "uppercase", padding: "0 8px 8px" }}>Map Style</div>
             {Object.entries(TILE_LAYERS).map(([key, val]) => (
               <button key={key} onClick={() => { setTileKey(key); setShowLayers(false); }} style={{
                 display: "block", width: "100%", textAlign: "left",
@@ -394,6 +395,48 @@ export function CircleMap() {
           ))}
         </nav>
 
+        {/* ── MENU DRAWER ── */}
+        {showMenu && (
+          <>
+            <div onClick={() => setShowMenu(false)} style={{ position: "absolute", inset: 0, zIndex: 45, background: "rgba(0,0,0,.5)" }} />
+            <div style={{
+              position: "absolute", top: 0, right: 0, bottom: 0, zIndex: 50,
+              width: "min(280px, 80vw)", background: "rgba(12,8,28,.98)",
+              borderLeft: "1px solid rgba(255,255,255,.1)",
+              padding: "max(20px, env(safe-area-inset-top)) 20px 20px",
+              display: "flex", flexDirection: "column", gap: 4,
+              overflowY: "auto",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Menu</span>
+                <button onClick={() => setShowMenu(false)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.5)", cursor: "pointer" }}><CloseIcon /></button>
+              </div>
+              {NAV_ITEMS.map(item => (
+                <Link key={item.href} href={item.href} onClick={() => setShowMenu(false)} style={{
+                  display: "flex", alignItems: "center", gap: 12, padding: "12px 8px",
+                  borderRadius: 10, textDecoration: "none",
+                  color: item.href === "/circle" ? "#a855f7" : "rgba(255,255,255,.7)",
+                  background: item.href === "/circle" ? "rgba(168,85,247,.12)" : "transparent",
+                  fontSize: 14, fontWeight: 600,
+                }}>
+                  <NavIcon type={item.label} />
+                  <span style={{ textTransform: "capitalize" }}>{item.label}</span>
+                </Link>
+              ))}
+              <div style={{ marginTop: "auto", paddingTop: 20, borderTop: "1px solid rgba(255,255,255,.08)" }}>
+                <Link href="/settings" onClick={() => setShowMenu(false)} style={{
+                  display: "flex", alignItems: "center", gap: 12, padding: "12px 8px",
+                  borderRadius: 10, textDecoration: "none",
+                  color: "rgba(255,255,255,.5)", fontSize: 13, fontWeight: 500,
+                }}>
+                  <GridIcon />
+                  <span>Settings</span>
+                </Link>
+              </div>
+            </div>
+          </>
+        )}
+
         {/* ── SEARCH BOTTOM SHEET ── */}
         {showSearch && (
           <div style={{
@@ -404,16 +447,16 @@ export function CircleMap() {
           }}>
             <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,.2)", margin: "0 auto 16px" }} />
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#fff" }}>Nearby Search</h2>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#fff" }}>Search</h2>
               <button onClick={() => setShowSearch(false)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.5)", cursor: "pointer" }}><CloseIcon /></button>
             </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.45)", marginBottom: 8 }}>1. Ort suchen</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,.45)", marginBottom: 8 }}>1. Search location</div>
             <div style={{ position: "relative", marginBottom: 20 }}>
               <input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleSearch()}
-                placeholder="Stadt, Straße..."
+                placeholder="City, street..."
                 style={{
                   width: "100%", padding: "12px 44px 12px 16px", borderRadius: 12,
                   border: "1px solid rgba(255,255,255,.15)", background: "rgba(255,255,255,.06)",
@@ -425,9 +468,9 @@ export function CircleMap() {
                 background: "transparent", border: "none", color: "rgba(255,255,255,.4)", cursor: "pointer",
               }}><SearchIcon /></button>
             </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.45)", marginBottom: 8 }}>2. Wen möchtest du sehen?</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,.45)", marginBottom: 8 }}>2. Filter</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
-              {["Alle", "Frauen", "Männer", "Divers"].map(g => (
+              {["All", "Women", "Men", "Other"].map(g => (
                 <button key={g} onClick={() => setGenderFilter(g.toLowerCase())} style={{
                   padding: "10px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)",
                   cursor: "pointer", fontSize: 14, fontWeight: 600,
@@ -443,7 +486,7 @@ export function CircleMap() {
               background: "linear-gradient(135deg, #c084fc, #a855f7)", color: "#fff",
               fontSize: 15, fontWeight: 700,
             }}>
-              Anwenden &amp; Nearby ansehen
+              Apply
             </button>
           </div>
         )}
