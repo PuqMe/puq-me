@@ -17,6 +17,9 @@ declare global {
 
 export function GoogleSignInButton({ onSuccess, text = "signin_with", width }: GoogleSignInButtonProps) {
   const buttonRef = useRef<HTMLDivElement>(null);
+  const onSuccessRef = useRef(onSuccess);
+  const initializedRef = useRef(false);
+  onSuccessRef.current = onSuccess;
 
   useEffect(() => {
     const loadScript = () => {
@@ -30,12 +33,13 @@ export function GoogleSignInButton({ onSuccess, text = "signin_with", width }: G
     };
 
     const initializeGoogleSignIn = () => {
-      if (!window.google) return;
+      if (!window.google || initializedRef.current) return;
+      initializedRef.current = true;
 
       window.google.accounts.id.initialize({
         client_id: env.googleClientId,
         callback: (response: any) => {
-          onSuccess(response.credential);
+          onSuccessRef.current(response.credential);
         },
       });
 
@@ -62,7 +66,7 @@ export function GoogleSignInButton({ onSuccess, text = "signin_with", width }: G
     }, 100);
 
     return () => clearInterval(checkInterval);
-  }, [onSuccess, text, width]);
+  }, [text, width]);
 
   return <div ref={buttonRef} className="w-full h-[40px] flex justify-center" />;
 }

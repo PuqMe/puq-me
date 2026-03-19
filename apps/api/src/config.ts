@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const apiEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  DEV_MOCK_MODE: z.coerce.boolean().default(true),
+  DEV_MOCK_MODE: z.coerce.boolean().default(false),
   PORT: z.coerce.number().int().positive().default(3000),
   HOST: z.string().default("0.0.0.0"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),

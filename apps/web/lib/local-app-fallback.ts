@@ -368,10 +368,16 @@ function buildMessagesForConversation(conversation: FallbackConversationSummary)
 }
 
 export function shouldUseLocalAppFallback(response?: Response) {
+  if (env.appEnv === "production") {
+    return false;
+  }
   return Boolean(response && response.status === 404 && env.apiBaseUrl.includes("api.puq.me"));
 }
 
 export function shouldUseLocalAppFallbackForError(error: unknown) {
+  if (env.appEnv === "production") {
+    return false;
+  }
   return env.apiBaseUrl.includes("api.puq.me") && error instanceof TypeError;
 }
 
