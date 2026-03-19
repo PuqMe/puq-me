@@ -194,7 +194,7 @@ export function RadarMap() {
         {/* ── TOP HEADER ── */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
-          background: "linear-gradient(180deg, rgba(20,12,42,.98) 0%, rgba(20,12,42,.85) 55%, rgba(20,12,42,0) 100%)",
+          background: "transparent",
           paddingTop: "max(12px, env(safe-area-inset-top))",
           paddingLeft: 12, paddingRight: 12, paddingBottom: 20,
           display: "flex", alignItems: "center", gap: 8,
@@ -255,8 +255,8 @@ export function RadarMap() {
         <nav style={{
           position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 30,
           display: "flex", alignItems: "center", justifyContent: "space-around",
-          background: "rgba(20,12,42,.97)",
-          borderTop: "1px solid rgba(255,255,255,.22)",
+          background: "transparent",
+          borderTop: "none",
           paddingTop: 8,
           paddingBottom: "max(8px, env(safe-area-inset-bottom))",
         }}>
