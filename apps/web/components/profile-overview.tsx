@@ -6,6 +6,9 @@ import { AppShell } from "@/components/app-shell";
 import { Card } from "@puqme/ui";
 import { fetchMyProfile, type ProfileResponse } from "@/lib/profile";
 import { useLanguage } from "@/lib/i18n";
+import { LevelProgress } from "@/components/level-progress";
+import { StreakTracker } from "@/components/streak-tracker";
+import { BadgeSystem } from "@/components/badge-system";
 
 function calculateAge(birthDate: string) {
   const today = new Date();
@@ -143,6 +146,52 @@ export function ProfileOverview() {
             )}
           </div>
         </Card>
+
+        {/* Badges & Level Section */}
+        <div style={{ display: "grid", gap: "12px" }}>
+          <div style={{ paddingLeft: "4px", paddingRight: "4px" }}>
+            <h3 style={{ fontSize: "14px", fontWeight: "600", color: "white", marginBottom: "12px" }}>Badges & Level</h3>
+          </div>
+
+          {/* Level Progress */}
+          <Card className="glass-card rounded-[2rem] p-5 text-white">
+            <div style={{ marginBottom: "12px" }}>
+              <div style={{ fontSize: "12px", fontWeight: "600", color: "rgba(255, 255, 255, 0.7)" }}>Your Level</div>
+            </div>
+            <LevelProgress />
+          </Card>
+
+          {/* Streak */}
+          <Card className="glass-card rounded-[2rem] p-5 text-white">
+            <div style={{ marginBottom: "12px" }}>
+              <div style={{ fontSize: "12px", fontWeight: "600", color: "rgba(255, 255, 255, 0.7)" }}>Activity Streak</div>
+            </div>
+            <div style={{ marginBottom: "12px" }}>
+              <StreakTracker />
+            </div>
+          </Card>
+
+          {/* Recent Badges Preview */}
+          <Card className="glass-card rounded-[2rem] p-5 text-white">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <div style={{ fontSize: "12px", fontWeight: "600", color: "rgba(255, 255, 255, 0.7)" }}>Recent Badges</div>
+              <Link
+                href="/badges"
+                style={{
+                  fontSize: "11px",
+                  color: "#a855f7",
+                  fontWeight: "600",
+                  textDecoration: "none",
+                  borderBottom: "1px solid rgba(168, 85, 247, 0.3)",
+                  paddingBottom: "2px",
+                }}
+              >
+                View all
+              </Link>
+            </div>
+            <BadgeSystem showLocked={false} compact={true} />
+          </Card>
+        </div>
       </section>
     </AppShell>
   );

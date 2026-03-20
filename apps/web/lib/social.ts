@@ -151,6 +151,56 @@ async function readApiError(response: Response) {
   return "Request failed.";
 }
 
+function handleApiError(error: unknown, fallbackMessage: string): never {
+  if (error instanceof TypeError && error.message === "Failed to fetch") {
+    throw new Error("Network connection failed. Please check your connection and try again.");
+  }
+
+  if (error instanceof Error) {
+    throw error;
+  }
+
+  throw new Error(fallbackMessage);
+}
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 1,
+  delayMs = 2000
+): Promise<T> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      // Check if error is retryable (503, 429)
+      const isRetryable =
+        lastError.message?.includes("Service Unavailable") ||
+        lastError.message?.includes("Too Many Requests");
+
+      if (!isRetryable || attempt === maxRetries) {
+        break;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+
+  throw lastError || new Error("Request failed after retries");
+}
+
+const API_TIMEOUT_MS = 10_000;
+
+function fetchWithAbortSignal(input: string, init: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function expectOk(response: Response) {
   if (!response.ok) {
     throw new Error(await readApiError(response));
@@ -161,81 +211,89 @@ async function expectOk(response: Response) {
 
 export async function fetchRadarFeed(limit = 12, refresh = false) {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe/radar?limit=${limit}&refresh=${refresh}`);
-    if (shouldUseLocalAppFallback(response)) {
-      return fetchFallbackRadarFeed(limit) as RadarResponse;
-    }
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe/radar?limit=${limit}&refresh=${refresh}`);
+      if (shouldUseLocalAppFallback(response)) {
+        return fetchFallbackRadarFeed(limit) as RadarResponse;
+      }
 
-    await expectOk(response);
-    return (await response.json()) as RadarResponse;
+      await expectOk(response);
+      return (await response.json()) as RadarResponse;
+    });
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
       return fetchFallbackRadarFeed(limit) as RadarResponse;
     }
 
-    throw error;
+    handleApiError(error, "Failed to load radar feed. Please try again.");
   }
 }
 
 export async function createSwipe(targetUserId: string, direction: "left" | "right" | "super") {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targetUserId, direction })
-    });
-    if (shouldUseLocalAppFallback(response)) {
-      return createFallbackSwipe(targetUserId, direction) as SwipeResponse;
-    }
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId, direction })
+      });
+      if (shouldUseLocalAppFallback(response)) {
+        return createFallbackSwipe(targetUserId, direction) as SwipeResponse;
+      }
 
-    await expectOk(response);
-    return (await response.json()) as SwipeResponse;
+      await expectOk(response);
+      return (await response.json()) as SwipeResponse;
+    });
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
       return createFallbackSwipe(targetUserId, direction) as SwipeResponse;
     }
 
-    throw error;
+    handleApiError(error, "Failed to save swipe. Please try again.");
   }
 }
 
 export async function fetchMatches() {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/matches`);
-    if (shouldUseLocalAppFallback(response)) {
-      return fetchFallbackMatches() as MatchItem[];
-    }
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/matches`);
+      if (shouldUseLocalAppFallback(response)) {
+        return fetchFallbackMatches() as MatchItem[];
+      }
 
-    await expectOk(response);
-    return (await response.json()) as MatchItem[];
+      await expectOk(response);
+      return (await response.json()) as MatchItem[];
+    });
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
       return fetchFallbackMatches() as MatchItem[];
     }
 
-    throw error;
+    handleApiError(error, "Failed to load matches. Please try again.");
   }
 }
 
 export async function fetchConversations() {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations`);
-    if (shouldUseLocalAppFallback(response)) {
-      return fetchFallbackConversations() as {
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations`);
+      if (shouldUseLocalAppFallback(response)) {
+        return fetchFallbackConversations() as {
+          items: ConversationSummary[];
+          meta: {
+            totalUnreadCount: number;
+          };
+        };
+      }
+
+      await expectOk(response);
+      return (await response.json()) as {
         items: ConversationSummary[];
         meta: {
           totalUnreadCount: number;
         };
       };
-    }
-
-    await expectOk(response);
-    return (await response.json()) as {
-      items: ConversationSummary[];
-      meta: {
-        totalUnreadCount: number;
-      };
-    };
+    });
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
       return fetchFallbackConversations() as {
@@ -246,31 +304,33 @@ export async function fetchConversations() {
       };
     }
 
-    throw error;
+    handleApiError(error, "Failed to load conversations. Please try again.");
   }
 }
 
 export async function fetchConversationMessages(conversationId: string) {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations/${conversationId}/messages`);
-    if (shouldUseLocalAppFallback(response)) {
-      return fetchFallbackConversationMessages(conversationId) as {
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/conversations/${conversationId}/messages`);
+      if (shouldUseLocalAppFallback(response)) {
+        return fetchFallbackConversationMessages(conversationId) as {
+          items: ConversationMessage[];
+          meta: {
+            nextCursor: string | null;
+            hasMore: boolean;
+          };
+        };
+      }
+
+      await expectOk(response);
+      return (await response.json()) as {
         items: ConversationMessage[];
         meta: {
           nextCursor: string | null;
           hasMore: boolean;
         };
       };
-    }
-
-    await expectOk(response);
-    return (await response.json()) as {
-      items: ConversationMessage[];
-      meta: {
-        nextCursor: string | null;
-        hasMore: boolean;
-      };
-    };
+    });
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
       return fetchFallbackConversationMessages(conversationId) as {
@@ -282,31 +342,33 @@ export async function fetchConversationMessages(conversationId: string) {
       };
     }
 
-    throw error;
+    handleApiError(error, "Failed to load messages. Please try again.");
   }
 }
 
 export async function sendConversationMessage(conversationId: string, body: string) {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        conversationId,
-        messageType: "text",
-        body
-      })
-    });
-    if (shouldUseLocalAppFallback(response)) {
-      return sendFallbackConversationMessage(conversationId, body) as {
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/chat/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId,
+          messageType: "text",
+          body
+        })
+      });
+      if (shouldUseLocalAppFallback(response)) {
+        return sendFallbackConversationMessage(conversationId, body) as {
+          message: ConversationMessage;
+        };
+      }
+
+      await expectOk(response);
+      return (await response.json()) as {
         message: ConversationMessage;
       };
-    }
-
-    await expectOk(response);
-    return (await response.json()) as {
-      message: ConversationMessage;
-    };
+    });
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
       return sendFallbackConversationMessage(conversationId, body) as {
@@ -314,7 +376,7 @@ export async function sendConversationMessage(conversationId: string, body: stri
       };
     }
 
-    throw error;
+    handleApiError(error, "Failed to send message. Please try again.");
   }
 }
 
@@ -471,37 +533,39 @@ function fallbackCircles(): CircleListResponse {
 
 export async function fetchNearbyUsers(lat: number, lon: number, limit = 20): Promise<NearbyResponse> {
   try {
-    const response = await fetchWithSession(
-      `${env.apiBaseUrl}/v1/swipe/radar?limit=${limit}&refresh=false&lat=${lat}&lon=${lon}`
-    );
-    if (shouldUseLocalAppFallback(response)) {
-      return fallbackNearbyUsers();
-    }
-    await expectOk(response);
-    const data = await response.json() as RadarResponse;
-    // Map RadarFeedItem to NearbyUser
-    return {
-      items: data.items.map(item => ({
-        userId: item.userId,
-        displayName: item.displayName,
-        age: item.age,
-        bio: item.bio,
-        city: item.city,
-        primaryPhotoUrl: item.primaryPhotoUrl,
-        distanceKm: item.distanceKm,
-        lastActiveAt: null,
-        isOnline: item.activityScore > 0.5,
-      })),
-      meta: {
-        totalNearby: data.items.length,
-        radarViews: data.cache?.remaining ?? Math.floor(Math.random() * 16) + 5,
-      },
-    };
+    return await withRetry(async () => {
+      const response = await fetchWithSession(
+        `${env.apiBaseUrl}/v1/swipe/radar?limit=${limit}&refresh=false&lat=${lat}&lon=${lon}`
+      );
+      if (shouldUseLocalAppFallback(response)) {
+        return fallbackNearbyUsers();
+      }
+      await expectOk(response);
+      const data = await response.json() as RadarResponse;
+      // Map RadarFeedItem to NearbyUser
+      return {
+        items: data.items.map(item => ({
+          userId: item.userId,
+          displayName: item.displayName,
+          age: item.age,
+          bio: item.bio,
+          city: item.city,
+          primaryPhotoUrl: item.primaryPhotoUrl,
+          distanceKm: item.distanceKm,
+          lastActiveAt: null,
+          isOnline: item.activityScore > 0.5,
+        })),
+        meta: {
+          totalNearby: data.items.length,
+          radarViews: data.cache?.remaining ?? Math.floor(Math.random() * 16) + 5,
+        },
+      };
+    });
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
       return fallbackNearbyUsers();
     }
-    throw error;
+    handleApiError(error, "Failed to load nearby users. Please try again.");
   }
 }
 
@@ -537,124 +601,138 @@ export async function postLocationEvent(lat: number, lon: number, accuracyMeters
 
 export async function fetchCircleEncounters(window: string = "24h", lat?: number, lon?: number): Promise<CircleEncounterResponse> {
   try {
-    let url = `${env.apiBaseUrl}/v1/circle/encounters?window=${window}`;
-    if (lat !== undefined && lon !== undefined) {
-      url += `&lat=${lat}&lon=${lon}`;
-    }
-    const response = await fetchWithSession(url);
-    if (shouldUseLocalAppFallback(response)) {
-      return fallbackEncounters();
-    }
-    await expectOk(response);
-    return (await response.json()) as CircleEncounterResponse;
+    return await withRetry(async () => {
+      let url = `${env.apiBaseUrl}/v1/circle/encounters?window=${window}`;
+      if (lat !== undefined && lon !== undefined) {
+        url += `&lat=${lat}&lon=${lon}`;
+      }
+      const response = await fetchWithSession(url);
+      if (shouldUseLocalAppFallback(response)) {
+        return fallbackEncounters();
+      }
+      await expectOk(response);
+      return (await response.json()) as CircleEncounterResponse;
+    });
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
       return fallbackEncounters();
     }
-    throw error;
+    handleApiError(error, "Failed to load encounters. Please try again.");
   }
 }
 
 export async function fetchMyCircles(): Promise<CircleListResponse> {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/circle/groups`);
-    if (shouldUseLocalAppFallback(response)) {
-      return fallbackCircles();
-    }
-    await expectOk(response);
-    return (await response.json()) as CircleListResponse;
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/circle/groups`);
+      if (shouldUseLocalAppFallback(response)) {
+        return fallbackCircles();
+      }
+      await expectOk(response);
+      return (await response.json()) as CircleListResponse;
+    });
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) {
       return fallbackCircles();
     }
-    throw error;
+    handleApiError(error, "Failed to load circles. Please try again.");
   }
 }
 
 export async function createCircle(name: string, emoji: string): Promise<FriendCircle | null> {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/circle/groups`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, emoji }),
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/circle/groups`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, emoji }),
+      });
+      if (shouldUseLocalAppFallback(response)) return null;
+      await expectOk(response);
+      return (await response.json()) as FriendCircle;
     });
-    if (shouldUseLocalAppFallback(response)) return null;
-    await expectOk(response);
-    return (await response.json()) as FriendCircle;
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) return null;
-    throw error;
+    handleApiError(error, "Failed to create circle. Please try again.");
   }
 }
 
 export async function updateCircleSettings(circleId: string, settings: Partial<FriendCircle["settings"]>) {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/circle/groups/${circleId}/settings`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(settings),
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/circle/groups/${circleId}/settings`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
+      if (shouldUseLocalAppFallback(response)) return;
+      await expectOk(response);
     });
-    if (shouldUseLocalAppFallback(response)) return;
-    await expectOk(response);
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) return;
-    throw error;
+    handleApiError(error, "Failed to update circle settings. Please try again.");
   }
 }
 
 export async function sendWave(targetUserId: string) {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targetUserId, direction: "right" }),
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/swipe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId, direction: "right" }),
+      });
+      if (shouldUseLocalAppFallback(response)) return { swipeId: "demo", targetUserId, direction: "right" as const, isMatch: Math.random() > 0.7 };
+      await expectOk(response);
+      return (await response.json()) as SwipeResponse;
     });
-    if (shouldUseLocalAppFallback(response)) return { swipeId: "demo", targetUserId, direction: "right" as const, isMatch: Math.random() > 0.7 };
-    await expectOk(response);
-    return (await response.json()) as SwipeResponse;
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) return { swipeId: "demo", targetUserId, direction: "right" as const, isMatch: false };
-    throw error;
+    handleApiError(error, "Failed to send wave. Please try again.");
   }
 }
 
 export async function registerPushDevice(subscription: PushSubscription) {
   try {
-    const keys = subscription.toJSON().keys;
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/notifications/devices`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        platform: "web",
-        provider: "web_push",
-        token: subscription.endpoint,
-        endpoint: subscription.endpoint,
-        keys: {
-          p256dh: keys?.p256dh ?? "",
-          auth: keys?.auth ?? "",
-        },
-        locale: navigator.language?.split("-")[0] || "en",
-      }),
+    return await withRetry(async () => {
+      const keys = subscription.toJSON().keys;
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/notifications/devices`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          platform: "web",
+          provider: "web_push",
+          token: subscription.endpoint,
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: keys?.p256dh ?? "",
+            auth: keys?.auth ?? "",
+          },
+          locale: navigator.language?.split("-")[0] || "en",
+        }),
+      });
+      if (shouldUseLocalAppFallback(response)) return;
+      await expectOk(response);
     });
-    if (shouldUseLocalAppFallback(response)) return;
-    await expectOk(response);
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) return;
-    throw error;
+    handleApiError(error, "Failed to register push device. Please try again.");
   }
 }
 
 export async function updateFreeNowStatus(enabled: boolean) {
   try {
-    const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/visibility`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ freeNow: enabled }),
+    return await withRetry(async () => {
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/profiles/me/visibility`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ freeNow: enabled }),
+      });
+      if (shouldUseLocalAppFallback(response)) return;
+      await expectOk(response);
     });
-    if (shouldUseLocalAppFallback(response)) return;
-    await expectOk(response);
   } catch (error) {
     if (shouldUseLocalAppFallbackForError(error)) return;
-    throw error;
+    handleApiError(error, "Failed to update availability status. Please try again.");
   }
 }

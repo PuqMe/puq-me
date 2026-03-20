@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LogoMark } from "@puqme/ui";
 import { BRAND_NAME } from "@puqme/config";
 import { useLanguage } from "@/lib/i18n";
@@ -106,6 +107,7 @@ export function CircleMap() {
   const [circles, setCircles] = useState<FriendCircle[]>([]);
   const [isLoadingEncounters, setIsLoadingEncounters] = useState(true);
   const [isLoadingCircles, setIsLoadingCircles] = useState(true);
+  const [gpsStatus, setGpsStatus] = useState<"pending" | "active" | "denied" | "unavailable">("pending");
 
   /* Load Leaflet CSS + JS */
   useEffect(() => {
@@ -125,10 +127,26 @@ export function CircleMap() {
 
   /* Geolocation */
   useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(({ coords }) => {
+    if (!navigator.geolocation) {
+      setGpsStatus("unavailable");
+      return;
+    }
+
+    const handlePosition = ({ coords }: GeolocationPosition) => {
+      setGpsStatus("active");
       setLocation({ lat: coords.latitude, lng: coords.longitude });
-    }, undefined, { timeout: 8000, maximumAge: 60000 });
+    };
+
+    const handleError = (error: GeolocationPositionError) => {
+      console.warn("Geolocation error:", error.code, error.message);
+      if (error.code === 1) {
+        setGpsStatus("denied");
+      } else if (error.code === 2) {
+        setGpsStatus("unavailable");
+      }
+    };
+
+    navigator.geolocation.getCurrentPosition(handlePosition, handleError, { timeout: 8000, maximumAge: 60000 });
   }, []);
 
   /* Fetch encounters when time filter changes */
@@ -383,6 +401,18 @@ export function CircleMap() {
           </div>
         )}
 
+        {gpsStatus === "denied" && (
+          <div style={{
+            position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            zIndex: 15, textAlign: "center", color: "#fff", fontFamily: "system-ui, sans-serif"
+          }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>📍</div>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Enable location</div>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,.6)", marginBottom: 16 }}>to see encounters</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", maxWidth: 240 }}>Check your browser settings to enable location access</div>
+          </div>
+        )}
+
         {/* ── TOP HEADER ── */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
@@ -502,85 +532,109 @@ export function CircleMap() {
             ) : encounters.length > 0 ? (
               <div style={{ padding: "0 16px" }}>
                 {encounters.map((enc, idx) => (
-                  <div key={enc.userId} style={{
-                    display: "flex", gap: 12, marginBottom: 16, position: "relative",
-                  }}>
-                    {/* Timeline line */}
-                    {idx < encounters.length - 1 && (
-                      <div style={{
-                        position: "absolute", left: 19, top: 48, width: 2, height: "calc(100% + 16px)",
-                        borderLeft: "1px dashed rgba(255,255,255,.2)",
-                      }} />
-                    )}
-
-                    {/* Avatar */}
+                  <Link key={enc.userId} href={`/encounter/${enc.userId}`} style={{ textDecoration: "none" }}>
                     <div style={{
-                      width: 40, height: 40, borderRadius: "50%", background: COLORS[idx % COLORS.length],
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      color: "#fff", fontSize: 14, fontWeight: 700, flexShrink: 0, position: "relative", zIndex: 2,
+                      display: "flex", gap: 12, marginBottom: 16, position: "relative",
+                      padding: "12px",
+                      borderRadius: 8,
+                      transition: "background 0.2s ease",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.background = "rgba(168,85,247,.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.background = "transparent";
                     }}>
-                      {enc.displayName[0]}
-                    </div>
-
-                    {/* Content */}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
-                            {enc.displayName}, {enc.age}
-                          </div>
-                          <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)", marginTop: 2 }}>
-                            {enc.area} • {enc.distanceKm?.toFixed(1) || "?"} km
-                          </div>
-                        </div>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", textAlign: "right" }}>
-                          {enc.timestamp}
-                        </div>
-                      </div>
-
-                      {/* Story-framing text */}
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginBottom: 8, lineHeight: 1.4 }}>
-                        {enc.mutual ? (
-                          <>Du hast <b>{enc.displayName}</b> zum 2. Mal diese Woche gekreuzt</>
-                        ) : (
-                          <>Erste Begegnung in der Nähe vom Café</>
-                        )}
-                      </div>
-
-                      {/* Mutual badge */}
-                      {enc.mutual && (
+                      {/* Timeline line */}
+                      {idx < encounters.length - 1 && (
                         <div style={{
-                          display: "inline-block", background: "rgba(168,85,247,.3)", color: "#c084fc",
-                          padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, marginBottom: 8,
-                        }}>
-                          ⚡ {t.mutualSignal}
-                        </div>
+                          position: "absolute", left: 19, top: 48, width: 2, height: "calc(100% + 16px)",
+                          borderLeft: "1px dashed rgba(255,255,255,.2)",
+                        }} />
                       )}
 
-                      {/* Action buttons */}
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button onClick={() => handleWave(enc.userId)} style={{
-                          padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
-                          background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
-                          fontWeight: 600,
-                        }}>
-                          👋 {t.waveBtn}
-                        </button>
-                        <button style={{
-                          padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
-                          background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
-                        }}>
-                          💬
-                        </button>
-                        <button style={{
-                          padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
-                          background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
-                        }}>
-                          ♥
-                        </button>
+                      {/* Avatar */}
+                      <div style={{
+                        width: 40, height: 40, borderRadius: "50%", background: COLORS[idx % COLORS.length],
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: "#fff", fontSize: 14, fontWeight: 700, flexShrink: 0, position: "relative", zIndex: 2,
+                      }}>
+                        {enc.displayName[0]}
+                      </div>
+
+                      {/* Content */}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                              {enc.displayName}, {enc.age}
+                            </div>
+                            <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)", marginTop: 2 }}>
+                              {enc.area} • {enc.distanceKm?.toFixed(1) || "?"} km
+                            </div>
+                          </div>
+                          <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", textAlign: "right" }}>
+                            {enc.timestamp}
+                          </div>
+                        </div>
+
+                        {/* Story-framing text */}
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginBottom: 8, lineHeight: 1.4 }}>
+                          {enc.mutual ? (
+                            <>Du hast <b>{enc.displayName}</b> zum 2. Mal diese Woche gekreuzt</>
+                          ) : (
+                            <>Erste Begegnung in der Nähe vom Café</>
+                          )}
+                        </div>
+
+                        {/* Mutual badge */}
+                        {enc.mutual && (
+                          <div style={{
+                            display: "inline-block", background: "rgba(168,85,247,.3)", color: "#c084fc",
+                            padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, marginBottom: 8,
+                          }}>
+                            ⚡ {t.mutualSignal}
+                          </div>
+                        )}
+
+                        {/* Action buttons */}
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={(e) => { e.preventDefault(); handleWave(enc.userId); }} style={{
+                            padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
+                            background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
+                            fontWeight: 600,
+                          }}>
+                            👋 {t.waveBtn}
+                          </button>
+                          <button onClick={(e) => e.preventDefault()} style={{
+                            padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
+                            background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
+                          }}>
+                            💬
+                          </button>
+                          <button onClick={(e) => e.preventDefault()} style={{
+                            padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
+                            background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
+                          }}>
+                            ♥
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Chevron indicator */}
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "rgba(255,255,255,.3)",
+                        fontSize: 18,
+                        marginLeft: 8,
+                        flexShrink: 0,
+                      }}>
+                        &gt;
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (

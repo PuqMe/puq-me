@@ -120,6 +120,7 @@ export function RadarMap() {
   const [radarViewsCount, setRadarViewsCount] = useState<number>(0);
   const [isScanning, setIsScanning] = useState(false);
   const [scanCooldown, setScanCooldown] = useState(0);
+  const [gpsStatus, setGpsStatus] = useState<"pending" | "active" | "denied" | "unavailable">("pending");
   const lastScanRef = useRef<number>(0);
 
   /* Load Leaflet CSS + JS from CDN */
@@ -140,11 +141,15 @@ export function RadarMap() {
 
   /* Geolocation with watchPosition for real-time tracking */
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setGpsStatus("unavailable");
+      return;
+    }
     let watchId: number | null = null;
 
     const handlePosition = async (position: GeolocationPosition) => {
       const { latitude: lat, longitude: lng } = position.coords;
+      setGpsStatus("active");
       try {
         const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=de`);
         const d = await r.json();
@@ -154,7 +159,12 @@ export function RadarMap() {
     };
 
     const handleError = (error: GeolocationPositionError) => {
-      console.warn("Geolocation error:", error.message);
+      console.warn("Geolocation error:", error.code, error.message);
+      if (error.code === 1) {
+        setGpsStatus("denied");
+      } else if (error.code === 2) {
+        setGpsStatus("unavailable");
+      }
     };
 
     // First try fast cached position
@@ -515,6 +525,18 @@ export function RadarMap() {
               <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
               <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Loading map…</p>
             </div>
+          </div>
+        )}
+
+        {gpsStatus === "denied" && (
+          <div style={{
+            position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            zIndex: 15, textAlign: "center", color: "#fff", fontFamily: "system-ui, sans-serif"
+          }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>📍</div>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Enable location</div>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,.6)", marginBottom: 16 }}>to see people nearby</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", maxWidth: 240 }}>Check your browser settings to enable location access</div>
           </div>
         )}
 
