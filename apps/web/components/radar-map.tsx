@@ -7,10 +7,10 @@ import { BRAND_NAME } from "@puqme/config";
 
 // ── Static data ───────────────────────────────────────────────────────────────
 const NEARBY_PEOPLE = [
-  { id: "u1", initials: "EM", color: "#e879f9", name: "Emma, 26",   dist: "120 m",  meta: "Online",     off: [0.0005,  0.0012] as [number,number] },
-  { id: "u2", initials: "LK", color: "#38bdf8", name: "Lukas, 28",  dist: "200 m",  meta: "Online",     off: [-0.0004, 0.0018] as [number,number] },
-  { id: "u3", initials: "SV", color: "#4ade80", name: "Svenja, 24", dist: "350 m",  meta: "Vor 5 Min",  off: [0.0011, -0.0009] as [number,number] },
-  { id: "u4", initials: "MG", color: "#fb923c", name: "Morgan, 27", dist: "500 m",  meta: "Vor 12 Min", off: [-0.0014,-0.0010] as [number,number] },
+  { id: "u1", initials: "EM", color: "#e879f9", name: "Emma, 26",   dist: "120 m",  meta: "Online",     off: [ 0.0025, -0.0042] as [number,number] },
+  { id: "u2", initials: "LK", color: "#38bdf8", name: "Lukas, 28",  dist: "200 m",  meta: "Online",     off: [-0.0018,  0.0050] as [number,number] },
+  { id: "u3", initials: "SV", color: "#4ade80", name: "Svenja, 24", dist: "350 m",  meta: "Vor 5 Min",  off: [-0.0040, -0.0030] as [number,number] },
+  { id: "u4", initials: "MG", color: "#fb923c", name: "Morgan, 27", dist: "500 m",  meta: "Vor 12 Min", off: [ 0.0050,  0.0035] as [number,number] },
 ];
 
 const ENCOUNTERS = [
