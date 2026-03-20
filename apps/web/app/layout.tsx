@@ -15,6 +15,7 @@ import { OfflineBanner } from "@/components/offline-banner";
 import { PwaRegistrar } from "@/components/pwa-registrar";
 import { Providers } from "@/components/providers";
 import { env } from "@/lib/env";
+import { getAllStructuredData } from "@/lib/structured-data";
 
 export const metadata: Metadata = {
   title: BRAND_NAME,
@@ -22,7 +23,19 @@ export const metadata: Metadata = {
   applicationName: BRAND_NAME,
   metadataBase: new URL(env.appUrl),
   manifest: "/manifest.webmanifest",
-  keywords: ["dating", "matches", "chat", "swipe", "city", BRAND_NAME],
+  keywords: [
+    "dating", "dating app", "matches", "chat", "swipe", "city dating",
+    "nearby dating", "radar dating", "smart match", "local encounters",
+    "privacy dating", BRAND_NAME, "PuQ", "puq.me",
+    "Dating App", "Begegnungen", "Treffen", "Stadtdating"
+  ],
+  alternates: {
+    canonical: env.appUrl,
+    languages: {
+      "en": env.appUrl,
+      "de": env.appUrl,
+    },
+  },
   openGraph: {
     title: BRAND_NAME,
     description: BRAND_TAGLINE,
@@ -72,8 +85,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const langCookie = cookieStore.get("puqme.lang")?.value;
   const lang = langCookie === "de" ? "de" : "en";
 
+  const structuredData = getAllStructuredData(env.appUrl);
+
   return (
     <html lang={lang}>
+      <head>
+        {structuredData.map((schema, i) => (
+          <script
+            key={`ld-${i}`}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          />
+        ))}
+        <link rel="canonical" href={env.appUrl} />
+      </head>
       <body className="app-frame min-h-screen font-sans antialiased">
         <script dangerouslySetInnerHTML={{ __html: installPromptScript }} />
         <CityBackdrop />
