@@ -293,12 +293,13 @@ export function HomeFeed() {
               <Link href="/nearby" style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
             </div>
             {NEARBY_PEOPLE.map(p => (
-              <div key={p.id} style={{
+              <Link key={p.id} href={`/profile/${p.id}`} style={{
                 display: "flex", alignItems: "center", gap: 11,
                 padding: "9px 12px",
                 background: "rgba(255,255,255,.04)",
                 borderRadius: 14, marginBottom: 7,
                 border: "1px solid rgba(255,255,255,.055)",
+                textDecoration: "none", color: "inherit",
               }}>
                 <div style={{
                   width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
@@ -316,7 +317,7 @@ export function HomeFeed() {
                 </div>
                 <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,.38)" }}>{p.dist}</span>
                 <span style={{ color: "rgba(255,255,255,.18)", fontSize: 15 }}>›</span>
-              </div>
+              </Link>
             ))}
           </div>
 
@@ -353,12 +354,13 @@ export function HomeFeed() {
             </div>
 
             {ENCOUNTERS.map(e => (
-              <div key={e.id} style={{
+              <Link key={e.id} href={`/profile/${e.id}`} style={{
                 display: "flex", alignItems: "center", gap: 11,
                 padding: "9px 12px",
                 background: "rgba(255,255,255,.03)",
                 borderRadius: 14, marginBottom: 7,
                 border: "1px solid rgba(255,255,255,.04)",
+                textDecoration: "none", color: "inherit",
               }}>
                 <div style={{
                   width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
@@ -374,7 +376,7 @@ export function HomeFeed() {
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,.35)", marginTop: 1 }}>{e.place}</div>
                 </div>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,.27)", whiteSpace: "nowrap" }}>{e.time}</span>
-              </div>
+              </Link>
             ))}
           </div>
 
@@ -410,7 +412,7 @@ export function HomeFeed() {
           paddingLeft: 14, paddingRight: 14,
         }}>
           {/* Nearby */}
-          <Link href="/nearby" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 46, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
+          <Link href="/nearby" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65">
               <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/>
               <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
@@ -419,7 +421,7 @@ export function HomeFeed() {
           </Link>
 
           {/* Matches / Heart */}
-          <Link href="/matches" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 46, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
+          <Link href="/matches" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65">
               <path d="M12 20s-6.5-4.2-8.5-8A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6C18.5 15.8 12 20 12 20Z"/>
             </svg>
@@ -439,14 +441,14 @@ export function HomeFeed() {
           </div>
 
           {/* Chat */}
-          <Link href="/chat" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 46, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
+          <Link href="/chat" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65">
               <path d="M5 6.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"/>
             </svg>
           </Link>
 
           {/* Profile */}
-          <Link href="/profile" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 46, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
+          <Link href="/profile" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65">
               <circle cx="12" cy="8" r="4"/>
               <path d="M5 20a7 7 0 0 1 14 0"/>

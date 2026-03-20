@@ -14,7 +14,7 @@ export function getPostAuthPath(profile: ProfileResponse) {
     return "/onboarding";
   }
 
-  return "/nearby";
+  return "/";
 }
 
 export async function resolvePostAuthPath() {
