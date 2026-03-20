@@ -212,17 +212,23 @@ export function ProfileOverview() {
 
               {/* ━━━ STATS ROW (Happn-style encounter metrics) ━━━ */}
               <div style={{ display: "flex", marginTop: 20, padding: "16px 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                <Link href="/circle" style={{ flex: 1, textAlign: "center", textDecoration: "none" }}>
+                <Link href="/circle" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                   <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>12</div>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.encounters}</div>
                 </Link>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
-                <Link href="/circle" style={{ flex: 1, textAlign: "center", textDecoration: "none" }}>
+                <Link href="/circle" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                   <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>3</div>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.crossingsToday}</div>
                 </Link>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
-                <Link href="/matches" style={{ flex: 1, textAlign: "center", textDecoration: "none" }}>
+                <Link href="/matches" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                   <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>2</div>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.matches}</div>
                 </Link>
