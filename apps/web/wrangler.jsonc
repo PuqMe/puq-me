@@ -1,6 +1,7 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "puqme-web",
+  "pages_build_output_dir": ".open-next",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-03-17",
   "compatibility_flags": ["nodejs_compat"],
