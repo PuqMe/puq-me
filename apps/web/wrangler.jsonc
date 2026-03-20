@@ -2,38 +2,12 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "puqme-web",
   "pages_build_output_dir": ".open-next",
-  "main": ".open-next/worker.js",
   "compatibility_date": "2026-03-17",
   "compatibility_flags": ["nodejs_compat"],
-  "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS"
-  },
   "observability": {
     "enabled": true
   },
   "vars": {
     "NEXT_PUBLIC_APP_ENV": "production"
-  },
-  "env": {
-    "staging": {
-      "name": "puqme-web-staging",
-      "routes": [
-        { "pattern": "staging.puq.me", "custom_domain": true }
-      ],
-      "vars": {
-        "NEXT_PUBLIC_APP_ENV": "staging"
-      }
-    },
-    "production": {
-      "name": "puqme-web",
-      "routes": [
-        { "pattern": "puq.me", "custom_domain": true },
-        { "pattern": "www.puq.me", "custom_domain": true }
-      ],
-      "vars": {
-        "NEXT_PUBLIC_APP_ENV": "production"
-      }
-    }
   }
 }
