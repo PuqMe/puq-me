@@ -83,6 +83,7 @@ export function RadarMap() {
   const tileRef       = useRef<any>(null);
   const markersRef    = useRef<any[]>([]);
   const selfMarkerRef = useRef<any>(null);
+  const ringsRef      = useRef<any[]>([]);
 
   const [ready,  setReady]  = useState(false);
   const [loc,    setLoc]    = useState({ lat: 48.1351, lng: 11.582 });
@@ -141,22 +142,42 @@ export function RadarMap() {
     mapObjRef.current = map;
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Place / update markers
+  // Place / update markers + radar rings (Leaflet circles)
   useEffect(() => {
     if (!mapObjRef.current) return;
     const L = (window as any).L;
     if (!L) return;
     const map = mapObjRef.current;
 
+    // Clean up previous
     selfMarkerRef.current?.remove();
     markersRef.current.forEach(m => m.remove());
+    ringsRef.current.forEach(r => r.remove());
     markersRef.current = [];
+    ringsRef.current = [];
 
+    // Radar rings — Leaflet circles so markers appear above them
+    [
+      { radius: 120,  opacity: 0.50, weight: 1.5 },
+      { radius: 280,  opacity: 0.25, weight: 1 },
+      { radius: 500,  opacity: 0.12, weight: 1 },
+      { radius: 800,  opacity: 0.06, weight: 1 },
+    ].forEach(cfg => {
+      ringsRef.current.push(
+        L.circle([loc.lat, loc.lng], {
+          radius: cfg.radius, color: `rgba(168,85,247,${cfg.opacity})`,
+          weight: cfg.weight, fill: false, interactive: false,
+        }).addTo(map)
+      );
+    });
+
+    // Self marker — "Du"
     selfMarkerRef.current = L.marker([loc.lat, loc.lng], {
       icon: L.divIcon({ html: avatarHtml("Du", "#a855f7", 58, true), className: "", iconSize: [58,58], iconAnchor: [29,29] }),
       zIndexOffset: 1000,
     }).addTo(map);
 
+    // Nearby people
     NEARBY_PEOPLE.forEach(u => {
       const m = L.marker([loc.lat + u.off[0], loc.lng + u.off[1]], {
         icon: L.divIcon({ html: avatarHtml(u.initials, u.color, 46), className: "", iconSize: [46,46], iconAnchor: [23,23] }),
@@ -164,7 +185,7 @@ export function RadarMap() {
       markersRef.current.push(m);
     });
 
-    map.setView([loc.lat, loc.lng], 15);
+    map.setView([loc.lat, loc.lng], 14);
   }, [loc, ready]);
 
   return (
@@ -204,16 +225,7 @@ export function RadarMap() {
             </div>
           )}
 
-          {/* Radar rings — CSS overlay, pointer-events none */}
-          {([100, 185, 300, 430] as number[]).map((sz, i) => (
-            <div key={sz} style={{
-              position: "absolute", borderRadius: "50%", pointerEvents: "none",
-              left: "50%", top: "56%", transform: "translate(-50%,-50%)",
-              width: sz, height: sz,
-              border: `${i === 0 ? 1.5 : 1}px solid rgba(168,85,247,${[.55,.26,.12,.06][i]})`,
-              zIndex: 4,
-            }} />
-          ))}
+          {/* Radar rings rendered as Leaflet circles — see useEffect above */}
 
           {/* Bottom gradient fade */}
           <div style={{
