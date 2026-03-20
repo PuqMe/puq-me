@@ -150,7 +150,7 @@ export default function IntentPage() {
           <div style={{ marginTop: "20px", marginBottom: "32px" }}>
             <h1
               style={{
-                fontSize: "28px",
+                fontSize: "clamp(1.5rem, 4vw, 2rem)",
                 fontWeight: "700",
                 color: "#ffffff",
                 margin: "0 0 8px 0",
@@ -161,7 +161,7 @@ export default function IntentPage() {
             </h1>
             <p
               style={{
-                fontSize: "14px",
+                fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                 color: "rgba(255,255,255,0.6)",
                 margin: "0",
                 lineHeight: "1.4",
@@ -175,7 +175,7 @@ export default function IntentPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
               gap: "12px",
               marginBottom: "32px",
             }}
@@ -207,7 +207,7 @@ export default function IntentPage() {
                 <span style={{ fontSize: "28px" }}>{cat.emoji}</span>
                 <span
                   style={{
-                    fontSize: "12px",
+                    fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                     fontWeight: "500",
                     color: "#ffffff",
                   }}
@@ -239,7 +239,7 @@ export default function IntentPage() {
               <div>
                 <p
                   style={{
-                    fontSize: "14px",
+                    fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                     color: "rgba(255,255,255,0.6)",
                     margin: "0 0 4px 0",
                   }}
@@ -248,7 +248,7 @@ export default function IntentPage() {
                 </p>
                 <p
                   style={{
-                    fontSize: "18px",
+                    fontSize: "clamp(1rem, 2.8vw, 1.125rem)",
                     fontWeight: "600",
                     color: "#ffffff",
                     margin: "0",
@@ -257,34 +257,45 @@ export default function IntentPage() {
                   {selected?.emoji} {selected?.label}
                 </p>
               </div>
-              <label
+              <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
                   cursor: "pointer",
+                  minWidth: "44px",
+                  minHeight: "44px",
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={intentActive}
-                  onChange={(e) => setIntentActive(e.target.checked)}
+                <label
                   style={{
-                    width: "18px",
-                    height: "18px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
                     cursor: "pointer",
-                    accentColor: "#a855f7",
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: "13px",
-                    color: "rgba(255,255,255,0.7)",
                   }}
                 >
-                  {intentActive ? "Aktiv" : "Inaktiv"}
-                </span>
-              </label>
+                  <input
+                    type="checkbox"
+                    checked={intentActive}
+                    onChange={(e) => setIntentActive(e.target.checked)}
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      cursor: "pointer",
+                      accentColor: "#a855f7",
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
+                      color: "rgba(255,255,255,0.7)",
+                    }}
+                  >
+                    {intentActive ? "Aktiv" : "Inaktiv"}
+                  </span>
+                </label>
+              </div>
             </div>
 
             {/* Visibility Info */}
@@ -295,7 +306,7 @@ export default function IntentPage() {
                 gap: "8px",
                 paddingTop: "16px",
                 borderTop: "1px solid rgba(255,255,255,0.08)",
-                fontSize: "13px",
+                fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                 color: "rgba(255,255,255,0.5)",
               }}
             >
@@ -316,7 +327,7 @@ export default function IntentPage() {
           >
             <p
               style={{
-                fontSize: "13px",
+                fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                 color: "rgba(255,255,255,0.6)",
                 margin: "0 0 12px 0",
                 textTransform: "uppercase",
@@ -329,7 +340,7 @@ export default function IntentPage() {
             <div
               style={{
                 marginBottom: "12px",
-                fontSize: "16px",
+                fontSize: "clamp(1rem, 2.8vw, 1.125rem)",
                 fontWeight: "600",
                 color: "#ffffff",
               }}
@@ -368,7 +379,7 @@ export default function IntentPage() {
           >
             <p
               style={{
-                fontSize: "13px",
+                fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                 color: "rgba(255,255,255,0.6)",
                 margin: "0 0 14px 0",
                 textTransform: "uppercase",
@@ -412,7 +423,7 @@ export default function IntentPage() {
                   style={{
                     marginLeft: "-4px",
                     paddingLeft: "8px",
-                    fontSize: "13px",
+                    fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                     color: "#a855f7",
                     fontWeight: "500",
                   }}
@@ -437,12 +448,13 @@ export default function IntentPage() {
                   ? "linear-gradient(135deg, #a855f7, #d946ef)"
                   : "rgba(168,85,247,0.3)",
               color: "#ffffff",
-              fontSize: "16px",
+              fontSize: "clamp(0.9rem, 2.5vw, 1rem)",
               fontWeight: "600",
               cursor: saving ? "not-allowed" : "pointer",
               transition: "all 0.2s ease",
               marginBottom: "24px",
               opacity: saving ? 0.6 : 1,
+              minHeight: "44px",
             }}
           >
             {saving
@@ -457,14 +469,14 @@ export default function IntentPage() {
             <div
               style={{
                 position: "fixed",
-                bottom: "100px",
+                bottom: "calc(env(safe-area-inset-bottom, 0px) + 100px)",
                 left: "50%",
                 transform: "translateX(-50%)",
                 background: "rgba(168,85,247,0.9)",
                 color: "#ffffff",
                 padding: "12px 20px",
                 borderRadius: "8px",
-                fontSize: "13px",
+                fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                 zIndex: 50,
               }}
             >

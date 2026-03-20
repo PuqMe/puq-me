@@ -149,7 +149,7 @@ export default function CardsPage() {
           <div style={{ marginTop: "20px", marginBottom: "28px" }}>
             <h1
               style={{
-                fontSize: "28px",
+                fontSize: "clamp(1.5rem, 4vw, 2rem)",
                 fontWeight: "700",
                 color: "#ffffff",
                 margin: "0 0 8px 0",
@@ -160,7 +160,7 @@ export default function CardsPage() {
             </h1>
             <p
               style={{
-                fontSize: "14px",
+                fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                 color: "rgba(255,255,255,0.6)",
                 margin: "0",
                 lineHeight: "1.4",
@@ -235,7 +235,7 @@ export default function CardsPage() {
                     <div style={{ lineHeight: "1.3" }}>
                       <p
                         style={{
-                          fontSize: "14px",
+                          fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                           fontWeight: "600",
                           color: "#ffffff",
                           margin: "0",
@@ -245,7 +245,7 @@ export default function CardsPage() {
                       </p>
                       <p
                         style={{
-                          fontSize: "12px",
+                          fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                           color: "rgba(255,255,255,0.5)",
                           margin: "0",
                         }}
@@ -256,7 +256,7 @@ export default function CardsPage() {
                   </div>
                   <div
                     style={{
-                      fontSize: "12px",
+                      fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                       color: "rgba(255,255,255,0.5)",
                       textAlign: "right",
                       lineHeight: "1.3",
@@ -278,7 +278,7 @@ export default function CardsPage() {
                 {/* Action Text */}
                 <div
                   style={{
-                    fontSize: "14px",
+                    fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                     color: "rgba(255,255,255,0.8)",
                     lineHeight: "1.4",
                   }}
@@ -324,11 +324,15 @@ export default function CardsPage() {
                       border: "none",
                       background: "linear-gradient(135deg, #a855f7, #d946ef)",
                       color: "#ffffff",
-                      fontSize: "13px",
+                      fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                       fontWeight: "600",
                       cursor: sending === card.id ? "not-allowed" : "pointer",
                       transition: "all 0.2s ease",
                       opacity: sending === card.id ? 0.6 : 1,
+                      minHeight: "44px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     {sending === card.id ? "Wird gesendet..." : "Bin dabei!"}
@@ -341,10 +345,14 @@ export default function CardsPage() {
                       border: "1px solid rgba(255,255,255,0.15)",
                       background: "rgba(255,255,255,0.05)",
                       color: "#ffffff",
-                      fontSize: "13px",
+                      fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                       fontWeight: "600",
                       cursor: "pointer",
                       transition: "all 0.2s ease",
+                      minHeight: "44px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     💬 Nachricht
@@ -363,7 +371,7 @@ export default function CardsPage() {
                 color: "rgba(255,255,255,0.5)",
               }}
             >
-              <p style={{ fontSize: "14px", margin: "0" }}>
+              <p style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", margin: "0" }}>
                 Keine aktiven Aktionen in deiner Nähe
               </p>
             </div>
@@ -374,7 +382,7 @@ export default function CardsPage() {
             style={{
               textAlign: "center",
               paddingTop: "20px",
-              fontSize: "12px",
+              fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
               color: "rgba(255,255,255,0.4)",
               lineHeight: "1.6",
             }}
@@ -389,7 +397,7 @@ export default function CardsPage() {
           onClick={() => setShowNewCardPrompt(!showNewCardPrompt)}
           style={{
             position: "fixed",
-            bottom: "90px",
+            bottom: "calc(env(safe-area-inset-bottom, 0px) + 90px)",
             right: "16px",
             width: "56px",
             height: "56px",
@@ -428,7 +436,7 @@ export default function CardsPage() {
           >
             <p
               style={{
-                fontSize: "13px",
+                fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                 color: "rgba(255,255,255,0.8)",
                 margin: "0 0 12px 0",
                 lineHeight: "1.4",
@@ -445,9 +453,13 @@ export default function CardsPage() {
                 border: "none",
                 background: "#a855f7",
                 color: "#ffffff",
-                fontSize: "12px",
+                fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                 fontWeight: "600",
                 cursor: "pointer",
+                minHeight: "44px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               Neue Aktion erstellen
@@ -473,7 +485,7 @@ export default function CardsPage() {
           >
             <div
               style={{
-                fontSize: "14px",
+                fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                 color: "#ffffff",
               }}
             >
@@ -487,14 +499,14 @@ export default function CardsPage() {
           <div
             style={{
               position: "fixed",
-              bottom: "100px",
+              bottom: "calc(env(safe-area-inset-bottom, 0px) + 100px)",
               left: "50%",
               transform: "translateX(-50%)",
               background: "rgba(168,85,247,0.9)",
               color: "#ffffff",
               padding: "12px 20px",
               borderRadius: "8px",
-              fontSize: "13px",
+              fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
               zIndex: 50,
             }}
           >

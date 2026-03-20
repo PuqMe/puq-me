@@ -155,21 +155,21 @@ export default function CalmPage() {
   };
 
   const headerTitleStyle: React.CSSProperties = {
-    fontSize: '32px',
+    fontSize: 'clamp(1.5rem, 4vw, 2rem)',
     fontWeight: '700',
     color: 'rgba(255, 255, 255, 0.95)',
     marginBottom: '8px',
   };
 
   const headerSubtitleStyle: React.CSSProperties = {
-    fontSize: '16px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: '400',
   };
 
   const statRowStyle: React.CSSProperties = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
     gap: '12px',
     marginBottom: '32px',
   };
@@ -184,14 +184,14 @@ export default function CalmPage() {
   });
 
   const statNumberStyle: React.CSSProperties = {
-    fontSize: '32px',
+    fontSize: 'clamp(1.5rem, 4vw, 2rem)',
     fontWeight: '700',
     color: 'rgba(255, 255, 255, 0.95)',
     marginBottom: '4px',
   };
 
   const statLabelStyle: React.CSSProperties = {
-    fontSize: '12px',
+    fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
     color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: '500',
   };
@@ -206,14 +206,14 @@ export default function CalmPage() {
   };
 
   const calmTitleStyle: React.CSSProperties = {
-    fontSize: '18px',
+    fontSize: 'clamp(1rem, 3vw, 1.125rem)',
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.95)',
     marginBottom: '8px',
   };
 
   const calmTextStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     color: 'rgba(255, 255, 255, 0.7)',
     lineHeight: '1.5',
   };
@@ -223,7 +223,7 @@ export default function CalmPage() {
   };
 
   const chartTitleStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: '16px',
@@ -233,7 +233,7 @@ export default function CalmPage() {
     display: 'flex',
     alignItems: 'flex-end',
     justifyContent: 'space-around',
-    height: '120px',
+    minHeight: '100px',
     gap: '8px',
   };
 
@@ -254,7 +254,7 @@ export default function CalmPage() {
   });
 
   const chartLabelStyle: React.CSSProperties = {
-    fontSize: '11px',
+    fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
     color: 'rgba(255, 255, 255, 0.5)',
     marginTop: '8px',
     fontWeight: '500',
@@ -271,7 +271,7 @@ export default function CalmPage() {
   };
 
   const settingsTitleStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: '12px',
@@ -286,13 +286,13 @@ export default function CalmPage() {
   };
 
   const settingLabelStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '500',
     color: 'rgba(255, 255, 255, 0.85)',
   };
 
   const settingDescriptionStyle: React.CSSProperties = {
-    fontSize: '12px',
+    fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
     color: 'rgba(255, 255, 255, 0.6)',
     marginTop: '4px',
   };
@@ -305,10 +305,11 @@ export default function CalmPage() {
     border: 'none',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
+    minHeight: '44px',
   };
 
   const footerTextStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: '400',
     marginBottom: '32px',

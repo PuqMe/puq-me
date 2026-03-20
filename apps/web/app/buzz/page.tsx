@@ -30,11 +30,12 @@ export default function BuzzPage() {
 
   const containerStyle: React.CSSProperties = {
     backgroundColor: '#07050f',
-    minHeight: '100vh',
+    minHeight: '100dvh',
     color: 'rgba(255, 255, 255, 0.9)',
     fontFamily: 'system-ui, -apple-system, sans-serif',
     position: 'relative',
     overflow: 'hidden',
+    padding: 'env(safe-area-inset-top, 0px) 0 0 0',
   };
 
   const mapBackgroundStyle: React.CSSProperties = {
@@ -42,7 +43,7 @@ export default function BuzzPage() {
     top: 0,
     left: 0,
     width: '100%',
-    height: '70%',
+    flex: 7,
     backgroundColor: '#07050f',
   };
 
@@ -51,14 +52,14 @@ export default function BuzzPage() {
     bottom: 0,
     left: 0,
     width: '100%',
-    height: '30%',
+    flex: 3,
     backgroundColor: '#07050f',
   };
 
   const contentStyle: React.CSSProperties = {
     position: 'relative',
     zIndex: 10,
-    height: '100vh',
+    height: '100dvh',
     display: 'flex',
     flexDirection: 'column',
   };
@@ -118,21 +119,21 @@ export default function BuzzPage() {
   };
 
   const buzzTitleStyle: React.CSSProperties = {
-    fontSize: '18px',
+    fontSize: 'clamp(1rem, 3vw, 1.125rem)',
     fontWeight: '700',
     color: '#10b981',
     letterSpacing: '0.5px',
   };
 
   const buzzDetailsStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: '4px',
     fontWeight: '500',
   };
 
   const buzzStatusStyle: React.CSSProperties = {
-    fontSize: '13px',
+    fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
     color: 'rgba(255, 255, 255, 0.6)',
     marginBottom: '12px',
   };
@@ -149,15 +150,16 @@ export default function BuzzPage() {
     color: 'rgba(255, 255, 255, 0.95)',
     border: 'none',
     borderRadius: '8px',
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '600',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
+    minHeight: '44px',
   });
 
   const buzzSettingsPanelStyle: React.CSSProperties = {
     position: 'absolute',
-    bottom: '20px',
+    bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
     left: '20px',
     right: '20px',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -178,13 +180,13 @@ export default function BuzzPage() {
   };
 
   const settingLabelStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '500',
     color: 'rgba(255, 255, 255, 0.85)',
   };
 
   const settingValueStyle: React.CSSProperties = {
-    fontSize: '12px',
+    fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
     color: 'rgba(255, 255, 255, 0.6)',
     marginTop: '2px',
   };
@@ -197,10 +199,11 @@ export default function BuzzPage() {
     border: 'none',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
+    minHeight: '44px',
   };
 
   const panelFooterStyle: React.CSSProperties = {
-    fontSize: '12px',
+    fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
     color: 'rgba(255, 255, 255, 0.5)',
     marginTop: '8px',
     textAlign: 'center',
@@ -469,14 +472,14 @@ export default function BuzzPage() {
           <div
             style={{
               position: 'fixed',
-              bottom: '100px',
+              bottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
               left: '50%',
               transform: 'translateX(-50%)',
               background: 'rgba(168,85,247,0.9)',
               color: '#ffffff',
               padding: '12px 20px',
               borderRadius: '8px',
-              fontSize: '13px',
+              fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
               zIndex: 50,
             }}
           >

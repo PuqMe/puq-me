@@ -151,14 +151,14 @@ export default function AutoVanishPage() {
   };
 
   const headerTitleStyle: React.CSSProperties = {
-    fontSize: '32px',
+    fontSize: 'clamp(1.5rem, 4vw, 2rem)',
     fontWeight: '700',
     color: 'rgba(255, 255, 255, 0.95)',
     marginBottom: '8px',
   };
 
   const headerSubtitleStyle: React.CSSProperties = {
-    fontSize: '16px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: '400',
   };
@@ -180,13 +180,13 @@ export default function AutoVanishPage() {
   };
 
   const cardTitleStyle: React.CSSProperties = {
-    fontSize: '16px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.95)',
   };
 
   const timerTextStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '500',
     color: 'rgba(255, 255, 255, 0.7)',
   };
@@ -199,6 +199,7 @@ export default function AutoVanishPage() {
     border: 'none',
     cursor: 'pointer',
     transition: 'all 0.3s ease',
+    minHeight: '44px',
   };
 
   const timerBarContainerStyle: React.CSSProperties = {
@@ -229,16 +230,16 @@ export default function AutoVanishPage() {
   };
 
   const nextActivationLabelStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: '12px',
   };
 
   const timePickerRowStyle: React.CSSProperties = {
-    display: 'flex',
+    display: 'grid',
     gap: '8px',
-    justifyContent: 'space-between',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(55px, 1fr))',
   };
 
   const timeInputStyle: React.CSSProperties = {
@@ -248,21 +249,22 @@ export default function AutoVanishPage() {
     borderRadius: '8px',
     padding: '10px 8px',
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '500',
     textAlign: 'center',
     cursor: 'pointer',
+    minHeight: '44px',
   };
 
   const timeInputLabelStyle: React.CSSProperties = {
-    fontSize: '11px',
+    fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
     color: 'rgba(255, 255, 255, 0.5)',
     marginTop: '4px',
     textAlign: 'center',
   };
 
   const footerTextStyle: React.CSSProperties = {
-    fontSize: '14px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     color: 'rgba(255, 255, 255, 0.6)',
     marginBottom: '24px',
     fontWeight: '400',
@@ -272,22 +274,25 @@ export default function AutoVanishPage() {
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
+    flexWrap: 'wrap',
     margin: '32px 0',
     padding: '24px 0',
     borderTop: '1px solid rgba(255, 255, 255, 0.1)',
     borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+    gap: '12px',
   };
 
   const conceptCircleStyle = (opacity: number): React.CSSProperties => ({
     width: '48px',
     height: '48px',
+    minWidth: '48px',
     borderRadius: '50%',
     backgroundColor: '#a855f7',
     opacity: opacity,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '12px',
+    fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
     fontWeight: '600',
     textAlign: 'center',
     color: 'rgba(255, 255, 255, 0.8)',
@@ -300,11 +305,12 @@ export default function AutoVanishPage() {
     color: 'rgba(255, 255, 255, 0.95)',
     border: 'none',
     borderRadius: '10px',
-    fontSize: '16px',
+    fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
     fontWeight: '600',
     cursor: 'pointer',
     marginBottom: '32px',
     transition: 'all 0.3s ease',
+    minHeight: '44px',
   };
 
   return (
@@ -313,15 +319,15 @@ export default function AutoVanishPage() {
         <div
           style={{
             position: 'fixed',
-            top: '1rem',
-            right: '1rem',
+            top: 'calc(env(safe-area-inset-top, 0px) + 1rem)',
+            right: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
             backgroundColor: '#10b981',
             color: '#ffffff',
             padding: '1rem 1.5rem',
             borderRadius: '0.5rem',
             zIndex: 1000,
             fontWeight: 600,
-            fontSize: '0.9rem',
+            fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
           }}
         >
           {toast}

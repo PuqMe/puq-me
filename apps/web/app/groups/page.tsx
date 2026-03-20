@@ -103,12 +103,12 @@ export default function GroupsPage() {
       marginBottom: '2rem',
     },
     heading: {
-      fontSize: '1.875rem',
+      fontSize: 'clamp(1.5rem, 4vw, 2rem)',
       fontWeight: '700',
       marginBottom: '0.5rem',
     },
     subtitle: {
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       color: '#999999',
     },
     featuredCard: {
@@ -129,17 +129,17 @@ export default function GroupsPage() {
       flexShrink: 0,
     },
     groupTitle: {
-      fontSize: '1.125rem',
+      fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
       fontWeight: '700',
       marginBottom: '0.25rem',
     },
     groupLocation: {
-      fontSize: '0.85rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       color: '#999999',
       marginBottom: '0.5rem',
     },
     groupTime: {
-      fontSize: '0.8rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       color: '#a855f7',
       fontWeight: '600',
     },
@@ -167,7 +167,7 @@ export default function GroupsPage() {
       borderRadius: '0.5rem',
     },
     statsText: {
-      fontSize: '0.9rem',
+      fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
       fontWeight: '600',
     },
     membersList: {
@@ -176,21 +176,21 @@ export default function GroupsPage() {
       marginBottom: '1.5rem',
     },
     memberAvatar: (bgColor: string) => ({
-      width: '2.5rem',
-      height: '2.5rem',
+      width: '2.75rem',
+      height: '2.75rem',
       borderRadius: '50%',
       backgroundColor: bgColor,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       fontWeight: '700',
       color: '#ffffff',
       flexShrink: 0,
     }),
     emptySpot: {
-      width: '2.5rem',
-      height: '2.5rem',
+      width: '2.75rem',
+      height: '2.75rem',
       borderRadius: '50%',
       border: '2px dashed #666666',
       display: 'flex',
@@ -212,9 +212,10 @@ export default function GroupsPage() {
       backgroundColor: '#a855f7',
       color: '#ffffff',
       cursor: 'pointer',
-      fontSize: '0.9rem',
+      fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
       fontWeight: '600',
       transition: 'background-color 0.2s ease',
+      minHeight: '44px',
     },
     secondaryButton: {
       width: '2.75rem',
@@ -238,7 +239,7 @@ export default function GroupsPage() {
       margin: '2rem 0',
     },
     sectionLabel: {
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       fontWeight: '600',
       marginBottom: '1rem',
       color: '#cccccc',
@@ -268,17 +269,17 @@ export default function GroupsPage() {
       flex: 1,
     },
     smallCardTitle: {
-      fontSize: '0.95rem',
+      fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
       fontWeight: '700',
       marginBottom: '0.25rem',
     },
     smallCardMeta: {
-      fontSize: '0.8rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       color: '#999999',
       marginBottom: '0.25rem',
     },
     smallCardStats: {
-      fontSize: '0.8rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       color: '#a855f7',
       fontWeight: '600',
     },
@@ -289,11 +290,12 @@ export default function GroupsPage() {
       backgroundColor: 'transparent',
       color: '#a855f7',
       cursor: 'pointer',
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
       fontWeight: '600',
       width: '100%',
       transition: 'all 0.2s ease',
       marginBottom: '2rem',
+      minHeight: '44px',
     },
   };
 

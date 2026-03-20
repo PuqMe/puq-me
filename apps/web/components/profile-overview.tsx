@@ -134,7 +134,7 @@ function ProfileRow({ href, icon, label, value, accent, danger }: {
 function Toast({ message, visible }: { message: string; visible: boolean }) {
   return (
     <div style={{
-      position: "fixed", bottom: 100, left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 20}px)`,
+      position: "fixed", bottom: "calc(env(safe-area-inset-bottom, 0px) + 6rem)", left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 20}px)`,
       background: "rgba(168,85,247,0.95)", color: "white", padding: "10px 20px", borderRadius: 12,
       fontSize: 13, fontWeight: 600, opacity: visible ? 1 : 0, transition: "all 0.3s ease",
       pointerEvents: "none", zIndex: 9999, backdropFilter: "blur(10px)",
@@ -519,7 +519,7 @@ export function ProfileOverview() {
               <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5 }}>{tx.gallery}</div>
               <button onClick={() => galleryInputRef.current?.click()} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>{tx.addPhoto}</button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: 6 }}>
               {/* Main photo (slot 1) */}
               <button onClick={() => galleryInputRef.current?.click()} disabled={uploading} style={{ aspectRatio: "1", borderRadius: 14, overflow: "hidden", border: "none", padding: 0, cursor: uploading ? "wait" : "pointer", background: "rgba(255,255,255,0.03)", opacity: uploading ? 0.5 : 1, transition: "opacity 0.2s" }}>
                 {data.profile.photoUrl ? (
@@ -552,14 +552,14 @@ export function ProfileOverview() {
                 </div>
               </div>
             </div>
-            <div style={{ padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", minHeight: 60 }}>
+            <div style={{ padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", minHeight: "4rem" }}>
               <textarea
                 ref={bioInputRef}
                 value={bioText}
                 onChange={(e) => setBioText(e.target.value.slice(0, 1000))}
                 onBlur={handleBioSave}
                 placeholder={locale === "de" ? "Erzähl etwas über dich…" : "Tell something about yourself…"}
-                style={{ width: "100%", minHeight: 60, background: "transparent", border: "none", fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, outline: "none", resize: "none", fontFamily: "inherit", color: bioText ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.2)" }}
+                style={{ width: "100%", minHeight: "4rem", background: "transparent", border: "none", fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, outline: "none", resize: "none", fontFamily: "inherit", color: bioText ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.2)" }}
               />
               {/* Progress bar for bio length */}
               <div style={{ marginTop: 10, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.05)" }}>

@@ -119,7 +119,7 @@ export default function SmartMatchPage() {
           <div style={{ marginTop: "20px", marginBottom: "28px" }}>
             <h1
               style={{
-                fontSize: "28px",
+                fontSize: "clamp(1.5rem, 4vw, 2rem)",
                 fontWeight: "700",
                 color: "#ffffff",
                 margin: "0 0 8px 0",
@@ -130,7 +130,7 @@ export default function SmartMatchPage() {
             </h1>
             <p
               style={{
-                fontSize: "14px",
+                fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                 color: "rgba(255,255,255,0.6)",
                 margin: "0",
                 lineHeight: "1.4",
@@ -168,7 +168,7 @@ export default function SmartMatchPage() {
                       ? "#a855f7"
                       : "rgba(255,255,255,0.12)",
                   color: "#ffffff",
-                  fontSize: "13px",
+                  fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                   fontWeight: "500",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
@@ -176,6 +176,10 @@ export default function SmartMatchPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: opt.emoji ? "6px" : "0",
+                  minHeight: "44px",
+                  justifyContent: "center",
+                  paddingTop: "8px",
+                  paddingBottom: "8px",
                 }}
               >
                 {opt.emoji && <span>{opt.emoji}</span>}
@@ -188,7 +192,7 @@ export default function SmartMatchPage() {
           <div style={{ marginBottom: "20px" }}>
             <h2
               style={{
-                fontSize: "14px",
+                fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                 fontWeight: "600",
                 color: "#ffffff",
                 margin: "0",
@@ -234,7 +238,7 @@ export default function SmartMatchPage() {
                 background: "rgba(239,68,68,0.1)",
                 border: "1px solid rgba(239,68,68,0.3)",
                 color: "#fca5a5",
-                fontSize: "13px",
+                fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                 marginBottom: "20px",
               }}
             >
@@ -325,7 +329,7 @@ export default function SmartMatchPage() {
                     >
                       <span
                         style={{
-                          fontSize: "14px",
+                          fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                           fontWeight: "600",
                           color: "#ffffff",
                         }}
@@ -334,7 +338,7 @@ export default function SmartMatchPage() {
                       </span>
                       <span
                         style={{
-                          fontSize: "12px",
+                          fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                           fontWeight: "700",
                           color: "#a855f7",
                         }}
@@ -346,7 +350,7 @@ export default function SmartMatchPage() {
                     {/* Description */}
                     <div
                       style={{
-                        fontSize: "12px",
+                        fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
                         color: "rgba(255,255,255,0.6)",
                         marginBottom: "10px",
                         lineHeight: "1.4",
@@ -367,13 +371,16 @@ export default function SmartMatchPage() {
                         <span
                           key={tagIdx}
                           style={{
-                            fontSize: "11px",
-                            padding: "4px 10px",
+                            fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
+                            padding: "6px 10px",
                             borderRadius: "12px",
                             background: "rgba(168,85,247,0.15)",
                             color: "rgba(168,85,247,0.9)",
                             border: "0.5px solid rgba(168,85,247,0.3)",
                             whiteSpace: "nowrap",
+                            minHeight: "32px",
+                            display: "flex",
+                            alignItems: "center",
                           }}
                         >
                           {tag}
@@ -410,7 +417,7 @@ export default function SmartMatchPage() {
           <div>
             <h3
               style={{
-                fontSize: "14px",
+                fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                 fontWeight: "600",
                 color: "#ffffff",
                 margin: "0 0 20px 0",
@@ -425,7 +432,7 @@ export default function SmartMatchPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr",
+                gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
                 gap: "16px",
               }}
             >
@@ -451,7 +458,7 @@ export default function SmartMatchPage() {
                   <span style={{ fontSize: "24px" }}>{factor.emoji}</span>
                   <span
                     style={{
-                      fontSize: "12px",
+                      fontSize: "clamp(0.75rem, 2vw, 0.9rem)",
                       fontWeight: "600",
                       color: "rgba(255,255,255,0.7)",
                     }}

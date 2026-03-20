@@ -182,13 +182,13 @@ export default function FollowersPage() {
       textAlign: 'center' as const,
     },
     statNumber: {
-      fontSize: '2.5rem',
+      fontSize: 'clamp(1.5rem, 4vw, 2rem)',
       fontWeight: '700',
       color: '#a855f7',
       marginBottom: '0.5rem',
     },
     statLabel: {
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       color: '#999999',
       textTransform: 'uppercase' as const,
       letterSpacing: '0.05em',
@@ -203,7 +203,7 @@ export default function FollowersPage() {
       flex: 1,
       padding: '1rem',
       textAlign: 'center' as const,
-      fontSize: '0.9rem',
+      fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
       fontWeight: '600',
       color: active ? '#a855f7' : '#666666',
       backgroundColor: 'transparent',
@@ -213,6 +213,7 @@ export default function FollowersPage() {
       transition: 'all 0.2s ease',
       marginBottom: '-1px',
       position: 'relative' as const,
+      minHeight: '44px',
     }),
     badge: {
       display: 'inline-block',
@@ -221,7 +222,7 @@ export default function FollowersPage() {
       borderRadius: '9999px',
       backgroundColor: '#a855f7',
       color: '#ffffff',
-      fontSize: '0.75rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       fontWeight: '600',
     },
     followersList: {
@@ -254,12 +255,12 @@ export default function FollowersPage() {
       flex: 1,
     },
     userName: {
-      fontSize: '0.95rem',
+      fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
       fontWeight: '700',
       marginBottom: '0.25rem',
     },
     userMeta: {
-      fontSize: '0.8rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       color: '#999999',
     },
     actionButton: (isFollowing: boolean) => ({
@@ -269,10 +270,11 @@ export default function FollowersPage() {
       backgroundColor: isFollowing ? 'rgba(255, 255, 255, 0.05)' : '#a855f7',
       color: isFollowing ? '#cccccc' : '#ffffff',
       cursor: 'pointer',
-      fontSize: '0.8rem',
+      fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
       fontWeight: '600',
       transition: 'all 0.2s ease',
       backdropFilter: isFollowing ? 'blur(10px)' : 'none',
+      minHeight: '44px',
     }),
     showMoreButton: {
       padding: '0.75rem 1.5rem',
@@ -281,10 +283,11 @@ export default function FollowersPage() {
       backgroundColor: 'transparent',
       color: '#a855f7',
       cursor: 'pointer',
-      fontSize: '0.875rem',
+      fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
       fontWeight: '600',
       width: '100%',
       transition: 'all 0.2s ease',
+      minHeight: '44px',
     },
   };
 
@@ -294,15 +297,15 @@ export default function FollowersPage() {
         <div
           style={{
             position: 'fixed',
-            top: '1rem',
-            right: '1rem',
+            top: 'calc(env(safe-area-inset-top, 0px) + 1rem)',
+            right: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
             backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
             color: '#ffffff',
             padding: '1rem 1.5rem',
             borderRadius: '0.5rem',
             zIndex: 1000,
             fontWeight: 600,
-            fontSize: '0.9rem',
+            fontSize: 'clamp(0.8rem, 2.5vw, 1rem)',
           }}
         >
           {toast.message}
