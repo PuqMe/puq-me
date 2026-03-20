@@ -1,22 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/auth-card";
+import { HomeFeed } from "@/components/home-feed";
 import { useAuth } from "@/lib/auth";
-import { navigateToPostAuthPath } from "@/lib/post-auth";
 
 export default function HomePage() {
-  const router = useRouter();
   const { status } = useAuth();
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      void navigateToPostAuthPath(router);
-    }
-  }, [status, router]);
-
-  if (status === "loading" || status === "authenticated") {
+  // Loading spinner
+  if (status === "loading") {
     return (
       <main className="auth-shell safe-px">
         <div className="mx-auto w-full max-w-sm">
@@ -37,6 +29,12 @@ export default function HomePage() {
     );
   }
 
+  // Authenticated → show new home feed (Startseite)
+  if (status === "authenticated") {
+    return <HomeFeed />;
+  }
+
+  // Not authenticated → login
   return (
     <main className="auth-shell safe-px">
       <div className="mx-auto w-full max-w-sm">
