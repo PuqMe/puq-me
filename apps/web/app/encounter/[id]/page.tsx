@@ -162,10 +162,13 @@ export default function EncounterDetailPage({ params }: { params: { id: string }
 
   return (
     <div style={{
-      minHeight: "100vh",
+      position: "fixed" as const,
+      inset: 0,
+      zIndex: 999,
       background: "#07050f",
       color: "#fff",
       paddingBottom: 40,
+      overflowY: "auto" as const,
     }}>
       {/* ── Header ── */}
       <div style={{

@@ -17,11 +17,14 @@ export default function DeleteAccountPage() {
 
   const styles = {
     container: {
-      minHeight: "100vh",
+      position: "fixed" as const,
+      inset: 0,
+      zIndex: 999,
       background: "#07050f",
       color: "#ffffff",
       padding: "20px",
       paddingBottom: "120px",
+      overflowY: "auto" as const,
     },
     header: {
       maxWidth: "600px",
