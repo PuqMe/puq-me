@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { fetchNearbyUsers, sendWave } from "@/lib/social";
+import { loadRadarMetrics, updateRadarMetrics } from '@/lib/radar-ranking';
+import { applySmartRanking, loadBehaviorProfile } from '@/lib/ai-features';
+import { WatchTimeTracker } from '@/lib/watch-time';
 
 const DEMO_CARDS = [
   {
@@ -54,6 +57,10 @@ export default function CardsPage() {
   useEffect(() => {
     const loadNearbyUsers = async () => {
       try {
+        // Load ranking metrics and behavior profile
+        const metrics = loadRadarMetrics();
+        const behavior = loadBehaviorProfile();
+
         // Get geolocation
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
@@ -66,7 +73,7 @@ export default function CardsPage() {
                 });
 
                 // Map NearbyUser items to card format
-                const mappedCards = nearbyUsers.map(
+                let mappedCards = nearbyUsers.map(
                   (user: any, idx: number) => ({
                     id: idx + 1,
                     avatar: user.displayName?.charAt(0).toUpperCase() || "U",
@@ -80,6 +87,18 @@ export default function CardsPage() {
                     isLive: user.isOnline,
                   })
                 );
+
+                // Apply smart ranking
+                const itemsToRank = mappedCards.map(c => ({ id: String(c.id), score: 75 }));
+                const rankedItems = applySmartRanking(itemsToRank, behavior, metrics);
+
+                // Merge ranked scores back into cards
+                const rankedMap = new Map(rankedItems.map(item => [String(item.id), item.score]));
+                mappedCards = mappedCards.sort((a, b) => {
+                  const scoreA = rankedMap.get(String(a.id)) || 75;
+                  const scoreB = rankedMap.get(String(b.id)) || 75;
+                  return scoreB - scoreA;
+                });
 
                 // Combine real nearby users with demo fallback
                 setCards(mappedCards.length > 0 ? mappedCards : DEMO_CARDS);
@@ -117,6 +136,8 @@ export default function CardsPage() {
     if (action === "join" && userId) {
       setSending(cardId);
       try {
+        // Update metrics for like/engagement
+        updateRadarMetrics(String(cardId), 'like');
         // Call sendWave API
         await sendWave(userId);
         // Remove card on successful join

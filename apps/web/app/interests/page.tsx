@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
 import { fetchMyProfile, updateMyPreferences, updateMyInterests } from '@/lib/profile';
+import { autoTagInterests, suggestInterests } from '@/lib/ai-features';
+import { loadContentAffinity } from '@/lib/radar-ranking';
 
 export default function InterestsPage() {
   const [searchGender, setSearchGender] = useState('women');
@@ -17,6 +19,8 @@ export default function InterestsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [suggestedHobbies, setSuggestedHobbies] = useState<string[]>([]);
+  const [autoTags, setAutoTags] = useState<string[]>([]);
 
   // Load preferences on mount
   useEffect(() => {
@@ -42,6 +46,12 @@ export default function InterestsPage() {
         if (profile.showMeGlobally !== undefined) setGlobalView(profile.showMeGlobally);
         if (profile.interests && Array.isArray(profile.interests)) {
           setHobbies(profile.interests);
+          // Compute auto-tags and suggestions after loading hobbies
+          const tags = autoTagInterests(profile.interests);
+          setAutoTags(tags);
+          const affinity = loadContentAffinity();
+          const suggestions = suggestInterests(profile.interests, affinity);
+          setSuggestedHobbies(suggestions);
         }
       } catch (err) {
         setError('Failed to load preferences');
@@ -74,11 +84,20 @@ export default function InterestsPage() {
   ];
 
   const toggleHobby = (hobby: string) => {
-    setHobbies(prev =>
-      prev.includes(hobby)
+    setHobbies(prev => {
+      const newHobbies = prev.includes(hobby)
         ? prev.filter(h => h !== hobby)
-        : [...prev, hobby]
-    );
+        : [...prev, hobby];
+
+      // After state update, recompute auto-tags and suggestions
+      setTimeout(() => {
+        setAutoTags(autoTagInterests(newHobbies));
+        const affinity = loadContentAffinity();
+        setSuggestedHobbies(suggestInterests(newHobbies, affinity));
+      }, 0);
+
+      return newHobbies;
+    });
   };
 
   const mapUIGenderToAPI = (gender: string): 'men' | 'women' | 'non_binary' | 'everyone' => {
@@ -419,6 +438,59 @@ export default function InterestsPage() {
             </button>
           </div>
         </div>
+
+        {/* KI-Vorschläge Section */}
+        {suggestedHobbies.length > 0 && (
+          <div style={styles.section}>
+            <div style={styles.sectionLabel}>🤖 KI-Vorschläge</div>
+            <div style={styles.chipContainer}>
+              {suggestedHobbies.map(suggestion => (
+                <button
+                  key={suggestion}
+                  onClick={() => toggleHobby(suggestion)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '9999px',
+                    border: '1.5px dashed #a855f7',
+                    backgroundColor: 'transparent',
+                    color: '#a855f7',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Auto-Tags Section */}
+        {autoTags.length > 0 && (
+          <div style={styles.section}>
+            <div style={styles.sectionLabel}>Deine Kategorien</div>
+            <div style={styles.chipContainer}>
+              {autoTags.map(tag => (
+                <div
+                  key={tag}
+                  style={{
+                    padding: '0.375rem 0.75rem',
+                    borderRadius: '0.375rem',
+                    backgroundColor: '#a855f7',
+                    color: '#ffffff',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {tag}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Alter Section */}
         <div style={styles.section}>

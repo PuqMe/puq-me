@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
 import { fetchNearbyUsers, sendWave } from '@/lib/social';
+import { loadRadarMetrics, updateRadarMetrics } from '@/lib/radar-ranking';
+import { applySmartRanking, loadBehaviorProfile } from '@/lib/ai-features';
 
 interface BuzzSettings {
   vibrationEnabled: boolean;
@@ -269,15 +271,32 @@ export default function BuzzPage() {
   useEffect(() => {
     const fetchNearby = async () => {
       try {
+        // Load ranking metrics and behavior profile
+        const metrics = loadRadarMetrics();
+        const behavior = loadBehaviorProfile();
+
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
             async (position) => {
               try {
-                const users = await fetchNearbyUsers({
+                let users = await fetchNearbyUsers({
                   latitude: position.coords.latitude,
                   longitude: position.coords.longitude,
                   radius: buzzSettings.radius,
                 });
+
+                // Apply smart ranking to nearby users
+                const itemsToRank = users.map((u: any) => ({ id: String(u.id), score: 75 }));
+                const rankedItems = applySmartRanking(itemsToRank, behavior, metrics);
+
+                // Sort by ranked score
+                const rankedMap = new Map(rankedItems.map(item => [String(item.id), item.score]));
+                users = users.sort((a: any, b: any) => {
+                  const scoreA = rankedMap.get(String(a.id)) || 75;
+                  const scoreB = rankedMap.get(String(b.id)) || 75;
+                  return scoreB - scoreA;
+                });
+
                 setNearbyUsers(users);
                 // Show buzz notification if a nearby user is found
                 if (users.length > 0) {
@@ -312,6 +331,8 @@ export default function BuzzPage() {
     if (nearbyUsers.length === 0) return;
     setSending(true);
     try {
+      // Update metrics for like/engagement
+      updateRadarMetrics(String(nearbyUsers[0].id), 'like');
       // Send wave to the first nearby user
       await sendWave(nearbyUsers[0].id);
       // Trigger vibration if enabled

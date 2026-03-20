@@ -7,6 +7,9 @@ import { BRAND_NAME } from "@puqme/config";
 import { useLanguage } from "@/lib/i18n";
 import { fetchNearbyUsers, updateMyLocation, postLocationEvent, sendWave, type NearbyUser } from "@/lib/social";
 import { useAuth } from "@/lib/auth";
+import { WatchTimeTracker } from "@/lib/watch-time";
+import { loadRadarMetrics, updateRadarMetrics, personalizeRadarFeed, loadContentAffinity } from "@/lib/radar-ranking";
+import { analyzeBehavior, applySmartRanking, loadBehaviorProfile, getTimeBasedRecommendation } from "@/lib/ai-features";
 
 interface LocationInfo {
   lat: number;
@@ -106,6 +109,7 @@ export function RadarMap() {
   const selfMarkerRef = useRef<any>(null);
   const heatmapRef = useRef<any[]>([]);
   const ringsRef = useRef<any[]>([]);
+  const trackerRef = useRef<WatchTimeTracker | null>(null);
   const [ready,    setReady]    = useState(false);
   const [location, setLocation] = useState<LocationInfo>({ lat: 48.1351, lng: 11.582, displayName: "München" });
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
@@ -121,7 +125,28 @@ export function RadarMap() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanCooldown, setScanCooldown] = useState(0);
   const [gpsStatus, setGpsStatus] = useState<"pending" | "active" | "denied" | "unavailable">("pending");
+  const [personalizedUsers, setPersonalizedUsers] = useState<NearbyUser[]>([]);
+  const [timeRecommendation, setTimeRecommendation] = useState<string>("");
   const lastScanRef = useRef<number>(0);
+
+  /* Initialize watch-time tracker */
+  useEffect(() => {
+    trackerRef.current = new WatchTimeTracker();
+
+    // Load behavior profile and get time-based recommendation
+    try {
+      const behaviorProfile = loadBehaviorProfile();
+      const recommendation = getTimeBasedRecommendation(behaviorProfile);
+      setTimeRecommendation(recommendation);
+    } catch (err) {
+      console.warn("Failed to load behavior profile:", err);
+    }
+
+    return () => {
+      trackerRef.current?.destroy();
+      trackerRef.current = null;
+    };
+  }, []);
 
   /* Load Leaflet CSS + JS from CDN */
   useEffect(() => {
@@ -189,6 +214,17 @@ export function RadarMap() {
         const data = await fetchNearbyUsers(location.lat, location.lng);
         if (!cancelled) {
           setNearbyUsers(data.items);
+
+          // Apply personalized ranking using watch-time metrics
+          try {
+            const metrics = loadRadarMetrics();
+            const ranked = personalizeRadarFeed(data.items, metrics);
+            setPersonalizedUsers(ranked);
+          } catch (err) {
+            console.warn("Failed to personalize feed:", err);
+            setPersonalizedUsers(data.items);
+          }
+
           setRadarViewsCount(data.meta.radarViews);
           setIsLoading(false);
         }
@@ -325,7 +361,7 @@ export function RadarMap() {
         : avatarHtml(initials, color, 46, user.isOnline, markerOpacity);
 
       const markerIcon = L.divIcon({
-        html: markerHtml,
+        html: `<div data-user-id="${user.userId}" data-user-type="profile">${markerHtml}</div>`,
         className: "",
         iconSize: [46,46],
         iconAnchor: [23,23],
@@ -339,6 +375,14 @@ export function RadarMap() {
       marker.bindPopup(popupContent, { maxWidth: 280, className: "custom-popup" });
 
       markersRef.current.push(marker);
+
+      // Observe marker element for watch-time tracking
+      setTimeout(() => {
+        const markerElement = document.querySelector(`[data-user-id="${user.userId}"]`);
+        if (markerElement && trackerRef.current) {
+          trackerRef.current.observe(markerElement as HTMLElement, user.userId, "profile");
+        }
+      }, 0);
     });
 
     // Pan map to new location
@@ -552,7 +596,9 @@ export function RadarMap() {
             <LogoMark className="h-5 w-5 shrink-0 text-[#a855f7]" size={20} />
             <div style={{ lineHeight: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#ffffff", letterSpacing: "-0.01em" }}>{BRAND_NAME}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", marginTop: 2 }}>{t.nearby}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", marginTop: 2 }}>
+                {timeRecommendation || t.nearby}
+              </div>
             </div>
           </Link>
 

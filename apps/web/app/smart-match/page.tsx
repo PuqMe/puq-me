@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { fetchMatches, fetchRadarFeed, MatchItem, RadarFeedItem } from "@/lib/social";
+import { loadRadarMetrics, updateRadarMetrics } from '@/lib/radar-ranking';
+import { applySmartRanking, loadBehaviorProfile } from '@/lib/ai-features';
 
 const FILTER_OPTIONS = [
   { id: "all", label: "Alle" },
@@ -62,10 +64,14 @@ export default function SmartMatchPage() {
       setIsLoading(true);
       setError(null);
       try {
+        // Load ranking metrics and behavior profile
+        const metrics = loadRadarMetrics();
+        const behavior = loadBehaviorProfile();
+
         const data = await fetchMatches();
         if (data && data.length > 0) {
           // Transform MatchItem to display format
-          const transformedMatches = data.map((match: MatchItem, idx: number) => {
+          let transformedMatches = data.map((match: MatchItem, idx: number) => {
             const colors = ["#e879f7", "#38bdf8", "#4ade80", "#fbbf24", "#ef4444"];
             // Calculate percentage from radar scoreBreakdown if available, otherwise use formula
             let percentage = 75;
@@ -90,6 +96,20 @@ export default function SmartMatchPage() {
               isLive: Math.random() > 0.3,
             };
           });
+
+          // Apply smart ranking
+          const itemsToRank = transformedMatches.map(m => ({ id: String(m.id), score: m.percentage }));
+          const rankedItems = applySmartRanking(itemsToRank, behavior, metrics);
+
+          // Merge ranked scores back into matches
+          const rankedMap = new Map(rankedItems.map(item => [String(item.id), item.score]));
+          transformedMatches = transformedMatches.map(match => ({
+            ...match,
+            percentage: Math.round(rankedMap.get(String(match.id)) || match.percentage),
+          }));
+
+          // Sort by percentage descending
+          transformedMatches.sort((a, b) => b.percentage - a.percentage);
           setMatches(transformedMatches);
         } else {
           setMatches(DEMO_MATCHES);
@@ -259,6 +279,7 @@ export default function SmartMatchPage() {
                 key={match.id}
                 href={`/profile/${match.id}`}
                 style={{ textDecoration: "none" }}
+                onClick={() => updateRadarMetrics(String(match.id), 'open')}
               >
                 <div
                   style={{

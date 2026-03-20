@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
 import { fetchCircleEncounters } from '@/lib/social';
 import { fetchMyProfile } from '@/lib/profile';
+import { loadRadarMetrics, updateRadarMetrics } from '@/lib/radar-ranking';
+import { applySmartRanking, loadBehaviorProfile } from '@/lib/ai-features';
 
 interface Follower {
   id: string;
@@ -90,6 +92,10 @@ export default function FollowersPage() {
   useEffect(() => {
     const loadFollowers = async () => {
       try {
+        // Load ranking metrics and behavior profile
+        const metrics = loadRadarMetrics();
+        const behavior = loadBehaviorProfile();
+
         const [encountersData, profileData] = await Promise.all([
           fetchCircleEncounters('24h'),
           fetchMyProfile(),
@@ -121,10 +127,22 @@ export default function FollowersPage() {
         const followState: Record<string, { following: boolean }> = storedState ? JSON.parse(storedState) : {};
 
         // Merge with stored state
-        const mergedFollowers = Array.from(followerMap.values()).map(f => ({
+        let mergedFollowers = Array.from(followerMap.values()).map(f => ({
           ...f,
           isFollowing: followState[f.id]?.following ?? f.isFollowing,
         }));
+
+        // Apply smart ranking to followers
+        const itemsToRank = mergedFollowers.map(f => ({ id: f.id, score: 75 }));
+        const rankedItems = applySmartRanking(itemsToRank, behavior, metrics);
+
+        // Sort by ranked score
+        const rankedMap = new Map(rankedItems.map(item => [item.id, item.score]));
+        mergedFollowers = mergedFollowers.sort((a, b) => {
+          const scoreA = rankedMap.get(a.id) || 75;
+          const scoreB = rankedMap.get(b.id) || 75;
+          return scoreB - scoreA;
+        });
 
         // Use real data if available, fallback to demo
         setFollowers(mergedFollowers.length > 0 ? mergedFollowers : demoFollowers);
@@ -140,6 +158,19 @@ export default function FollowersPage() {
   }, []);
 
   const toggleFollowing = (id: string) => {
+    // Get the previous state to determine if this is a follow or unfollow
+    const follower = followers.find(f => f.id === id);
+    const isFollowing = follower?.isFollowing ?? false;
+
+    // Update metrics based on follow/unfollow action
+    if (!isFollowing) {
+      // User is following - record as 'like'
+      updateRadarMetrics(id, 'like');
+    } else {
+      // User is unfollowing - record as 'skip'
+      updateRadarMetrics(id, 'skip');
+    }
+
     setFollowers(prev =>
       prev.map(f => (f.id === id ? { ...f, isFollowing: !f.isFollowing } : f))
     );
@@ -151,7 +182,6 @@ export default function FollowersPage() {
     localStorage.setItem('puqme.followers', JSON.stringify(state));
 
     // Show toast
-    const follower = followers.find(f => f.id === id);
     setToast({
       message: state[id].following ? `Du folgst ${follower?.name}` : `Du folgst ${follower?.name} nicht mehr`,
       type: 'success',
