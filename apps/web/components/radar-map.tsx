@@ -540,7 +540,7 @@ export function RadarMap() {
             <Link href="/circle" aria-label="Circle" style={headerBtn}><CircleIcon /></Link>
             <button aria-label="Search" onClick={() => setShowSearch(true)} style={headerBtn}><SearchIcon /></button>
             <button aria-label="Notifications" onClick={() => { setShowNotifToast(true); setTimeout(() => setShowNotifToast(false), 2500); }} style={headerBtn}><BellIcon /></button>
-            <button aria-label="Menu" onClick={() => setShowMenu(true)} style={headerBtn}><MenuIcon /></button>
+            <button aria-label="Menu" onClick={() => { setShowMenu(true); setShowLayers(false); }} style={headerBtn}><MenuIcon /></button>
           </div>
         </div>
 
@@ -575,7 +575,7 @@ export function RadarMap() {
 
         {/* ── EBENEN (bottom-left) ── */}
         <div style={{ position: "absolute", left: 12, zIndex: 20, bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))" }}>
-          <button style={ctrlBtn} aria-label="Layers" onClick={() => setShowLayers(l => !l)}>
+          <button style={ctrlBtn} aria-label="Layers" onClick={() => { setShowLayers(l => !l); setShowMenu(false); }}>
             <LayersIcon />
           </button>
         </div>

@@ -409,12 +409,12 @@ export function CircleMap() {
               <Link href="/circle" aria-label="Circle" style={headerBtn}><CircleNavIcon /></Link>
               <button aria-label="Search" onClick={() => setShowSearch(true)} style={headerBtn}><SearchIcon /></button>
               <button aria-label="Notifications" onClick={() => { setShowNotifToast(true); setTimeout(() => setShowNotifToast(false), 2500); }} style={headerBtn}><BellIcon /></button>
-              <button aria-label="Menu" onClick={() => setShowMenu(true)} style={headerBtn}><MenuIcon /></button>
+              <button aria-label="Menu" onClick={() => { setShowMenu(true); setShowLayers(false); }} style={headerBtn}><MenuIcon /></button>
             </div>
           </div>
 
-          {/* Row 2: Time filter bar */}
-          <div style={{
+          {/* Row 2: Time filter bar — only on encounters tab */}
+          {activeTab === "encounters" && <div style={{
             display: "flex", alignItems: "center", gap: 6,
             paddingBottom: 10, overflowX: "auto",
             scrollbarWidth: "none", msOverflowStyle: "none",
@@ -450,7 +450,7 @@ export function CircleMap() {
                 {f.label}
               </button>
             ))}
-          </div>
+          </div>}
 
           {/* Row 3: Tab bar (Begegnungen / Mein Kreis) */}
           <div style={{
@@ -780,7 +780,7 @@ export function CircleMap() {
         {/* ── EBENEN (bottom-left, only on encounters tab) ── */}
         {activeTab === "encounters" && (
           <div style={{ position: "absolute", left: 12, zIndex: 20, bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))" }}>
-            <button style={ctrlBtn} aria-label="Layers" onClick={() => setShowLayers(l => !l)}>
+            <button style={ctrlBtn} aria-label="Layers" onClick={() => { setShowLayers(l => !l); setShowMenu(false); }}>
               <LayersIcon />
             </button>
           </div>
