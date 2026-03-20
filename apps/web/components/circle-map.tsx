@@ -343,8 +343,15 @@ export function CircleMap() {
 
       <div style={{ position: "fixed", inset: 0, zIndex: 999, overflow: "hidden", background: "#07050f", display: "flex", flexDirection: "column" }}>
 
-        {/* MAP */}
-        <div ref={mapRef} style={{ position: "relative", height: mapHeight, width: "100%", zIndex: 1 }} />
+        {/* MAP — hidden when circle tab is active */}
+        <div ref={mapRef} style={{
+          position: "relative",
+          height: activeTab === "encounters" ? "45vh" : "0px",
+          width: "100%",
+          zIndex: 1,
+          overflow: "hidden",
+          display: activeTab === "circle" ? "none" : "block",
+        }} />
 
         {/* BADGE UNLOCK NOTIFICATION */}
         {showBadgeUnlock && (
@@ -706,24 +713,28 @@ export function CircleMap() {
           </div>
         )}
 
-        {/* ── RIGHT CONTROLS ── */}
-        <div style={{
-          position: "absolute", right: 12, zIndex: 20,
-          bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
-          display: "flex", flexDirection: "column", gap: 8,
-        }}>
-          <button style={ctrlBtn}><UserIcon size={16} /><span style={{ fontSize: 8, color: "rgba(255,255,255,.4)", lineHeight: 1 }}>{currentEncounters.length}</span></button>
-          <button onClick={locate} style={ctrlBtn}><CrosshairIcon /></button>
-          <button onClick={zoomIn}  style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>+</button>
-          <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>−</button>
-        </div>
+        {/* ── RIGHT CONTROLS (only on encounters tab) ── */}
+        {activeTab === "encounters" && (
+          <div style={{
+            position: "absolute", right: 12, zIndex: 20,
+            bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
+            display: "flex", flexDirection: "column", gap: 8,
+          }}>
+            <button style={ctrlBtn}><UserIcon size={16} /><span style={{ fontSize: 8, color: "rgba(255,255,255,.4)", lineHeight: 1 }}>{currentEncounters.length}</span></button>
+            <button onClick={locate} style={ctrlBtn}><CrosshairIcon /></button>
+            <button onClick={zoomIn}  style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>+</button>
+            <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>−</button>
+          </div>
+        )}
 
-        {/* ── EBENEN (bottom-left) ── */}
-        <div style={{ position: "absolute", left: 12, zIndex: 20, bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))" }}>
-          <button style={ctrlBtn} aria-label="Layers" onClick={() => setShowLayers(l => !l)}>
-            <LayersIcon />
-          </button>
-        </div>
+        {/* ── EBENEN (bottom-left, only on encounters tab) ── */}
+        {activeTab === "encounters" && (
+          <div style={{ position: "absolute", left: 12, zIndex: 20, bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))" }}>
+            <button style={ctrlBtn} aria-label="Layers" onClick={() => setShowLayers(l => !l)}>
+              <LayersIcon />
+            </button>
+          </div>
+        )}
 
         {/* ── EBENEN POPUP ── */}
         {showLayers && (
