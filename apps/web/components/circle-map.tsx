@@ -320,7 +320,7 @@ export function CircleMap() {
     setSearchQuery("");
   };
 
-  const mapHeight = activeTab === "encounters" ? "45vh" : "100vh";
+  const mapHeight = activeTab === "encounters" ? "45vh" : "0px";
   const timelineHeight = activeTab === "encounters" ? "55vh" : "0";
 
   return (
