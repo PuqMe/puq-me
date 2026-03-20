@@ -74,6 +74,10 @@ const pt = {
     photoUpdated: "Photo updated!",
     photoError: "Upload failed — try again",
     changePhoto: "Change photo",
+    gallery: "Gallery", addPhoto: "Add photo",
+    aboutMe: "About me", charsRemaining: "characters remaining",
+    hobbies: "Hobbies & Interests", addHobby: "Add hobby",
+    followers: "Followers", following: "Following",
   },
   de: {
     encounters: "Begegnungen", crossingsToday: "Heute", matches: "Matches",
@@ -96,6 +100,10 @@ const pt = {
     photoUpdated: "Foto aktualisiert!",
     photoError: "Upload fehlgeschlagen — erneut versuchen",
     changePhoto: "Foto ändern",
+    gallery: "Galerie", addPhoto: "Foto hinzufügen",
+    aboutMe: "Über mich", charsRemaining: "Zeichen übrig",
+    hobbies: "Hobbys & Interessen", addHobby: "Hobby hinzufügen",
+    followers: "Follower", following: "Folge ich",
   },
 };
 
@@ -370,11 +378,18 @@ export function ProfileOverview() {
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.encounters}</div>
                 </Link>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
-                <Link href="/circle" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
+                <Link href="/followers" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{todayEncounters}</div>
-                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.crossingsToday}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>128</div>
+                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.followers}</div>
+                </Link>
+                <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
+                <Link href="/followers" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>43</div>
+                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.following}</div>
                 </Link>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
                 <Link href="/matches" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
@@ -403,6 +418,80 @@ export function ProfileOverview() {
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}>
               <icons.share /> {tx.shareProfile}
             </button>
+          </div>
+        )}
+
+        {/* ━━━ PHOTO GALLERY (6 slots, 3x2 grid) ━━━ */}
+        {data && (
+          <div style={{ padding: "0 2px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5 }}>{tx.gallery}</div>
+              <button onClick={() => fileInputRef.current?.click()} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>{tx.addPhoto}</button>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+              {/* Main photo (slot 1) */}
+              <button onClick={() => fileInputRef.current?.click()} style={{ aspectRatio: "1", borderRadius: 14, overflow: "hidden", border: "none", padding: 0, cursor: "pointer", background: "rgba(255,255,255,0.03)" }}>
+                {data.profile.photoUrl ? (
+                  <img src={data.profile.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.15)", fontSize: 28 }}>+</div>
+                )}
+              </button>
+              {/* Slots 2-6: empty placeholders */}
+              {[1, 2, 3, 4, 5].map((i) => (
+                <button key={i} onClick={() => fileInputRef.current?.click()} style={{ aspectRatio: "1", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.08)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.15)", fontSize: 24, transition: "background 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}>
+                  +
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ━━━ BIO with 1000 char counter ━━━ */}
+        {data && (
+          <div style={{ padding: "0 2px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px", marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5 }}>{tx.aboutMe}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
+                {1000 - (data.profile.bio?.length ?? 0)} {tx.charsRemaining}
+              </div>
+            </div>
+            <div style={{ padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", minHeight: 60 }}>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>
+                {data.profile.bio || (
+                  <span style={{ color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>
+                    {locale === "de" ? "Erzähl etwas über dich…" : "Tell something about yourself…"}
+                  </span>
+                )}
+              </div>
+              {/* Progress bar for bio length */}
+              <div style={{ marginTop: 10, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.05)" }}>
+                <div style={{ height: 2, borderRadius: 1, background: (data.profile.bio?.length ?? 0) > 800 ? "#ef4444" : "#a855f7", width: `${Math.min(100, ((data.profile.bio?.length ?? 0) / 1000) * 100)}%`, transition: "width 0.3s" }} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ━━━ HOBBYS & INTERESTS chips ━━━ */}
+        {data && (
+          <div style={{ padding: "0 2px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5 }}>{tx.hobbies}</div>
+              <Link href="/interests" style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>{tx.addHobby}</Link>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {(data.interests.length > 0 ? data.interests : ["🎵 Musik", "📸 Fotografie", "☕ Kaffee", "🏃 Laufen", "✈️ Reisen", "🎮 Gaming"]).map((hobby, i) => {
+                const colors = ["#a855f7", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+                const c = colors[i % colors.length];
+                return (
+                  <span key={hobby} style={{ display: "inline-flex", alignItems: "center", padding: "7px 14px", borderRadius: 20, background: `${c}15`, border: `1px solid ${c}30`, fontSize: 12.5, fontWeight: 500, color: c, letterSpacing: 0.2 }}>
+                    {hobby}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         )}
 

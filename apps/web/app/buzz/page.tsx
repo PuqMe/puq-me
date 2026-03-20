@@ -1,0 +1,338 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import AppShell from '@/components/app-shell';
+
+export default function BuzzPage() {
+  const [vibrationEnabled, setVibrationEnabled] = useState(true);
+  const [quietHoursEnabled, setQuietHoursEnabled] = useState(true);
+  const [showBuzz, setShowBuzz] = useState(true);
+
+  const containerStyle: React.CSSProperties = {
+    backgroundColor: '#07050f',
+    minHeight: '100vh',
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    position: 'relative',
+    overflow: 'hidden',
+  };
+
+  const mapBackgroundStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '70%',
+    backgroundColor: '#07050f',
+  };
+
+  const bottomPanelStyle: React.CSSProperties = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: '30%',
+    backgroundColor: '#07050f',
+  };
+
+  const contentStyle: React.CSSProperties = {
+    position: 'relative',
+    zIndex: 10,
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+  };
+
+  const mapWrapperStyle: React.CSSProperties = {
+    flex: 1,
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  const buzzNotificationStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '40px',
+    left: '20px',
+    right: '20px',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    border: '2px solid #10b981',
+    borderRadius: '12px',
+    padding: '16px',
+    backdropFilter: 'blur(10px)',
+    animation: 'pulse-glow 2s ease-in-out infinite',
+    zIndex: 20,
+  };
+
+  const buzzHeaderStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '12px',
+  };
+
+  const avatarStyle: React.CSSProperties = {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: '#a855f7',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontSize: '18px',
+    fontWeight: '600',
+    position: 'relative',
+  };
+
+  const presenceDotStyle: React.CSSProperties = {
+    width: '12px',
+    height: '12px',
+    backgroundColor: '#10b981',
+    borderRadius: '50%',
+    position: 'absolute',
+    bottom: '-2px',
+    right: '-2px',
+    border: '2px solid #07050f',
+  };
+
+  const buzzTitleStyle: React.CSSProperties = {
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#10b981',
+    letterSpacing: '0.5px',
+  };
+
+  const buzzDetailsStyle: React.CSSProperties = {
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: '4px',
+    fontWeight: '500',
+  };
+
+  const buzzStatusStyle: React.CSSProperties = {
+    fontSize: '13px',
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: '12px',
+  };
+
+  const buttonRowStyle: React.CSSProperties = {
+    display: 'flex',
+    gap: '12px',
+  };
+
+  const buzzButtonStyle = (backgroundColor: string): React.CSSProperties => ({
+    flex: 1,
+    padding: '10px 16px',
+    backgroundColor: backgroundColor,
+    color: 'rgba(255, 255, 255, 0.95)',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+  });
+
+  const buzzSettingsPanelStyle: React.CSSProperties = {
+    position: 'absolute',
+    bottom: '20px',
+    left: '20px',
+    right: '20px',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(168, 85, 247, 0.2)',
+    borderRadius: '12px',
+    padding: '16px',
+    backdropFilter: 'blur(10px)',
+    zIndex: 15,
+  };
+
+  const settingRowStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: '12px',
+    marginBottom: '12px',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+  };
+
+  const settingLabelStyle: React.CSSProperties = {
+    fontSize: '14px',
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.85)',
+  };
+
+  const settingValueStyle: React.CSSProperties = {
+    fontSize: '12px',
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginTop: '2px',
+  };
+
+  const toggleStyle: React.CSSProperties = {
+    width: '44px',
+    height: '24px',
+    borderRadius: '12px',
+    backgroundColor: '#a855f7',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+  };
+
+  const panelFooterStyle: React.CSSProperties = {
+    fontSize: '12px',
+    color: 'rgba(255, 255, 255, 0.5)',
+    marginTop: '8px',
+    textAlign: 'center',
+    fontWeight: '400',
+  };
+
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = `
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+      }
+    }
+
+    @keyframes radar-pulse {
+      0% {
+        r: 20px;
+        opacity: 0.6;
+      }
+      100% {
+        r: 80px;
+        opacity: 0;
+      }
+    }
+
+    @keyframes glow {
+      0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
+      }
+      50% {
+        filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.8));
+      }
+    }
+  `;
+
+  useEffect(() => {
+    document.head.appendChild(styleSheet);
+    return () => {
+      document.head.removeChild(styleSheet);
+    };
+  }, []);
+
+  return (
+    <AppShell>
+      <div style={containerStyle}>
+        <div style={mapBackgroundStyle} />
+        <div style={bottomPanelStyle} />
+
+        <div style={contentStyle}>
+          {/* SVG Map Background */}
+          <div style={mapWrapperStyle}>
+            <svg
+              width="100%"
+              height="100%"
+              style={{ position: 'absolute', top: 0, left: 0 }}
+              viewBox="0 0 400 400"
+              preserveAspectRatio="xMidYMid slice"
+            >
+              {/* Grid background */}
+              <defs>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(168, 85, 247, 0.1)" strokeWidth="0.5" />
+                </pattern>
+              </defs>
+              <rect width="400" height="400" fill="url(#grid)" />
+
+              {/* Radar circles with animation */}
+              <circle cx="200" cy="200" r="40" fill="none" stroke="rgba(168, 85, 247, 0.15)" strokeWidth="1" />
+              <circle cx="200" cy="200" r="80" fill="none" stroke="rgba(168, 85, 247, 0.1)" strokeWidth="1" />
+              <circle cx="200" cy="200" r="120" fill="none" stroke="rgba(168, 85, 247, 0.05)" strokeWidth="1" />
+
+              {/* Animated radar rings */}
+              <circle cx="200" cy="200" r="20" fill="none" stroke="rgba(168, 85, 247, 0.3)" strokeWidth="2">
+                <animate attributeName="r" from="20" to="120" dur="3s" repeatCount="indefinite" />
+                <animate attributeName="opacity" from="0.4" to="0" dur="3s" repeatCount="indefinite" />
+              </circle>
+
+              {/* Your position dot */}
+              <circle cx="200" cy="200" r="8" fill="#a855f7" />
+              <circle cx="200" cy="200" r="8" fill="none" stroke="#a855f7" strokeWidth="2" opacity="0.3">
+                <animate attributeName="r" from="8" to="24" dur="2s" repeatCount="indefinite" />
+                <animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite" />
+              </circle>
+
+              {/* Approaching person dot */}
+              <circle cx="280" cy="150" r="8" fill="#10b981" style={{ animation: 'glow 1.5s ease-in-out infinite' }} />
+              <circle cx="280" cy="150" r="12" fill="none" stroke="#10b981" strokeWidth="1.5" opacity="0.4" />
+            </svg>
+
+            {/* Buzz Notification */}
+            {showBuzz && (
+              <div style={buzzNotificationStyle}>
+                <div style={buzzHeaderStyle}>
+                  <div style={avatarStyle}>
+                    M
+                    <div style={presenceDotStyle} />
+                  </div>
+                  <div style={buzzTitleStyle}>📳 Buzz!</div>
+                </div>
+                <div style={buzzDetailsStyle}>Maya · ☕ Kaffee · 120m entfernt</div>
+                <div style={buzzStatusStyle}>Gleicher Intent · Kommt näher</div>
+                <div style={buttonRowStyle}>
+                  <button style={buzzButtonStyle('#10b981')}>👋 Winken</button>
+                  <button
+                    style={{
+                      ...buzzButtonStyle('rgba(255, 255, 255, 0.08)'),
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                    }}
+                  >
+                    Ignorieren
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Settings Panel */}
+          <div style={buzzSettingsPanelStyle}>
+            <div style={settingRowStyle}>
+              <div>
+                <div style={settingLabelStyle}>Vibration bei Match</div>
+              </div>
+              <button
+                style={toggleStyle}
+                onClick={() => setVibrationEnabled(!vibrationEnabled)}
+                aria-label="Toggle vibration"
+              />
+            </div>
+
+            <div style={settingRowStyle}>
+              <div style={settingLabelStyle}>Buzz-Radius: 200m</div>
+              <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '18px' }}>›</div>
+            </div>
+
+            <div style={{ ...settingRowStyle, borderBottom: 'none', marginBottom: 0, paddingBottom: 0 }}>
+              <div>
+                <div style={settingLabelStyle}>Ruhezeiten 22:00-08:00</div>
+              </div>
+              <button
+                style={toggleStyle}
+                onClick={() => setQuietHoursEnabled(!quietHoursEnabled)}
+                aria-label="Toggle quiet hours"
+              />
+            </div>
+
+            <div style={panelFooterStyle}>Kein App-Öffnen nötig · Funktioniert im Hintergrund</div>
+          </div>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
