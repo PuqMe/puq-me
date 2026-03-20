@@ -597,7 +597,7 @@ export function CircleMap() {
           <div style={{
             position: "relative", flex: 1, overflowY: "auto", background: "#07050f",
             borderTop: "1px solid rgba(255,255,255,.08)", padding: "16px",
-            paddingBottom: 80,
+            paddingTop: 96, paddingBottom: 80,
           }}>
             {/* Free Now Toggle */}
             <div style={{
