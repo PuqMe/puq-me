@@ -202,34 +202,33 @@ export function RadarMap() {
       zIndexOffset: 1000,
     }).addTo(map).bindPopup("<div style='padding:8px;color:#fff;'><b>You are here</b></div>");
 
-    // Add concentric radar rings (500m, 1km, 2km, 4km)
+    // Add concentric radar rings (500m, 1km, 2km, 4km) — outlines only
     const ringDistances = [500, 1000, 2000, 4000];
-    const ringOpacities = [0.15, 0.10, 0.06, 0.03];
+    const ringOpacities = [0.25, 0.15, 0.08, 0.04];
     ringDistances.forEach((dist, idx) => {
       const ring = L.circle([location.lat, location.lng], {
         radius: dist,
-        color: "transparent",
-        fillColor: "#a855f7",
-        fillOpacity: ringOpacities[idx],
+        color: `rgba(168,85,247,${ringOpacities[idx]})`,
+        fill: false,
         weight: 1,
-        dashArray: "4,4",
-        lineCap: "round",
+        dashArray: "6,6",
+        interactive: false,
       }).addTo(map);
       ringsRef.current.push(ring);
     });
 
-    // Add heatmap zones (activity hotspots)
+    // Add heatmap zones (activity hotspots) — subtle glow areas
     const heatmapZones = [
-      { lat: location.lat + 0.008, lng: location.lng + 0.012, opacity: 0.10 },
-      { lat: location.lat - 0.010, lng: location.lng - 0.008, opacity: 0.08 },
-      { lat: location.lat + 0.005, lng: location.lng - 0.015, opacity: 0.12 },
+      { lat: location.lat + 0.005, lng: location.lng + 0.008, opacity: 0.045 },
+      { lat: location.lat - 0.006, lng: location.lng - 0.005, opacity: 0.035 },
+      { lat: location.lat + 0.003, lng: location.lng - 0.010, opacity: 0.04 },
     ];
 
     heatmapZones.forEach(zone => {
       const heatZone = L.circle([zone.lat, zone.lng], {
-        radius: 800,
+        radius: 500,
         color: "transparent",
-        fillColor: "#d946ef",
+        fillColor: "#a855f7",
         fillOpacity: zone.opacity,
         weight: 0,
       }).addTo(map);
