@@ -30,7 +30,7 @@ export function MatchList() {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Could not load matches.");
+          setErrorMessage(error instanceof Error ? error.message : t.couldNotLoadMatches);
         }
       } finally {
         if (!cancelled) {

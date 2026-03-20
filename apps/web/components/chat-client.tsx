@@ -10,8 +10,10 @@ import {
   type ConversationSummary
 } from "@/lib/social";
 import { readStoredUser } from "@/lib/auth";
+import { useLanguage } from "@/lib/i18n";
 
 export function useChatClient(initialConversationId?: string | null) {
+  const { t } = useLanguage();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(initialConversationId ?? null);
@@ -42,7 +44,7 @@ export function useChatClient(initialConversationId?: string | null) {
         setSelectedConversationId(preferredConversation);
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Could not load conversations.");
+          setErrorMessage(error instanceof Error ? error.message : t.couldNotLoadConversations);
         }
       } finally {
         if (!cancelled) {
@@ -80,7 +82,7 @@ export function useChatClient(initialConversationId?: string | null) {
         );
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Could not load messages.");
+          setErrorMessage(error instanceof Error ? error.message : t.couldNotLoadMessages);
         }
       }
     })();
@@ -127,7 +129,7 @@ export function useChatClient(initialConversationId?: string | null) {
         )
       );
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Could not send message.");
+      setErrorMessage(error instanceof Error ? error.message : t.couldNotSendMessage);
     } finally {
       setIsSending(false);
     }

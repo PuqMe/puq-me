@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/i18n";
 
 export function OfflineBanner() {
+  const { t } = useLanguage();
   const [online, setOnline] = useState(true);
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export function OfflineBanner() {
 
   return (
     <div className="sticky top-0 z-50 bg-[#A855F7] px-4 py-3 text-center text-sm text-white">
-      Offline mode active. Cached screens remain available.
+      {t.offlineBanner}
     </div>
   );
 }

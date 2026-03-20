@@ -1,3 +1,5 @@
+"use client";
+
 import { type ReactNode, useRef, useState } from "react";
 import Link from "next/link";
 import { BRAND_NAME } from "@puqme/config";
@@ -8,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { env } from "@/lib/env";
 import { navigateToPostAuthPath } from "@/lib/post-auth";
+import { useLanguage } from "@/lib/i18n";
 
 type AuthFormShellProps = {
   eyebrow: string;
@@ -38,6 +41,7 @@ export function AuthFormShell({
 }: AuthFormShellProps) {
   const { signInWithGoogle } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
   const [googleErrorMessage, setGoogleErrorMessage] = useState<string | null>(null);
   const isHandlingGoogleRef = useRef(false);
 
@@ -52,7 +56,7 @@ export function AuthFormShell({
       await signInWithGoogle(credential);
       await navigateToPostAuthPath(router);
     } catch (error) {
-      setGoogleErrorMessage(error instanceof Error ? error.message : "Google Login failed.");
+      setGoogleErrorMessage(error instanceof Error ? error.message : t.googleLoginFailed);
     } finally {
       window.setTimeout(() => {
         isHandlingGoogleRef.current = false;

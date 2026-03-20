@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/i18n";
 
 type DeferredInstallPrompt = Event & {
   prompt: () => Promise<void>;
@@ -16,6 +17,7 @@ declare global {
 const DISMISS_KEY = "puq-install-dismissed";
 
 export function InstallNowFab() {
+  const { t } = useLanguage();
   const [available, setAvailable] = useState(false);
   const [dismissed, setDismissed] = useState(true); // start hidden until we confirm
 
@@ -66,15 +68,15 @@ export function InstallNowFab() {
           📱
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-white">App installieren</div>
-          <div className="text-[11px] text-white/60">Fullscreen &amp; Quick access</div>
+          <div className="text-sm font-semibold text-white">{t.installTitle}</div>
+          <div className="text-[11px] text-white/60">{t.installDesc}</div>
         </div>
         <button
           type="button"
           onClick={handleInstall}
           className="glow-button shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-white"
         >
-          Install
+          {t.install}
         </button>
         <button
           type="button"

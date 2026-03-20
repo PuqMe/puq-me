@@ -25,7 +25,7 @@ export function AuthCard() {
       await signIn(email.trim(), password);
       await navigateToPostAuthPath(router);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Login failed.");
+      setErrorMessage(error instanceof Error ? error.message : t.loginFailed);
     } finally {
       setIsSubmitting(false);
     }
