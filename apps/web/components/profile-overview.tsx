@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
-import { fetchMyProfile, type ProfileResponse } from "@/lib/profile";
+import { fetchMyProfile, uploadMyPhoto, type ProfileResponse } from "@/lib/profile";
+import { fetchCircleEncounters, fetchMatches, type CircleEncounter } from "@/lib/social";
 import { useLanguage } from "@/lib/i18n";
 
 /* ── Helpers ── */
@@ -46,6 +47,8 @@ const icons = {
   zap: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
   fire: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 23c-3.6 0-8-2.9-8-8.3C4 9.4 8.3 3.2 12 1c3.7 2.2 8 8.4 8 13.7 0 5.4-4.4 8.3-8 8.3zm0-4c1.7 0 3-1.3 3-3 0-2-1.5-4-3-5.5C10.5 12 9 14 9 16c0 1.7 1.3 3 3 3z"/></svg>,
   check: () => <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>,
+  copy: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+  upload: () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
 };
 
 /* ── i18n ── */
@@ -56,7 +59,7 @@ const pt = {
     shareProfile: "Share", completeProfile: "Complete your profile",
     completeDesc: "More details = higher in Nearby ranking",
     recentEncounters: "Recent encounters", viewAll: "View all",
-    noEncountersYet: "No encounters yet — explore Nearby to start meeting people!",
+    noEncountersYet: "No encounters yet — explore Nearby!",
     profileSection: "PROFILE", accountSection: "ACCOUNT",
     editBio: "Bio & Details", editBioDesc: "Name, birthday, occupation",
     editInterests: "Interests", editInterestsDesc: "Add your hobbies",
@@ -66,6 +69,11 @@ const pt = {
     deleteAccount: "Delete account", deleteAccountDesc: "Permanently delete all data",
     verified: "Verified", streak: "Streak",
     version: "PuQ.me v1.0 · Made in Berlin",
+    linkCopied: "Link copied!",
+    uploading: "Uploading…",
+    photoUpdated: "Photo updated!",
+    photoError: "Upload failed — try again",
+    changePhoto: "Change photo",
   },
   de: {
     encounters: "Begegnungen", crossingsToday: "Heute", matches: "Matches",
@@ -73,7 +81,7 @@ const pt = {
     shareProfile: "Teilen", completeProfile: "Profil vervollständigen",
     completeDesc: "Mehr Details = höher im Nearby-Ranking",
     recentEncounters: "Letzte Begegnungen", viewAll: "Alle ansehen",
-    noEncountersYet: "Noch keine Begegnungen — erkunde Nearby und triff neue Leute!",
+    noEncountersYet: "Noch keine Begegnungen — erkunde Nearby!",
     profileSection: "PROFIL", accountSection: "KONTO",
     editBio: "Bio & Details", editBioDesc: "Name, Geburtstag, Beruf",
     editInterests: "Interessen", editInterestsDesc: "Füge deine Hobbys hinzu",
@@ -83,17 +91,13 @@ const pt = {
     deleteAccount: "Konto löschen", deleteAccountDesc: "Alle Daten dauerhaft löschen",
     verified: "Verifiziert", streak: "Streak",
     version: "PuQ.me v1.0 · Made in Berlin",
+    linkCopied: "Link kopiert!",
+    uploading: "Wird hochgeladen…",
+    photoUpdated: "Foto aktualisiert!",
+    photoError: "Upload fehlgeschlagen — erneut versuchen",
+    changePhoto: "Foto ändern",
   },
 };
-
-/* ── Demo encounter data ── */
-const demoEncounters = [
-  { id: "demo-1", name: "Maya", initial: "M", color: "#06b6d4" },
-  { id: "maya-1", name: "Noor", initial: "N", color: "#06b6d4" },
-  { id: "demo-3", name: "LK", initial: "L", color: "#8b5cf6" },
-  { id: "demo-4", name: "EM", initial: "E", color: "#a855f7" },
-  { id: "demo-5", name: "SV", initial: "S", color: "#10b981" },
-];
 
 /* ── Reusable Components ── */
 
@@ -118,6 +122,21 @@ function ProfileRow({ href, icon, label, value, accent, danger }: {
   );
 }
 
+/* ── Toast Component ── */
+function Toast({ message, visible }: { message: string; visible: boolean }) {
+  return (
+    <div style={{
+      position: "fixed", bottom: 100, left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 20}px)`,
+      background: "rgba(168,85,247,0.95)", color: "white", padding: "10px 20px", borderRadius: 12,
+      fontSize: 13, fontWeight: 600, opacity: visible ? 1 : 0, transition: "all 0.3s ease",
+      pointerEvents: "none", zIndex: 9999, backdropFilter: "blur(10px)",
+      boxShadow: "0 4px 20px rgba(168,85,247,0.3)",
+    }}>
+      {message}
+    </div>
+  );
+}
+
 /* ── Main Component ── */
 
 export function ProfileOverview() {
@@ -125,7 +144,22 @@ export function ProfileOverview() {
   const tx = pt[locale] || pt.en;
   const [data, setData] = useState<ProfileResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [encounters, setEncounters] = useState<CircleEncounter[]>([]);
+  const [totalEncounters, setTotalEncounters] = useState(0);
+  const [todayEncounters, setTodayEncounters] = useState(0);
+  const [matchCount, setMatchCount] = useState(0);
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastVisible, setToastVisible] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const showToast = useCallback((msg: string) => {
+    setToastMsg(msg);
+    setToastVisible(true);
+    setTimeout(() => setToastVisible(false), 2500);
+  }, []);
+
+  /* ── Load profile ── */
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -139,11 +173,108 @@ export function ProfileOverview() {
     return () => { cancelled = true; };
   }, []);
 
+  /* ── Load encounters ── */
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        // Fetch all encounters (3 months window for total count)
+        const allEnc = await fetchCircleEncounters("3m");
+        if (!cancelled) {
+          setEncounters(allEnc.items?.slice(0, 8) ?? []);
+          setTotalEncounters(allEnc.meta?.totalEncounters ?? allEnc.items?.length ?? 0);
+        }
+        // Fetch today's encounters
+        const todayEnc = await fetchCircleEncounters("24h");
+        if (!cancelled) {
+          setTodayEncounters(todayEnc.meta?.totalEncounters ?? todayEnc.items?.length ?? 0);
+        }
+      } catch {
+        // Silently fail — show 0
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  /* ── Load matches ── */
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const m = await fetchMatches();
+        if (!cancelled) setMatchCount(Array.isArray(m) ? m.length : 0);
+      } catch {
+        // Silently fail — show 0
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const score = useMemo(() => (data ? calculateCompletionScore(data) : 0), [data]);
   const age = data?.profile.birthDate ? calculateAge(data.profile.birthDate) : null;
-  const xp = typeof window !== "undefined" ? localStorage.getItem("puqme.xp") : null;
+  const xp = typeof window !== "undefined" ? (() => { try { return localStorage.getItem("puqme.xp"); } catch { return null; } })() : null;
   const level = xp ? (JSON.parse(xp).level || 1) : 1;
-  const profileViews = 24; // Demo — would come from API
+
+  /* ── Share handler ── */
+  const handleShare = useCallback(async () => {
+    const shareUrl = `https://puq.me/profile/${data?.userId ?? ""}`;
+    const shareData = {
+      title: `${data?.profile.displayName ?? "PuQ.me"} on PuQ.me`,
+      text: locale === "de" ? "Schau dir mein Profil auf PuQ.me an!" : "Check out my profile on PuQ.me!",
+      url: shareUrl,
+    };
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        // User cancelled or share failed — fall back to clipboard
+      }
+    }
+
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      showToast(tx.linkCopied);
+    } catch {
+      // Last resort: select text
+      const textArea = document.createElement("textarea");
+      textArea.value = shareUrl;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      showToast(tx.linkCopied);
+    }
+  }, [data, locale, showToast, tx.linkCopied]);
+
+  /* ── Photo upload handler ── */
+  const handlePhotoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 10 * 1024 * 1024) return; // 10MB max
+
+    setUploading(true);
+    try {
+      await uploadMyPhoto(file);
+      // Reload profile to get new photo URL
+      const refreshed = await fetchMyProfile();
+      setData(refreshed);
+      showToast(tx.photoUpdated);
+    } catch {
+      showToast(tx.photoError);
+    } finally {
+      setUploading(false);
+      // Reset input so same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, [showToast, tx.photoUpdated, tx.photoError]);
 
   return (
     <AppShell active="/profile" title={t.profileTitle} subtitle={t.profileSubtitle}>
@@ -164,18 +295,38 @@ export function ProfileOverview() {
 
           {data && (
             <>
-              {/* Photo centered */}
+              {/* Photo centered — tap to upload */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <Link href="/profile/create" style={{ position: "relative", textDecoration: "none" }}>
+                {/* Hidden file input for photo upload */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={handlePhotoUpload}
+                />
+
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  style={{ position: "relative", background: "none", border: "none", padding: 0, cursor: uploading ? "wait" : "pointer" }}
+                  aria-label={tx.changePhoto}
+                >
                   {data.profile.photoUrl ? (
-                    <img src={data.profile.photoUrl} alt="" style={{ width: 96, height: 96, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(168,85,247,0.5)" }} />
+                    <img src={data.profile.photoUrl} alt="" style={{ width: 96, height: 96, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(168,85,247,0.5)", opacity: uploading ? 0.5 : 1, transition: "opacity 0.2s" }} />
                   ) : (
-                    <div style={{ width: 96, height: 96, borderRadius: "50%", background: "linear-gradient(135deg, #E6A77A, #e9c98b)", border: "3px solid rgba(168,85,247,0.5)" }} />
+                    <div style={{ width: 96, height: 96, borderRadius: "50%", background: "linear-gradient(135deg, #E6A77A, #e9c98b)", border: "3px solid rgba(168,85,247,0.5)", opacity: uploading ? 0.5 : 1, transition: "opacity 0.2s" }} />
                   )}
                   <div style={{ position: "absolute", bottom: -2, right: -2, width: 30, height: 30, borderRadius: "50%", background: "#a855f7", display: "flex", alignItems: "center", justifyContent: "center", color: "white", border: "3px solid #07050f" }}>
-                    <icons.camera />
+                    {uploading ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" style={{ animation: "spin 1s linear infinite" }}>
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="32" strokeDashoffset="12" />
+                      </svg>
+                    ) : (
+                      <icons.camera />
+                    )}
                   </div>
-                </Link>
+                </button>
 
                 {/* Name + badges */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14 }}>
@@ -210,26 +361,26 @@ export function ProfileOverview() {
                 )}
               </div>
 
-              {/* ━━━ STATS ROW (Happn-style encounter metrics) ━━━ */}
+              {/* ━━━ STATS ROW (live data from API) ━━━ */}
               <div style={{ display: "flex", marginTop: 20, padding: "16px 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                 <Link href="/circle" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>12</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{totalEncounters}</div>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.encounters}</div>
                 </Link>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
                 <Link href="/circle" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>3</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{todayEncounters}</div>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.crossingsToday}</div>
                 </Link>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
                 <Link href="/matches" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>2</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{matchCount}</div>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.matches}</div>
                 </Link>
               </div>
@@ -245,21 +396,13 @@ export function ProfileOverview() {
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(168,85,247,0.18)")}>
               <icons.edit /> {tx.editProfile}
             </Link>
-            <Link href="/nearby" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "12px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: 600, textDecoration: "none", transition: "background 0.15s" }}
+            <button
+              onClick={handleShare}
+              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "12px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", transition: "background 0.15s" }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}>
               <icons.share /> {tx.shareProfile}
-            </Link>
-          </div>
-        )}
-
-        {/* ━━━ PROFILE VIEWS (Engagement hook — like Happn) ━━━ */}
-        {data && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.02)" }}>
-            <div style={{ color: "rgba(168,85,247,0.6)" }}><icons.eye /></div>
-            <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>
-              <span style={{ color: "rgba(255,255,255,0.8)", fontWeight: 600 }}>{profileViews}</span> {tx.profileViews}
-            </div>
+            </button>
           </div>
         )}
 
@@ -282,25 +425,39 @@ export function ProfileOverview() {
           </Link>
         )}
 
-        {/* ━━━ RECENT ENCOUNTERS (keeps users on profile) ━━━ */}
+        {/* ━━━ RECENT ENCOUNTERS (live data) ━━━ */}
         {data && (
           <div style={{ padding: "6px 0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px", marginBottom: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5 }}>{tx.recentEncounters}</div>
               <Link href="/circle" style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>{tx.viewAll}</Link>
             </div>
-            <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "4px 4px 8px", scrollbarWidth: "none" }}>
-              {demoEncounters.map(enc => (
-                <Link key={enc.id} href={`/encounter/${enc.id}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textDecoration: "none", flexShrink: 0 }}>
-                  <div style={{ width: 52, height: 52, borderRadius: "50%", background: `${enc.color}22`, border: `2px solid ${enc.color}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 600, color: enc.color, transition: "transform 0.15s" }}
-                    onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
-                    onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}>
-                    {enc.initial}
-                  </div>
-                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>{enc.name}</div>
-                </Link>
-              ))}
-            </div>
+            {encounters.length > 0 ? (
+              <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "4px 4px 8px", scrollbarWidth: "none" }}>
+                {encounters.map(enc => (
+                  <Link key={enc.userId} href={`/profile/${enc.userId}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textDecoration: "none", flexShrink: 0 }}>
+                    {enc.primaryPhotoUrl ? (
+                      <img src={enc.primaryPhotoUrl} alt="" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(168,85,247,0.3)", transition: "transform 0.15s" }}
+                        onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
+                        onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")} />
+                    ) : (
+                      <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(168,85,247,0.12)", border: "2px solid rgba(168,85,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 600, color: "#a855f7", transition: "transform 0.15s" }}
+                        onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
+                        onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}>
+                        {(enc.displayName || "?")[0].toUpperCase()}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", fontWeight: 500, maxWidth: 56, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
+                      {enc.displayName || "?"}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.25)", padding: "12px 4px", textAlign: "center" }}>
+                {tx.noEncountersYet}
+              </div>
+            )}
           </div>
         )}
 
@@ -334,6 +491,12 @@ export function ProfileOverview() {
           {tx.version}
         </div>
       </div>
+
+      {/* Toast notification */}
+      <Toast message={toastMsg} visible={toastVisible} />
+
+      {/* CSS animation for upload spinner */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </AppShell>
   );
 }
