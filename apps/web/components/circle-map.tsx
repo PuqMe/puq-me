@@ -17,31 +17,84 @@ const TIME_FILTERS: { key: TimeFilter; label: string }[] = [
   { key: "1y",  label: "1 year" },
 ];
 
-/* ── Mock encounters ── */
+/* ── Mock encounters with mutual signals ── */
 type Encounter = {
-  id: string; name: string; age: number; area: string;
-  color: string; off: [number, number];
+  id: string;
+  name: string;
+  age: number;
+  area: string;
+  color: string;
+  off: [number, number];
+  mutual?: boolean;
+  timestamp: string;
+  distance: number;
 };
+
 const ENCOUNTERS: Record<TimeFilter, Encounter[]> = {
   "24h": [
-    { id: "u1", name: "Maya",  age: 29, area: "Kreuzberg",  color: "#f15bb5", off: [ 0.006,  0.005] },
-    { id: "u2", name: "Noor",  age: 26, area: "Neuköln",    color: "#38bdf8", off: [-0.004,  0.007] },
+    { id: "u1", name: "Maya",  age: 29, area: "Kreuzberg",  color: "#f15bb5", off: [ 0.006,  0.005], mutual: true, timestamp: "14:30", distance: 0.8 },
+    { id: "u2", name: "Noor",  age: 26, area: "Neuköln",    color: "#38bdf8", off: [-0.004,  0.007], mutual: false, timestamp: "11:15", distance: 1.2 },
   ],
   "3d": [
-    { id: "u1", name: "Maya",  age: 29, area: "Kreuzberg",  color: "#f15bb5", off: [ 0.006,  0.005] },
-    { id: "u2", name: "Noor",  age: 26, area: "Neuköln",    color: "#38bdf8", off: [-0.004,  0.007] },
-    { id: "u3", name: "Lina",  age: 27, area: "Mitte",      color: "#fbbf24", off: [ 0.003, -0.005] },
+    { id: "u1", name: "Maya",  age: 29, area: "Kreuzberg",  color: "#f15bb5", off: [ 0.006,  0.005], mutual: true, timestamp: "14:30", distance: 0.8 },
+    { id: "u2", name: "Noor",  age: 26, area: "Neuköln",    color: "#38bdf8", off: [-0.004,  0.007], mutual: false, timestamp: "11:15", distance: 1.2 },
+    { id: "u3", name: "Lina",  age: 27, area: "Mitte",      color: "#fbbf24", off: [ 0.003, -0.005], mutual: false, timestamp: "vor 1d", distance: 0.5 },
   ],
   "7d": [
-    { id: "u1", name: "Maya",  age: 29, area: "Kreuzberg",  color: "#f15bb5", off: [ 0.006,  0.005] },
-    { id: "u2", name: "Noor",  age: 26, area: "Neuköln",    color: "#38bdf8", off: [-0.004,  0.007] },
-    { id: "u3", name: "Lina",  age: 27, area: "Mitte",      color: "#fbbf24", off: [ 0.003, -0.005] },
-    { id: "u4", name: "Alex",  age: 31, area: "Prenzlberg", color: "#4ade80", off: [-0.008, -0.003] },
+    { id: "u1", name: "Maya",  age: 29, area: "Kreuzberg",  color: "#f15bb5", off: [ 0.006,  0.005], mutual: true, timestamp: "14:30", distance: 0.8 },
+    { id: "u2", name: "Noor",  age: 26, area: "Neuköln",    color: "#38bdf8", off: [-0.004,  0.007], mutual: false, timestamp: "11:15", distance: 1.2 },
+    { id: "u3", name: "Lina",  age: 27, area: "Mitte",      color: "#fbbf24", off: [ 0.003, -0.005], mutual: false, timestamp: "vor 1d", distance: 0.5 },
+    { id: "u4", name: "Alex",  age: 31, area: "Prenzlberg", color: "#4ade80", off: [-0.008, -0.003], mutual: false, timestamp: "vor 3d", distance: 1.5 },
   ],
   "1m": [],
   "3m": [],
   "1y": [],
 };
+
+/* ── Mock circle data ── */
+type Circle = {
+  id: string;
+  emoji: string;
+  name: string;
+  members: number;
+  memberAvatars: string[];
+  locationSharing: boolean;
+  presenceSharing: boolean;
+  availabilitySharing: boolean;
+};
+
+const CIRCLES: Circle[] = [
+  {
+    id: "c1",
+    emoji: "💜",
+    name: "Enge Freunde",
+    members: 4,
+    memberAvatars: ["M", "E", "L", "A"],
+    locationSharing: true,
+    presenceSharing: true,
+    availabilitySharing: true,
+  },
+  {
+    id: "c2",
+    emoji: "💼",
+    name: "Arbeitskollegen",
+    members: 7,
+    memberAvatars: ["J", "K", "B", "C"],
+    locationSharing: false,
+    presenceSharing: true,
+    availabilitySharing: false,
+  },
+  {
+    id: "c3",
+    emoji: "⚽",
+    name: "Sport-Gruppe",
+    members: 5,
+    memberAvatars: ["T", "M", "R", "S"],
+    locationSharing: true,
+    presenceSharing: false,
+    availabilitySharing: false,
+  },
+];
 
 const NAV_ITEMS = [
   { href: "/nearby",  label: "nearby" },
@@ -75,6 +128,7 @@ function SearchIcon()    { return <svg width="18" height="18" viewBox="0 0 24 24
 function BellIcon()      { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>; }
 function MenuIcon()      { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>; }
 function CloseIcon()     { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>; }
+function ShieldIcon()    { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 22s-8-4-8-10V5l8-3 8 3v7c0 6-8 10-8 10Z"/></svg>; }
 
 function NavIcon({ type }: { type: string }) {
   if (type === "nearby")   return <NearbyIcon />;
@@ -103,6 +157,7 @@ export function CircleMap() {
   const mapObjRef  = useRef<any>(null);
   const tileRef    = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const linesRef   = useRef<any[]>([]);
   const [ready,    setReady]    = useState(false);
   const [filter,   setFilter]   = useState<TimeFilter>("24h");
   const [location, setLocation] = useState({ lat: 52.52, lng: 13.405 });
@@ -113,6 +168,9 @@ export function CircleMap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [genderFilter, setGenderFilter] = useState<string>("all");
   const [tileKey, setTileKey] = useState<string>("dunkel");
+  const [activeTab, setActiveTab] = useState<"encounters" | "circle">("encounters");
+  const [freeNowEnabled, setFreeNowEnabled] = useState(false);
+  const [showBadgeUnlock, setShowBadgeUnlock] = useState(false);
 
   /* Load Leaflet CSS + JS */
   useEffect(() => {
@@ -188,15 +246,26 @@ export function CircleMap() {
     }).addTo(mapObjRef.current);
   }, [tileKey]);
 
-  /* Update encounter markers when filter changes */
+  /* Update encounter markers and connection lines when filter changes */
   useEffect(() => {
     if (!mapObjRef.current || !ready) return;
     const L = (window as any).L;
     if (!L) return;
+
+    // Remove old markers
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
+
+    // Remove old lines
+    linesRef.current.forEach(l => l.remove());
+    linesRef.current = [];
+
     const encounters = ENCOUNTERS[filter] || [];
+
     encounters.forEach(enc => {
+      const encLat = location.lat + enc.off[0];
+      const encLng = location.lng + enc.off[1];
+
       const icon = L.divIcon({
         html: dotMarkerHtml(enc.color),
         className: "",
@@ -204,11 +273,24 @@ export function CircleMap() {
         iconAnchor: [9, 9],
       });
       const m = L.marker(
-        [location.lat + enc.off[0], location.lng + enc.off[1]],
+        [encLat, encLng],
         { icon }
       ).addTo(mapObjRef.current)
         .bindPopup(`<b>${enc.name}, ${enc.age}</b><br><small>${enc.area}</small>`);
       markersRef.current.push(m);
+
+      // Draw dashed connection line from self to encounter
+      const polyline = L.polyline(
+        [[location.lat, location.lng], [encLat, encLng]],
+        {
+          color: enc.color,
+          weight: 1.5,
+          opacity: 0.4,
+          dashArray: "5, 5",
+          className: "encounter-line"
+        }
+      ).addTo(mapObjRef.current);
+      linesRef.current.push(polyline);
     });
   }, [filter, ready, location]);
 
@@ -238,6 +320,9 @@ export function CircleMap() {
     setSearchQuery("");
   };
 
+  const mapHeight = activeTab === "encounters" ? "45vh" : "100vh";
+  const timelineHeight = activeTab === "encounters" ? "55vh" : "0";
+
   return (
     <>
       <style>{`
@@ -249,11 +334,30 @@ export function CircleMap() {
           padding:2px 6px!important;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideUp {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .timeline-container { animation: slideUp 0.3s ease-out; }
       `}</style>
 
-      <div style={{ position: "fixed", inset: 0, zIndex: 999, overflow: "hidden", background: "#07050f" }}>
+      <div style={{ position: "fixed", inset: 0, zIndex: 999, overflow: "hidden", background: "#07050f", display: "flex", flexDirection: "column" }}>
 
-        <div ref={mapRef} style={{ position: "absolute", inset: 0, zIndex: 1 }} />
+        {/* MAP */}
+        <div ref={mapRef} style={{ position: "relative", height: mapHeight, width: "100%", zIndex: 1 }} />
+
+        {/* BADGE UNLOCK NOTIFICATION */}
+        {showBadgeUnlock && (
+          <div style={{
+            position: "absolute", top: 120, left: "50%", transform: "translateX(-50%)", zIndex: 9998,
+            background: "linear-gradient(135deg, rgba(191,132,255,.96), rgba(168,85,247,.95))",
+            border: "1px solid rgba(255,255,255,.2)",
+            borderRadius: 16, padding: "12px 24px", fontSize: 14, color: "#fff", fontWeight: 700,
+            backdropFilter: "blur(12px)", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 8,
+          }}>
+            <span>🏆</span> {t.regularBadge} 3× Maya {t.timesThisWeek}
+          </div>
+        )}
 
         {!ready && (
           <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "#07050f" }}>
@@ -332,7 +436,275 @@ export function CircleMap() {
               </button>
             ))}
           </div>
+
+          {/* Row 3: Tab bar (Begegnungen / Mein Kreis) */}
+          <div style={{
+            display: "flex", gap: 8, paddingBottom: 12,
+            borderBottom: "1px solid rgba(255,255,255,.08)"
+          }}>
+            <button
+              onClick={() => setActiveTab("encounters")}
+              style={{
+                flex: 1, padding: "10px 16px", borderRadius: 12, border: "none", cursor: "pointer",
+                fontSize: 14, fontWeight: 600,
+                background: activeTab === "encounters"
+                  ? "linear-gradient(135deg, rgba(191,132,255,.96), rgba(168,85,247,.95))"
+                  : "rgba(255,255,255,.08)",
+                color: activeTab === "encounters" ? "#fff" : "rgba(255,255,255,.6)",
+              }}
+            >
+              {t.encounters}
+            </button>
+            <button
+              onClick={() => setActiveTab("circle")}
+              style={{
+                flex: 1, padding: "10px 16px", borderRadius: 12, border: "none", cursor: "pointer",
+                fontSize: 14, fontWeight: 600,
+                background: activeTab === "circle"
+                  ? "linear-gradient(135deg, rgba(191,132,255,.96), rgba(168,85,247,.95))"
+                  : "rgba(255,255,255,.08)",
+                color: activeTab === "circle" ? "#fff" : "rgba(255,255,255,.6)",
+              }}
+            >
+              {t.myCircle}
+            </button>
+          </div>
         </div>
+
+        {/* ── ENCOUNTERS TAB: Timeline Below Map ── */}
+        {activeTab === "encounters" && (
+          <div style={{
+            position: "relative", height: timelineHeight, overflowY: "auto", background: "#07050f",
+            borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 12, paddingBottom: 80,
+          }} className="timeline-container">
+            {currentEncounters.length > 0 ? (
+              <div style={{ padding: "0 16px" }}>
+                {currentEncounters.map((enc, idx) => (
+                  <div key={enc.id} style={{
+                    display: "flex", gap: 12, marginBottom: 16, position: "relative",
+                  }}>
+                    {/* Timeline line */}
+                    {idx < currentEncounters.length - 1 && (
+                      <div style={{
+                        position: "absolute", left: 19, top: 48, width: 2, height: "calc(100% + 16px)",
+                        borderLeft: "1px dashed rgba(255,255,255,.2)",
+                      }} />
+                    )}
+
+                    {/* Avatar */}
+                    <div style={{
+                      width: 40, height: 40, borderRadius: "50%", background: enc.color,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: "#fff", fontSize: 14, fontWeight: 700, flexShrink: 0, position: "relative", zIndex: 2,
+                    }}>
+                      {enc.name[0]}
+                    </div>
+
+                    {/* Content */}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                            {enc.name}, {enc.age}
+                          </div>
+                          <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)", marginTop: 2 }}>
+                            {enc.area} • {enc.distance} km
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", textAlign: "right" }}>
+                          {enc.timestamp}
+                        </div>
+                      </div>
+
+                      {/* Story-framing text */}
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginBottom: 8, lineHeight: 1.4 }}>
+                        {enc.mutual ? (
+                          <>Du hast <b>{enc.name}</b> zum 2. Mal diese Woche gekreuzt</>
+                        ) : (
+                          <>Erste Begegnung in der Nähe vom Café</>
+                        )}
+                      </div>
+
+                      {/* Mutual badge */}
+                      {enc.mutual && (
+                        <div style={{
+                          display: "inline-block", background: "rgba(168,85,247,.3)", color: "#c084fc",
+                          padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, marginBottom: 8,
+                        }}>
+                          ⚡ {t.mutualSignal}
+                        </div>
+                      )}
+
+                      {/* Action buttons */}
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button style={{
+                          padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
+                          background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
+                          fontWeight: 600,
+                        }}>
+                          👋 {t.waveBtn}
+                        </button>
+                        <button style={{
+                          padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
+                          background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
+                        }}>
+                          💬
+                        </button>
+                        <button style={{
+                          padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
+                          background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
+                        }}>
+                          ♥
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "40px 20px", color: "rgba(255,255,255,.5)" }}>
+                <p style={{ fontSize: 14, marginBottom: 8 }}>{t.noEncounters}</p>
+                <p style={{ fontSize: 12 }}>{t.noEncountersPeriodDesc}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── MEIN KREIS TAB ── */}
+        {activeTab === "circle" && (
+          <div style={{
+            position: "relative", flex: 1, overflowY: "auto", background: "#07050f",
+            borderTop: "1px solid rgba(255,255,255,.08)", padding: "16px",
+            paddingBottom: 80,
+          }}>
+            {/* Free Now Toggle */}
+            <div style={{
+              background: "rgba(168,85,247,.15)", border: "1px solid rgba(168,85,247,.3)",
+              borderRadius: 12, padding: 16, marginBottom: 20, display: "flex", alignItems: "center", gap: 12,
+            }}>
+              <input
+                type="checkbox"
+                checked={freeNowEnabled}
+                onChange={(e) => setFreeNowEnabled(e.target.checked)}
+                style={{ width: 20, height: 20, cursor: "pointer", accentColor: "#a855f7" }}
+              />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 2 }}>
+                  {t.freeNow}
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>
+                  {t.freeNowDesc}
+                </div>
+              </div>
+            </div>
+
+            {/* Circles List */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,.45)", textTransform: "uppercase", marginBottom: 12, letterSpacing: "0.08em" }}>
+                {t.myCircle}
+              </div>
+              {CIRCLES.map(circle => (
+                <div key={circle.id} style={{
+                  background: "rgba(255,255,255,.06)", borderRadius: 12, padding: 16, marginBottom: 12,
+                  border: "1px solid rgba(255,255,255,.08)",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <span style={{ fontSize: 20 }}>{circle.emoji}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                        {circle.name}
+                      </div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>
+                        {circle.members} {t.members}
+                      </div>
+                    </div>
+                    <button style={{
+                      padding: "6px 12px", borderRadius: 8, border: "none",
+                      background: "rgba(168,85,247,.2)", color: "#c084fc", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                    }}>
+                      {t.invite}
+                    </button>
+                  </div>
+
+                  {/* Member avatars */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                    {circle.memberAvatars.map((avatar, i) => (
+                      <div key={i} style={{
+                        width: 32, height: 32, borderRadius: "50%", background: "rgba(168,85,247,.2)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: "#c084fc", fontSize: 12, fontWeight: 700,
+                      }}>
+                        {avatar}
+                      </div>
+                    ))}
+                    <button style={{
+                      width: 32, height: 32, borderRadius: "50%", border: "1px dashed rgba(168,85,247,.4)",
+                      background: "transparent", color: "#a855f7", fontSize: 16, cursor: "pointer",
+                    }}>
+                      +
+                    </button>
+                  </div>
+
+                  {/* Privacy toggles */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
+                      <input type="checkbox" defaultChecked={circle.locationSharing} style={{ width: 16, height: 16, accentColor: "#a855f7" }} />
+                      <span style={{ color: "rgba(255,255,255,.7)" }}>📍 {t.locationSharing}</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
+                      <input type="checkbox" defaultChecked={circle.presenceSharing} style={{ width: 16, height: 16, accentColor: "#a855f7" }} />
+                      <span style={{ color: "rgba(255,255,255,.7)" }}>👁 {t.presenceSharing}</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
+                      <input type="checkbox" defaultChecked={circle.availabilitySharing} style={{ width: 16, height: 16, accentColor: "#a855f7" }} />
+                      <span style={{ color: "rgba(255,255,255,.7)" }}>📅 {t.availabilitySharing}</span>
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Create Circle Button */}
+            <button style={{
+              width: "100%", padding: "12px 16px", borderRadius: 12,
+              border: "1px dashed rgba(168,85,247,.4)", background: "transparent",
+              color: "#a855f7", fontSize: 14, fontWeight: 600, cursor: "pointer", marginBottom: 20,
+            }}>
+              ＋ {t.createCircle}
+            </button>
+
+            {/* SOS Alert */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(239,68,68,.15), rgba(220,38,38,.1))",
+              border: "1px solid rgba(239,68,68,.3)", borderRadius: 12, padding: 16,
+              display: "flex", alignItems: "flex-start", gap: 12,
+            }}>
+              <ShieldIcon />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fca5a5", marginBottom: 2 }}>
+                  {t.sosAlert}
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(252,165,165,.7)" }}>
+                  {t.sosDesc}
+                </div>
+              </div>
+            </div>
+
+            {/* Activity Feed */}
+            <div style={{ marginTop: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,.45)", textTransform: "uppercase", marginBottom: 12, letterSpacing: "0.08em" }}>
+                {t.circleActivities}
+              </div>
+              <div style={{
+                background: "rgba(255,255,255,.04)", borderRadius: 12, padding: 12,
+                fontSize: 13, color: "rgba(255,255,255,.7)", lineHeight: 1.6,
+              }}>
+                <div style={{ marginBottom: 8 }}>🟢 Emma ist jetzt in Kreuzberg</div>
+                <div>📍 Lukas hat Bin frei aktiviert</div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── RIGHT CONTROLS ── */}
         <div style={{
@@ -435,7 +807,6 @@ export function CircleMap() {
                   <span style={{ textTransform: "capitalize" }}>{item.label}</span>
                 </Link>
               ))}
-              {/* Settings already in NAV_ITEMS above */}
             </div>
           </>
         )}

@@ -12,12 +12,22 @@ interface LocationInfo {
   displayName: string;
 }
 
-const NEARBY = [
-  { id: "u1", initials: "AX", color: "#e879f9", name: "Alex, 28",   dist: "1.8 km", off: [ 0.012,  0.018] },
-  { id: "u2", initials: "JD", color: "#38bdf8", name: "Jordan, 26", dist: "2.4 km", off: [-0.009,  0.021] },
-  { id: "u3", initials: "CS", color: "#4ade80", name: "Casey, 30",  dist: "3.1 km", off: [ 0.017, -0.013] },
-  { id: "u4", initials: "MG", color: "#fb923c", name: "Morgan, 27", dist: "3.8 km", off: [-0.020, -0.016] },
-  { id: "u5", initials: "RI", color: "#f472b6", name: "Riley, 25",  dist: "4.5 km", off: [ 0.006, -0.024] },
+interface NearbyPerson {
+  id: string;
+  initials: string;
+  color: string;
+  name: string;
+  dist: string;
+  off: [number, number];
+  lastSeen: number; // timestamp in milliseconds
+}
+
+const NEARBY: NearbyPerson[] = [
+  { id: "u1", initials: "AX", color: "#e879f9", name: "Alex, 28",   dist: "1.8 km", off: [ 0.012,  0.018], lastSeen: Date.now() - 2 * 60000 },
+  { id: "u2", initials: "JD", color: "#38bdf8", name: "Jordan, 26", dist: "2.4 km", off: [-0.009,  0.021], lastSeen: Date.now() - 4 * 60000 },
+  { id: "u3", initials: "CS", color: "#4ade80", name: "Casey, 30",  dist: "3.1 km", off: [ 0.017, -0.013], lastSeen: Date.now() - 8 * 60000 },
+  { id: "u4", initials: "MG", color: "#fb923c", name: "Morgan, 27", dist: "3.8 km", off: [-0.020, -0.016], lastSeen: Date.now() - 12 * 60000 },
+  { id: "u5", initials: "RI", color: "#f472b6", name: "Riley, 25",  dist: "4.5 km", off: [ 0.006, -0.024], lastSeen: Date.now() - 20 * 60000 },
 ];
 
 const NAV_ITEMS = [
@@ -50,6 +60,8 @@ function SearchIcon()    { return <svg width="18" height="18" viewBox="0 0 24 24
 function BellIcon()      { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>; }
 function MenuIcon()      { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>; }
 function CloseIcon()     { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>; }
+function RadarIcon()     { return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16" strokeLinecap="round"/></svg>; }
+function EyeIcon()       { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 5C7 5 2.73 8.11 1 12.46c1.73 4.35 6 7.54 11 7.54s9.27-3.19 11-7.54C21.27 8.11 17 5 12 5Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"/><circle cx="12" cy="12" r="2.5"/></svg>; }
 
 function NavIcon({ type }: { type: string }) {
   if (type === "nearby")  return <NearbyIcon />;
@@ -62,11 +74,12 @@ function NavIcon({ type }: { type: string }) {
 }
 
 /* ── Avatar HTML for Leaflet divIcon ── */
-function avatarHtml(initials: string, color: string, size: number, online: boolean) {
+function avatarHtml(initials: string, color: string, size: number, online: boolean, opacity: number = 1) {
   const fs   = Math.round(size * 0.32);
   const dot  = Math.round(size * 0.22);
   const off  = Math.round(size * 0.04);
-  return `<div style="position:relative;width:${size}px;height:${size}px;">
+  const opacityStyle = opacity < 1 ? `opacity:${opacity};` : "";
+  return `<div style="position:relative;width:${size}px;height:${size}px;${opacityStyle}">
     <div style="position:absolute;inset:0;border-radius:50%;
       background:linear-gradient(135deg,${color}66,${color}33);
       border:2.5px solid #7c3aed;
@@ -88,6 +101,8 @@ export function RadarMap() {
   const tileRef    = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const selfMarkerRef = useRef<any>(null);
+  const heatmapRef = useRef<any[]>([]);
+  const ringsRef = useRef<any[]>([]);
   const [ready,    setReady]    = useState(false);
   const [location, setLocation] = useState<LocationInfo>({ lat: 48.1351, lng: 11.582, displayName: "München" });
   const [showSearch,  setShowSearch]  = useState(false);
@@ -97,6 +112,8 @@ export function RadarMap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [genderFilter, setGenderFilter] = useState<string>("all");
   const [tileKey, setTileKey] = useState<string>("dunkel");
+  const [radarViewsCount, setRadarViewsCount] = useState<number>(Math.floor(Math.random() * 16) + 5);
+  const [isScanning, setIsScanning] = useState(false);
 
   /* Load Leaflet CSS + JS from CDN */
   useEffect(() => {
@@ -161,18 +178,90 @@ export function RadarMap() {
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
-    // Self marker
+    // Remove old heatmap zones
+    heatmapRef.current.forEach(h => h.remove());
+    heatmapRef.current = [];
+
+    // Remove old rings
+    ringsRef.current.forEach(r => r.remove());
+    ringsRef.current = [];
+
+    // Self marker with radar sweep animation
+    const selfIcon = L.divIcon({
+      html: `<div style="position:relative;width:64px;height:64px;">
+        ${avatarHtml("Du", "#a855f7", 64, true)}
+        <div class="radar-sweep" style="width:140px;height:140px;left:-38px;top:-38px;"></div>
+      </div>`,
+      className: "",
+      iconSize: [64,64],
+      iconAnchor: [32,32],
+    });
+
     selfMarkerRef.current = L.marker([location.lat, location.lng], {
-      icon: L.divIcon({ html: avatarHtml("Du", "#a855f7", 64, true), className: "", iconSize: [64,64], iconAnchor: [32,32] }),
+      icon: selfIcon,
       zIndexOffset: 1000,
-    }).addTo(map).bindPopup("<b>You are here</b>");
+    }).addTo(map).bindPopup("<div style='padding:8px;color:#fff;'><b>You are here</b></div>");
+
+    // Add concentric radar rings (500m, 1km, 2km, 4km)
+    const ringDistances = [500, 1000, 2000, 4000];
+    const ringOpacities = [0.15, 0.10, 0.06, 0.03];
+    ringDistances.forEach((dist, idx) => {
+      const ring = L.circle([location.lat, location.lng], {
+        radius: dist,
+        color: "transparent",
+        fillColor: "#a855f7",
+        fillOpacity: ringOpacities[idx],
+        weight: 1,
+        dashArray: "4,4",
+        lineCap: "round",
+      }).addTo(map);
+      ringsRef.current.push(ring);
+    });
+
+    // Add heatmap zones (activity hotspots)
+    const heatmapZones = [
+      { lat: location.lat + 0.008, lng: location.lng + 0.012, opacity: 0.10 },
+      { lat: location.lat - 0.010, lng: location.lng - 0.008, opacity: 0.08 },
+      { lat: location.lat + 0.005, lng: location.lng - 0.015, opacity: 0.12 },
+    ];
+
+    heatmapZones.forEach(zone => {
+      const heatZone = L.circle([zone.lat, zone.lng], {
+        radius: 800,
+        color: "transparent",
+        fillColor: "#d946ef",
+        fillOpacity: zone.opacity,
+        weight: 0,
+      }).addTo(map);
+      heatmapRef.current.push(heatZone);
+    });
 
     // Nearby markers
     NEARBY.forEach(u => {
-      const m = L.marker([location.lat + u.off[0]!, location.lng + u.off[1]!], {
-        icon: L.divIcon({ html: avatarHtml(u.initials, u.color, 46, Math.random() > 0.3), className: "", iconSize: [46,46], iconAnchor: [23,23] }),
-      }).addTo(map).bindPopup(`<b>${u.name}</b><br><small>${u.dist}</small>`);
-      markersRef.current.push(m);
+      const minutesAgo = Math.floor((Date.now() - u.lastSeen) / 60000);
+      let markerOpacity = 1;
+      if (minutesAgo > 15) {
+        markerOpacity = 0.3;
+      } else if (minutesAgo > 5) {
+        markerOpacity = 0.5;
+      }
+
+      const isOnline = Math.random() > 0.3;
+      const markerIcon = L.divIcon({
+        html: avatarHtml(u.initials, u.color, 46, isOnline, markerOpacity),
+        className: "",
+        iconSize: [46,46],
+        iconAnchor: [23,23],
+      });
+
+      const marker = L.marker([location.lat + u.off[0]!, location.lng + u.off[1]!], {
+        icon: markerIcon,
+      }).addTo(map);
+
+      const popupContent = createMiniProfilePopup(u, isOnline);
+      marker.bindPopup(popupContent, { maxWidth: 280, className: "custom-popup" });
+
+      markersRef.current.push(marker);
     });
 
     // Pan map to new location
@@ -211,6 +300,95 @@ export function RadarMap() {
     setSearchQuery("");
   };
 
+  /* Mini profile popup on marker click */
+  const createMiniProfilePopup = (person: NearbyPerson, isOnline: boolean) => {
+    const minutesAgo = Math.floor((Date.now() - person.lastSeen) / 60000);
+    const onlineText = isOnline ? `<span style="color:#22c55e;font-weight:700;">Online</span>` : `<span style="color:rgba(255,255,255,.5);">Seen ${minutesAgo}m ago</span>`;
+
+    return `
+      <div style="
+        width:240px;
+        background:rgba(12,8,28,.95);
+        border:1px solid rgba(168,85,247,.3);
+        border-radius:16px;
+        padding:16px;
+        font-family:system-ui,sans-serif;
+        backdrop-filter:blur(12px);
+      ">
+        <div style="display:flex;gap:12px;margin-bottom:12px;">
+          <div style="
+            width:48px;
+            height:48px;
+            border-radius:50%;
+            background:linear-gradient(135deg,${person.color}66,${person.color}33);
+            border:2px solid #a855f7;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            color:#fff;
+            font-size:18px;
+            flex-shrink:0;
+          ">${person.initials}</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">${person.name}</div>
+            <div style="font-size:12px;margin-bottom:4px;">${onlineText}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.5);">${person.dist}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+          <button style="
+            padding:8px;
+            border-radius:8px;
+            border:1px solid rgba(168,85,247,.3);
+            background:rgba(168,85,247,.1);
+            color:#c084fc;
+            font-size:11px;
+            font-weight:600;
+            cursor:pointer;
+            transition:all 0.2s;
+          " onmouseover="this.style.background='rgba(168,85,247,.2)'" onmouseout="this.style.background='rgba(168,85,247,.1)'">
+            👋 Wave
+          </button>
+          <button style="
+            padding:8px;
+            border-radius:8px;
+            border:1px solid rgba(168,85,247,.3);
+            background:rgba(168,85,247,.1);
+            color:#c084fc;
+            font-size:11px;
+            font-weight:600;
+            cursor:pointer;
+            transition:all 0.2s;
+          " onmouseover="this.style.background='rgba(168,85,247,.2)'" onmouseout="this.style.background='rgba(168,85,247,.1)'">
+            💬 Chat
+          </button>
+          <button style="
+            padding:8px;
+            border-radius:8px;
+            border:1px solid rgba(255,0,0,.2);
+            background:rgba(255,0,0,.05);
+            color:#ff6b7a;
+            font-size:11px;
+            font-weight:600;
+            cursor:pointer;
+            transition:all 0.2s;
+          " onmouseover="this.style.background='rgba(255,0,0,.1)'" onmouseout="this.style.background='rgba(255,0,0,.05)'">
+            ♥ Like
+          </button>
+        </div>
+      </div>
+    `;
+  };
+
+  const handleScan = () => {
+    setIsScanning(true);
+    setTimeout(() => {
+      setIsScanning(false);
+      setRadarViewsCount(Math.floor(Math.random() * 16) + 5);
+    }, 1800);
+  };
+
   return (
     <>
       <style>{`
@@ -221,7 +399,54 @@ export function RadarMap() {
           background:rgba(6,4,15,.7)!important; color:rgba(255,255,255,.25)!important;
           padding:2px 6px!important;
         }
+
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes radarSweep {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes radarPulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7);
+          }
+          50% {
+            box-shadow: 0 0 0 20px rgba(168, 85, 247, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 40px rgba(168, 85, 247, 0);
+          }
+        }
+
+        .radar-sweep {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          background: conic-gradient(from 0deg, rgba(168, 85, 247, 0.4) 0deg, transparent 90deg);
+          border-radius: 50%;
+          animation: radarSweep 4s linear infinite;
+          pointer-events: none;
+        }
+
+        .pulse-ring {
+          animation: radarPulse 2s infinite;
+        }
+
+        .leaflet-popup-content-wrapper {
+          background: transparent!important;
+          box-shadow: none!important;
+          border: none!important;
+          padding: 0!important;
+        }
+
+        .leaflet-popup {
+          margin-bottom: 0!important;
+        }
+
+        .leaflet-popup-tip {
+          display: none!important;
+        }
       `}</style>
 
       <div style={{ position: "fixed", inset: 0, zIndex: 999, overflow: "hidden", background: "#07050f" }}>
@@ -261,6 +486,23 @@ export function RadarMap() {
             <button aria-label="Notifications" onClick={() => { setShowNotifToast(true); setTimeout(() => setShowNotifToast(false), 2500); }} style={headerBtn}><BellIcon /></button>
             <button aria-label="Menu" onClick={() => setShowMenu(true)} style={headerBtn}><MenuIcon /></button>
           </div>
+        </div>
+
+        {/* ── RADAR VIEWS COUNTER (Glass Morphism) ── */}
+        <div style={{
+          position: "absolute", top: 50, left: 12, zIndex: 20,
+          background: "rgba(12,8,28,.6)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(168,85,247,.2)",
+          borderRadius: 12,
+          padding: "8px 12px",
+          display: "flex", alignItems: "center", gap: 6,
+          fontSize: 13, color: "rgba(255,255,255,.8)",
+        }}>
+          <EyeIcon />
+          <span style={{ fontSize: 12 }}>
+            <span style={{ color: "#a855f7", fontWeight: 700 }}>{radarViewsCount}</span> {t.radarViews}
+          </span>
         </div>
 
         {/* ── RIGHT CONTROLS ── */}
@@ -317,6 +559,52 @@ export function RadarMap() {
             {t.noNotifications}
           </div>
         )}
+
+        {/* ── SCAN BUTTON (Centered above bottom nav) ── */}
+        <div style={{
+          position: "absolute", bottom: "calc(max(58px, env(safe-area-inset-bottom)) + 8px)", left: "50%",
+          transform: "translateX(-50%)", zIndex: 31,
+        }}>
+          <button
+            onClick={handleScan}
+            disabled={isScanning}
+            style={{
+              width: 48, height: 48,
+              borderRadius: "50%",
+              border: "none",
+              background: isScanning
+                ? "linear-gradient(135deg, #a855f7, #7c3aed)"
+                : "linear-gradient(135deg, #c084fc, #a855f7)",
+              color: "#fff",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: isScanning ? "not-allowed" : "pointer",
+              position: "relative",
+              overflow: "hidden",
+              transition: "all 0.3s ease",
+              boxShadow: isScanning ? "0 0 20px rgba(168, 85, 247, 0.6)" : "0 4px 12px rgba(0,0,0,.3)",
+            }}
+            title={t.scanNow}
+          >
+            {isScanning && (
+              <div className="pulse-ring" style={{
+                position: "absolute", inset: 0,
+                borderRadius: "50%",
+              }} />
+            )}
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <RadarIcon />
+            </div>
+          </button>
+          {isScanning && (
+            <div style={{
+              position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+              fontSize: 10, color: "#fff", fontWeight: 700, whiteSpace: "nowrap", opacity: 0.8,
+              marginTop: 20,
+            }}>
+              {t.scanning}
+            </div>
+          )}
+        </div>
 
         {/* ── BOTTOM NAV ── */}
         <nav style={{

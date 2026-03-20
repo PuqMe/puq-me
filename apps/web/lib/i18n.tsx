@@ -69,6 +69,13 @@ export const translations = {
     genderMen: "Men",
     genderOther: "Other",
 
+    // ── Radar Map ──
+    radarViews: "Radar views today",
+    scanNow: "Scan now",
+    scanning: "Scanning...",
+    wave: "Wave",
+    inYourArea: "In your area",
+
     // ── Settings ──
     settingsTitle: "Settings",
     language: "Language",
@@ -213,6 +220,31 @@ export const translations = {
     pushStatus: "Status: {status}",
     pushEnable: "Enable",
 
+    // ── Circle Encounters & Tabs ──
+    encounters: "Encounters",
+    myCircle: "My Circle",
+    mutualSignal: "Mutual",
+    waveBtn: "Wave",
+    freeNow: "Free right now",
+    freeNowDesc: "Your circle sees: Alan is available nearby",
+    closeCircle: "Close Friends",
+    workCircle: "Colleagues",
+    sportCircle: "Sport Group",
+    members: "members",
+    locationSharing: "Location",
+    presenceSharing: "Presence",
+    availabilitySharing: "Available",
+    createCircle: "Create new circle",
+    sosAlert: "SOS Alert",
+    sosDesc: "Long-press sends your location to Close Friends",
+    circleActivities: "Circle Activity",
+    invite: "Invite",
+    badgeUnlocked: "Badge unlocked!",
+    regularBadge: "Regular badge!",
+    timesThisWeek: "times this week",
+    firstEncounter: "First encounter nearby",
+    crossedPaths: "You crossed paths with",
+
     // ── Common ──
     save: "Save",
     cancel: "Cancel",
@@ -281,6 +313,13 @@ export const translations = {
     genderWomen: "Frauen",
     genderMen: "Männer",
     genderOther: "Andere",
+
+    // ── Radar Map ──
+    radarViews: "Radar-Blicke heute",
+    scanNow: "Jetzt scannen",
+    scanning: "Scanne...",
+    wave: "Winken",
+    inYourArea: "In deiner Nähe",
 
     // ── Settings ──
     settingsTitle: "Einstellungen",
@@ -425,6 +464,31 @@ export const translations = {
     pushDesc: "Aktiviere Benachrichtigungen für neue Matches, Nachrichten und Updates.",
     pushStatus: "Status: {status}",
     pushEnable: "Aktivieren",
+
+    // ── Circle Encounters & Tabs ──
+    encounters: "Begegnungen",
+    myCircle: "Mein Kreis",
+    mutualSignal: "Mutual",
+    waveBtn: "Winken",
+    freeNow: "Bin gerade frei ☕",
+    freeNowDesc: "Dein Kreis sieht: Alan ist verfügbar in der Nähe",
+    closeCircle: "Enge Freunde",
+    workCircle: "Arbeitskollegen",
+    sportCircle: "Sport-Gruppe",
+    members: "Mitglieder",
+    locationSharing: "Standort",
+    presenceSharing: "Präsenz",
+    availabilitySharing: "Verfügbar",
+    createCircle: "Neuen Kreis erstellen",
+    sosAlert: "SOS-Alarm",
+    sosDesc: "Long-press sendet deinen Standort an Enge Freunde",
+    circleActivities: "Kreis-Aktivitäten",
+    invite: "Einladen",
+    badgeUnlocked: "Badge freigeschaltet!",
+    regularBadge: "Stammgast-Badge!",
+    timesThisWeek: "Mal diese Woche",
+    firstEncounter: "Erste Begegnung in der Nähe",
+    crossedPaths: "Du hast gekreuzt",
 
     // ── Common ──
     save: "Speichern",
