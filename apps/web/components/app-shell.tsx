@@ -92,7 +92,7 @@ export function AppShell({
 
         <div className="flex flex-col">
           {/* Header matching Nearby/Circle layout */}
-          <header className="mb-3 flex items-center gap-2" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
+          <header className="mb-3 flex items-center gap-2" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
             <Link href="/" className="flex items-center gap-2 flex-1 no-underline lg:hidden">
               <LogoMark className="h-5 w-5 shrink-0 text-[#a855f7]" size={20} />
               <div style={{ lineHeight: 1 }}>
@@ -174,7 +174,6 @@ export function AppShell({
             )}
           >
             <NavIcon type={item.icon} size={20} />
-            <span className="text-[9px] font-medium leading-none">{item.label}</span>
           </Link>
         ))}
       </nav>

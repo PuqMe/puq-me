@@ -268,7 +268,7 @@ export function CircleMap() {
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
           background: "transparent",
-          paddingTop: "max(10px, env(safe-area-inset-top))",
+          paddingTop: "env(safe-area-inset-top, 0px)",
           paddingLeft: 12, paddingRight: 12, paddingBottom: 0,
         }}>
           {/* Row 1: Logo + title + icon buttons */}
@@ -403,7 +403,6 @@ export function CircleMap() {
               color: item.href === "/circle" ? "#a855f7" : "rgba(255,255,255,.70)",
             }}>
               <NavIcon type={item.label} />
-              <span style={{ fontSize: 9, fontWeight: 500, lineHeight: 1, textTransform: "capitalize" }}>{item.label}</span>
             </Link>
           ))}
         </nav>

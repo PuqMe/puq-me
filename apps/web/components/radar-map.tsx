@@ -241,7 +241,7 @@ export function RadarMap() {
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
           background: "transparent",
-          paddingTop: "max(12px, env(safe-area-inset-top))",
+          paddingTop: "env(safe-area-inset-top, 0px)",
           paddingLeft: 12, paddingRight: 12, paddingBottom: 20,
           display: "flex", alignItems: "center", gap: 8,
         }}>
@@ -332,7 +332,6 @@ export function RadarMap() {
               color: item.href === "/nearby" ? "#a855f7" : "rgba(255,255,255,.70)",
             }}>
               <NavIcon type={item.label} />
-              <span style={{ fontSize: 9, fontWeight: 500, lineHeight: 1, textTransform: "capitalize" }}>{item.label}</span>
             </Link>
           ))}
         </nav>
