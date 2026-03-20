@@ -36,6 +36,9 @@ export const translations = {
     confirmPasswordPlaceholder: "Repeat password",
     passwordHint: "Min 10 chars, upper/lower, number, symbol",
     passwordsMismatch: "Passwords do not match.",
+    quickStart: "Quick Start",
+    registerDesc: "Create your profile and start meeting people nearby.",
+    profilePictureRequired: "A profile picture is required.",
 
     // ── Settings ──
     settingsTitle: "Settings",
@@ -215,6 +218,9 @@ export const translations = {
     confirmPasswordPlaceholder: "Passwort wiederholen",
     passwordHint: "Mind. 10 Zeichen, Groß-/Kleinbuchstaben, Zahl, Symbol",
     passwordsMismatch: "Passwörter stimmen nicht überein.",
+    quickStart: "Schnellstart",
+    registerDesc: "Erstelle dein Profil und triff Menschen in deiner Nähe.",
+    profilePictureRequired: "Ein Profilbild ist erforderlich.",
 
     // ── Settings ──
     settingsTitle: "Einstellungen",

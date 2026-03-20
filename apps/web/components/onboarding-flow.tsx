@@ -115,7 +115,7 @@ export function OnboardingFlow() {
   async function saveMediaAndContinue() {
     setErrorMessage(null);
     if (!photoPreview) {
-      setErrorMessage("A profile picture is required.");
+      setErrorMessage(t.profilePictureRequired);
       return;
     }
 
