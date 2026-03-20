@@ -64,7 +64,7 @@ textarea {
 .page-shell {
   width: min(100%, 88rem);
   margin-inline: auto;
-  padding-top: 0.75rem;
+  padding-top: 0;
   padding-bottom: 5.5rem;
 }
 
