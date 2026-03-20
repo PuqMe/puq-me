@@ -80,7 +80,7 @@ textarea {
 
 @media (min-width: 768px) {
   .page-shell {
-    padding-top: 1.25rem;
+    padding-top: 0;
     padding-bottom: 2rem;
   }
 
