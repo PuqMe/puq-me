@@ -5,30 +5,14 @@ import Link from "next/link";
 import { LogoMark } from "@puqme/ui";
 import { BRAND_NAME } from "@puqme/config";
 import { useLanguage } from "@/lib/i18n";
+import { fetchNearbyUsers, updateMyLocation, postLocationEvent, sendWave, type NearbyUser } from "@/lib/social";
+import { useAuth } from "@/lib/auth";
 
 interface LocationInfo {
   lat: number;
   lng: number;
   displayName: string;
 }
-
-interface NearbyPerson {
-  id: string;
-  initials: string;
-  color: string;
-  name: string;
-  dist: string;
-  off: [number, number];
-  lastSeen: number; // timestamp in milliseconds
-}
-
-const NEARBY: NearbyPerson[] = [
-  { id: "u1", initials: "AX", color: "#e879f9", name: "Alex, 28",   dist: "1.8 km", off: [ 0.012,  0.018], lastSeen: Date.now() - 2 * 60000 },
-  { id: "u2", initials: "JD", color: "#38bdf8", name: "Jordan, 26", dist: "2.4 km", off: [-0.009,  0.021], lastSeen: Date.now() - 4 * 60000 },
-  { id: "u3", initials: "CS", color: "#4ade80", name: "Casey, 30",  dist: "3.1 km", off: [ 0.017, -0.013], lastSeen: Date.now() - 8 * 60000 },
-  { id: "u4", initials: "MG", color: "#fb923c", name: "Morgan, 27", dist: "3.8 km", off: [-0.020, -0.016], lastSeen: Date.now() - 12 * 60000 },
-  { id: "u5", initials: "RI", color: "#f472b6", name: "Riley, 25",  dist: "4.5 km", off: [ 0.006, -0.024], lastSeen: Date.now() - 20 * 60000 },
-];
 
 const NAV_ITEMS = [
   { href: "/nearby",  label: "nearby" },
@@ -73,7 +57,7 @@ function NavIcon({ type }: { type: string }) {
   return <NearbyIcon />;
 }
 
-/* ── Avatar HTML for Leaflet divIcon ── */
+/* ── Avatar HTML for Leaflet divIcon (initials) ── */
 function avatarHtml(initials: string, color: string, size: number, online: boolean, opacity: number = 1) {
   const fs   = Math.round(size * 0.32);
   const dot  = Math.round(size * 0.22);
@@ -93,9 +77,28 @@ function avatarHtml(initials: string, color: string, size: number, online: boole
   </div>`;
 }
 
+/* ── Photo Avatar HTML for Leaflet divIcon (with profile photo) ── */
+function photoAvatarHtml(photoUrl: string, size: number, online: boolean, opacity: number = 1) {
+  const dot = Math.round(size * 0.22);
+  const off = Math.round(size * 0.04);
+  const opacityStyle = opacity < 1 ? `opacity:${opacity};` : "";
+  return `<div style="position:relative;width:${size}px;height:${size}px;${opacityStyle}">
+    <div style="position:absolute;inset:0;border-radius:50%;
+      border:2.5px solid #7c3aed;
+      box-shadow:0 0 0 1px rgba(124,58,237,.35),0 4px 16px rgba(0,0,0,.7);
+      overflow:hidden;">
+      <img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;" />
+    </div>
+    ${online ? `<div style="position:absolute;bottom:${off}px;right:${off}px;
+      width:${dot}px;height:${dot}px;border-radius:50%;
+      background:#22c55e;border:2px solid #06040f;"></div>` : ""}
+  </div>`;
+}
+
 /* ── Component ── */
 export function RadarMap() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const mapRef     = useRef<HTMLDivElement>(null);
   const mapObjRef  = useRef<any>(null);
   const tileRef    = useRef<any>(null);
@@ -105,6 +108,8 @@ export function RadarMap() {
   const ringsRef = useRef<any[]>([]);
   const [ready,    setReady]    = useState(false);
   const [location, setLocation] = useState<LocationInfo>({ lat: 48.1351, lng: 11.582, displayName: "München" });
+  const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showSearch,  setShowSearch]  = useState(false);
   const [showLayers,  setShowLayers]  = useState(false);
   const [showMenu,    setShowMenu]    = useState(false);
@@ -112,8 +117,10 @@ export function RadarMap() {
   const [searchQuery, setSearchQuery] = useState("");
   const [genderFilter, setGenderFilter] = useState<string>("all");
   const [tileKey, setTileKey] = useState<string>("dunkel");
-  const [radarViewsCount, setRadarViewsCount] = useState<number>(Math.floor(Math.random() * 16) + 5);
+  const [radarViewsCount, setRadarViewsCount] = useState<number>(0);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanCooldown, setScanCooldown] = useState(0);
+  const lastScanRef = useRef<number>(0);
 
   /* Load Leaflet CSS + JS from CDN */
   useEffect(() => {
@@ -131,19 +138,69 @@ export function RadarMap() {
     document.head.appendChild(script);
   }, []);
 
-  /* Geolocation */
+  /* Geolocation with watchPosition for real-time tracking */
   useEffect(() => {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
-      const { latitude: lat, longitude: lng } = coords;
+    let watchId: number | null = null;
+
+    const handlePosition = async (position: GeolocationPosition) => {
+      const { latitude: lat, longitude: lng } = position.coords;
       try {
         const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=de`);
         const d = await r.json();
         const city = d.address?.city || d.address?.town || d.address?.village || "Hier";
         setLocation({ lat, lng, displayName: city });
       } catch { setLocation(l => ({ ...l, lat, lng })); }
-    }, undefined, { timeout: 8000, maximumAge: 60000 });
+    };
+
+    const handleError = (error: GeolocationPositionError) => {
+      console.warn("Geolocation error:", error.message);
+    };
+
+    // First try fast cached position
+    navigator.geolocation.getCurrentPosition(handlePosition, handleError, { timeout: 8000, maximumAge: 60000 });
+    // Then watch for updates
+    watchId = navigator.geolocation.watchPosition(handlePosition, handleError, {
+      enableHighAccuracy: false,
+      timeout: 15000,
+      maximumAge: 30000,
+    });
+
+    return () => { if (watchId !== null) navigator.geolocation.clearWatch(watchId); };
   }, []);
+
+  /* Fetch nearby users from API */
+  useEffect(() => {
+    if (!location.lat || !location.lng) return;
+    let cancelled = false;
+
+    async function loadNearby() {
+      try {
+        const data = await fetchNearbyUsers(location.lat, location.lng);
+        if (!cancelled) {
+          setNearbyUsers(data.items);
+          setRadarViewsCount(data.meta.radarViews);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch nearby users:", err);
+        setIsLoading(false);
+      }
+    }
+
+    loadNearby();
+    // Refresh every 30 seconds
+    const interval = setInterval(loadNearby, 30000);
+
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [location.lat, location.lng]);
+
+  /* Send location to backend periodically */
+  useEffect(() => {
+    if (!location.lat || !location.lng) return;
+    updateMyLocation(location.lat, location.lng, location.displayName).catch(() => {});
+    postLocationEvent(location.lat, location.lng).catch(() => {});
+  }, [location.lat, location.lng]);
 
   /* Init Leaflet map — only depends on ready */
   useEffect(() => {
@@ -235,29 +292,40 @@ export function RadarMap() {
       heatmapRef.current.push(heatZone);
     });
 
-    // Nearby markers
-    NEARBY.forEach(u => {
-      const minutesAgo = Math.floor((Date.now() - u.lastSeen) / 60000);
-      let markerOpacity = 1;
-      if (minutesAgo > 15) {
-        markerOpacity = 0.3;
-      } else if (minutesAgo > 5) {
-        markerOpacity = 0.5;
-      }
+    // Nearby markers from API
+    const colors = ["#e879f9", "#38bdf8", "#4ade80", "#fb923c", "#f472b6", "#fbbf24", "#a78bfa"];
+    nearbyUsers.forEach((user, idx) => {
+      const initials = user.displayName.slice(0, 2).toUpperCase();
+      const color = colors[idx % colors.length]!;
 
-      const isOnline = Math.random() > 0.3;
+      // Generate offset from distance (golden angle spread)
+      const angle = (idx * 137.5 * Math.PI) / 180;
+      const distFactor = Math.min(user.distanceKm * 0.004, 0.03);
+      const offsetLat = Math.cos(angle) * distFactor;
+      const offsetLng = Math.sin(angle) * distFactor;
+
+      const minutesAgo = user.lastActiveAt ? Math.floor((Date.now() - new Date(user.lastActiveAt).getTime()) / 60000) : 30;
+      let markerOpacity = 1;
+      if (minutesAgo > 15) markerOpacity = 0.3;
+      else if (minutesAgo > 5) markerOpacity = 0.5;
+
+      // Use profile photo if available
+      const markerHtml = user.primaryPhotoUrl
+        ? photoAvatarHtml(user.primaryPhotoUrl, 46, user.isOnline, markerOpacity)
+        : avatarHtml(initials, color, 46, user.isOnline, markerOpacity);
+
       const markerIcon = L.divIcon({
-        html: avatarHtml(u.initials, u.color, 46, isOnline, markerOpacity),
+        html: markerHtml,
         className: "",
         iconSize: [46,46],
         iconAnchor: [23,23],
       });
 
-      const marker = L.marker([location.lat + u.off[0]!, location.lng + u.off[1]!], {
+      const marker = L.marker([location.lat + offsetLat, location.lng + offsetLng], {
         icon: markerIcon,
       }).addTo(map);
 
-      const popupContent = createMiniProfilePopup(u, isOnline);
+      const popupContent = createMiniProfilePopup(user, initials, color);
       marker.bindPopup(popupContent, { maxWidth: 280, className: "custom-popup" });
 
       markersRef.current.push(marker);
@@ -265,7 +333,7 @@ export function RadarMap() {
 
     // Pan map to new location
     map.setView([location.lat, location.lng], 14);
-  }, [location, ready]);
+  }, [location, ready, nearbyUsers]);
 
   /* Switch tile layer */
   useEffect(() => {
@@ -300,91 +368,80 @@ export function RadarMap() {
   };
 
   /* Mini profile popup on marker click */
-  const createMiniProfilePopup = (person: NearbyPerson, isOnline: boolean) => {
-    const minutesAgo = Math.floor((Date.now() - person.lastSeen) / 60000);
-    const onlineText = isOnline ? `<span style="color:#22c55e;font-weight:700;">Online</span>` : `<span style="color:rgba(255,255,255,.5);">Seen ${minutesAgo}m ago</span>`;
+  const createMiniProfilePopup = (user: NearbyUser, initials: string, color: string) => {
+    const onlineText = user.isOnline
+      ? `<span style="color:#22c55e;font-weight:700;">Online</span>`
+      : `<span style="color:rgba(255,255,255,.5);">Offline</span>`;
 
-    return `
-      <div style="
-        width:240px;
-        background:rgba(12,8,28,.95);
-        border:1px solid rgba(168,85,247,.3);
-        border-radius:16px;
-        padding:16px;
-        font-family:system-ui,sans-serif;
-        backdrop-filter:blur(12px);
-      ">
-        <div style="display:flex;gap:12px;margin-bottom:12px;">
-          <div style="
-            width:48px;
-            height:48px;
-            border-radius:50%;
-            background:linear-gradient(135deg,${person.color}66,${person.color}33);
-            border:2px solid #a855f7;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-weight:700;
-            color:#fff;
-            font-size:18px;
-            flex-shrink:0;
-          ">${person.initials}</div>
-          <div style="flex:1;">
-            <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">${person.name}</div>
-            <div style="font-size:12px;margin-bottom:4px;">${onlineText}</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.5);">${person.dist}</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-          <button style="
-            padding:8px;
-            border-radius:8px;
-            border:1px solid rgba(168,85,247,.3);
-            background:rgba(168,85,247,.1);
-            color:#c084fc;
-            font-size:11px;
-            font-weight:600;
-            cursor:pointer;
-            transition:all 0.2s;
-          " onmouseover="this.style.background='rgba(168,85,247,.2)'" onmouseout="this.style.background='rgba(168,85,247,.1)'">
-            👋 Wave
-          </button>
-          <button style="
-            padding:8px;
-            border-radius:8px;
-            border:1px solid rgba(168,85,247,.3);
-            background:rgba(168,85,247,.1);
-            color:#c084fc;
-            font-size:11px;
-            font-weight:600;
-            cursor:pointer;
-            transition:all 0.2s;
-          " onmouseover="this.style.background='rgba(168,85,247,.2)'" onmouseout="this.style.background='rgba(168,85,247,.1)'">
-            💬 Chat
-          </button>
-          <button style="
-            padding:8px;
-            border-radius:8px;
-            border:1px solid rgba(255,0,0,.2);
-            background:rgba(255,0,0,.05);
-            color:#ff6b7a;
-            font-size:11px;
-            font-weight:600;
-            cursor:pointer;
-            transition:all 0.2s;
-          " onmouseover="this.style.background='rgba(255,0,0,.1)'" onmouseout="this.style.background='rgba(255,0,0,.05)'">
-            ♥ Like
-          </button>
+    const avatarSection = user.primaryPhotoUrl
+      ? `<div style="width:48px;height:48px;border-radius:50%;border:2px solid #a855f7;overflow:hidden;flex-shrink:0;">
+          <img src="${user.primaryPhotoUrl}" style="width:100%;height:100%;object-fit:cover;" />
+        </div>`
+      : `<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,${color}66,${color}33);border:2px solid #a855f7;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:18px;flex-shrink:0;">${initials}</div>`;
+
+    return `<div style="width:240px;background:rgba(12,8,28,.95);border:1px solid rgba(168,85,247,.3);border-radius:16px;padding:16px;font-family:system-ui,sans-serif;backdrop-filter:blur(12px);">
+      <div style="display:flex;gap:12px;margin-bottom:12px;">
+        ${avatarSection}
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">${user.displayName}, ${user.age}</div>
+          <div style="font-size:12px;margin-bottom:4px;">${onlineText}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);">${user.distanceKm.toFixed(1)} km</div>
         </div>
       </div>
-    `;
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;font-weight:600;cursor:pointer;">👋 Wave</button>
+        <button onclick="window.location.href='/chat'" style="padding:8px;border-radius:8px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;font-weight:600;cursor:pointer;">💬 Chat</button>
+        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(255,0,0,.2);background:rgba(255,0,0,.05);color:#ff6b7a;font-size:11px;font-weight:600;cursor:pointer;">♥ Like</button>
+      </div>
+    </div>`;
   };
 
-  const handleScan = () => {
+  /* Wire Wave/Like to API via window global */
+  useEffect(() => {
+    (window as any).__puqWave = async (userId: string) => {
+      try {
+        const result = await sendWave(userId);
+        if (result.isMatch) {
+          setShowNotifToast(true);
+          setTimeout(() => setShowNotifToast(false), 3000);
+        }
+      } catch (err) { /* noop */ }
+    };
+    return () => { delete (window as any).__puqWave; };
+  }, []);
+
+  // Scan cooldown timer
+  useEffect(() => {
+    if (scanCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setScanCooldown(prev => {
+        if (prev <= 1) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [scanCooldown > 0]);
+
+  const handleScan = async () => {
+    // Rate limit: minimum 15 seconds between scans
+    const now = Date.now();
+    const elapsed = now - lastScanRef.current;
+    if (elapsed < 15000) {
+      setScanCooldown(Math.ceil((15000 - elapsed) / 1000));
+      return;
+    }
+    lastScanRef.current = now;
+
     setIsScanning(true);
+    try {
+      await postLocationEvent(location.lat, location.lng);
+      const data = await fetchNearbyUsers(location.lat, location.lng, 20);
+      setNearbyUsers(data.items);
+      setRadarViewsCount(prev => prev + data.items.length);
+    } catch (err) { /* noop */ }
     setTimeout(() => {
       setIsScanning(false);
-      setRadarViewsCount(Math.floor(Math.random() * 16) + 5);
+      setScanCooldown(15);
     }, 1800);
   };
 
@@ -510,7 +567,7 @@ export function RadarMap() {
           bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
           display: "flex", flexDirection: "column", gap: 8,
         }}>
-          <button style={ctrlBtn}><UserIcon size={16} /><span style={{ fontSize: 8, color: "rgba(255,255,255,.4)", lineHeight: 1 }}>{NEARBY.length}</span></button>
+          <button style={ctrlBtn}><UserIcon size={16} /><span style={{ fontSize: 8, color: "rgba(255,255,255,.4)", lineHeight: 1 }}>{nearbyUsers.length}</span></button>
           <button onClick={locate} style={ctrlBtn}><CrosshairIcon /></button>
           <button onClick={zoomIn} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>+</button>
           <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>−</button>
@@ -566,17 +623,19 @@ export function RadarMap() {
         }}>
           <button
             onClick={handleScan}
-            disabled={isScanning}
+            disabled={isScanning || scanCooldown > 0}
             style={{
               width: 48, height: 48,
               borderRadius: "50%",
               border: "none",
               background: isScanning
                 ? "linear-gradient(135deg, #a855f7, #7c3aed)"
-                : "linear-gradient(135deg, #c084fc, #a855f7)",
+                : scanCooldown > 0
+                  ? "linear-gradient(135deg, #6b21a8, #581c87)"
+                  : "linear-gradient(135deg, #c084fc, #a855f7)",
               color: "#fff",
               display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: isScanning ? "not-allowed" : "pointer",
+              cursor: (isScanning || scanCooldown > 0) ? "not-allowed" : "pointer",
               position: "relative",
               overflow: "hidden",
               transition: "all 0.3s ease",
@@ -594,13 +653,13 @@ export function RadarMap() {
               <RadarIcon />
             </div>
           </button>
-          {isScanning && (
+          {(isScanning || scanCooldown > 0) && (
             <div style={{
               position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
               fontSize: 10, color: "#fff", fontWeight: 700, whiteSpace: "nowrap", opacity: 0.8,
               marginTop: 20,
             }}>
-              {t.scanning}
+              {isScanning ? t.scanning : `${scanCooldown}s`}
             </div>
           )}
         </div>

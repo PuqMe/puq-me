@@ -5,6 +5,11 @@ import Link from "next/link";
 import { LogoMark } from "@puqme/ui";
 import { BRAND_NAME } from "@puqme/config";
 import { useLanguage } from "@/lib/i18n";
+import {
+  fetchCircleEncounters, fetchMyCircles, updateCircleSettings,
+  postLocationEvent, updateFreeNowStatus, sendWave,
+  type CircleEncounter, type FriendCircle, type CircleListResponse
+} from "@/lib/social";
 
 /* ── Time filters ── */
 type TimeFilter = "24h" | "3d" | "7d" | "1m" | "3m" | "1y";
@@ -17,84 +22,8 @@ const TIME_FILTERS: { key: TimeFilter; label: string }[] = [
   { key: "1y",  label: "1 year" },
 ];
 
-/* ── Mock encounters with mutual signals ── */
-type Encounter = {
-  id: string;
-  name: string;
-  age: number;
-  area: string;
-  color: string;
-  off: [number, number];
-  mutual?: boolean;
-  timestamp: string;
-  distance: number;
-};
-
-const ENCOUNTERS: Record<TimeFilter, Encounter[]> = {
-  "24h": [
-    { id: "u1", name: "Maya",  age: 29, area: "Kreuzberg",  color: "#f15bb5", off: [ 0.006,  0.005], mutual: true, timestamp: "14:30", distance: 0.8 },
-    { id: "u2", name: "Noor",  age: 26, area: "Neuköln",    color: "#38bdf8", off: [-0.004,  0.007], mutual: false, timestamp: "11:15", distance: 1.2 },
-  ],
-  "3d": [
-    { id: "u1", name: "Maya",  age: 29, area: "Kreuzberg",  color: "#f15bb5", off: [ 0.006,  0.005], mutual: true, timestamp: "14:30", distance: 0.8 },
-    { id: "u2", name: "Noor",  age: 26, area: "Neuköln",    color: "#38bdf8", off: [-0.004,  0.007], mutual: false, timestamp: "11:15", distance: 1.2 },
-    { id: "u3", name: "Lina",  age: 27, area: "Mitte",      color: "#fbbf24", off: [ 0.003, -0.005], mutual: false, timestamp: "vor 1d", distance: 0.5 },
-  ],
-  "7d": [
-    { id: "u1", name: "Maya",  age: 29, area: "Kreuzberg",  color: "#f15bb5", off: [ 0.006,  0.005], mutual: true, timestamp: "14:30", distance: 0.8 },
-    { id: "u2", name: "Noor",  age: 26, area: "Neuköln",    color: "#38bdf8", off: [-0.004,  0.007], mutual: false, timestamp: "11:15", distance: 1.2 },
-    { id: "u3", name: "Lina",  age: 27, area: "Mitte",      color: "#fbbf24", off: [ 0.003, -0.005], mutual: false, timestamp: "vor 1d", distance: 0.5 },
-    { id: "u4", name: "Alex",  age: 31, area: "Prenzlberg", color: "#4ade80", off: [-0.008, -0.003], mutual: false, timestamp: "vor 3d", distance: 1.5 },
-  ],
-  "1m": [],
-  "3m": [],
-  "1y": [],
-};
-
-/* ── Mock circle data ── */
-type Circle = {
-  id: string;
-  emoji: string;
-  name: string;
-  members: number;
-  memberAvatars: string[];
-  locationSharing: boolean;
-  presenceSharing: boolean;
-  availabilitySharing: boolean;
-};
-
-const CIRCLES: Circle[] = [
-  {
-    id: "c1",
-    emoji: "💜",
-    name: "Enge Freunde",
-    members: 4,
-    memberAvatars: ["M", "E", "L", "A"],
-    locationSharing: true,
-    presenceSharing: true,
-    availabilitySharing: true,
-  },
-  {
-    id: "c2",
-    emoji: "💼",
-    name: "Arbeitskollegen",
-    members: 7,
-    memberAvatars: ["J", "K", "B", "C"],
-    locationSharing: false,
-    presenceSharing: true,
-    availabilitySharing: false,
-  },
-  {
-    id: "c3",
-    emoji: "⚽",
-    name: "Sport-Gruppe",
-    members: 5,
-    memberAvatars: ["T", "M", "R", "S"],
-    locationSharing: true,
-    presenceSharing: false,
-    availabilitySharing: false,
-  },
-];
+/* ── Color palette for encounters ── */
+const COLORS = ["#f15bb5", "#38bdf8", "#fbbf24", "#4ade80", "#ec4899", "#06b6d4", "#eab308", "#10b981"];
 
 const NAV_ITEMS = [
   { href: "/nearby",  label: "nearby" },
@@ -172,6 +101,12 @@ export function CircleMap() {
   const [freeNowEnabled, setFreeNowEnabled] = useState(false);
   const [showBadgeUnlock, setShowBadgeUnlock] = useState(false);
 
+  // API state
+  const [encounters, setEncounters] = useState<CircleEncounter[]>([]);
+  const [circles, setCircles] = useState<FriendCircle[]>([]);
+  const [isLoadingEncounters, setIsLoadingEncounters] = useState(true);
+  const [isLoadingCircles, setIsLoadingCircles] = useState(true);
+
   /* Load Leaflet CSS + JS */
   useEffect(() => {
     if (!document.getElementById("lf-css")) {
@@ -194,6 +129,43 @@ export function CircleMap() {
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       setLocation({ lat: coords.latitude, lng: coords.longitude });
     }, undefined, { timeout: 8000, maximumAge: 60000 });
+  }, []);
+
+  /* Fetch encounters when time filter changes */
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoadingEncounters(true);
+
+    fetchCircleEncounters(filter, location.lat, location.lng)
+      .then(data => {
+        if (!cancelled) {
+          setEncounters(data.items || []);
+          setIsLoadingEncounters(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsLoadingEncounters(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [filter, location.lat, location.lng]);
+
+  /* Fetch circles on mount */
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchMyCircles()
+      .then(data => {
+        if (!cancelled) {
+          setCircles(data.items || []);
+          setIsLoadingCircles(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsLoadingCircles(false);
+      });
+
+    return () => { cancelled = true; };
   }, []);
 
   /* Init Leaflet */
@@ -246,7 +218,7 @@ export function CircleMap() {
     }).addTo(mapObjRef.current);
   }, [tileKey]);
 
-  /* Update encounter markers and connection lines when filter changes */
+  /* Update encounter markers and connection lines when encounters change */
   useEffect(() => {
     if (!mapObjRef.current || !ready) return;
     const L = (window as any).L;
@@ -260,14 +232,27 @@ export function CircleMap() {
     linesRef.current.forEach(l => l.remove());
     linesRef.current = [];
 
-    const encounters = ENCOUNTERS[filter] || [];
+    encounters.forEach((enc, idx) => {
+      // Compute position from distance using random bearing
+      let encLat = location.lat;
+      let encLng = location.lng;
+      if (enc.distanceKm) {
+        // Simple lat/lng offset based on distance
+        const bearing = Math.random() * 360;
+        const latOffset = (enc.distanceKm / 111) * Math.cos((bearing * Math.PI) / 180);
+        const lngOffset = (enc.distanceKm / 111) * Math.sin((bearing * Math.PI) / 180) / Math.cos((location.lat * Math.PI) / 180);
+        encLat += latOffset;
+        encLng += lngOffset;
+      } else {
+        // Fallback: random offset
+        encLat += (Math.random() - 0.5) * 0.01;
+        encLng += (Math.random() - 0.5) * 0.01;
+      }
 
-    encounters.forEach(enc => {
-      const encLat = location.lat + enc.off[0];
-      const encLng = location.lng + enc.off[1];
+      const color = COLORS[idx % COLORS.length] || "#a855f7";
 
       const icon = L.divIcon({
-        html: dotMarkerHtml(enc.color),
+        html: dotMarkerHtml(color),
         className: "",
         iconSize: [18, 18],
         iconAnchor: [9, 9],
@@ -276,14 +261,14 @@ export function CircleMap() {
         [encLat, encLng],
         { icon }
       ).addTo(mapObjRef.current)
-        .bindPopup(`<b>${enc.name}, ${enc.age}</b><br><small>${enc.area}</small>`);
+        .bindPopup(`<b>${enc.displayName}, ${enc.age}</b><br><small>${enc.area}</small>`);
       markersRef.current.push(m);
 
       // Draw dashed connection line from self to encounter
       const polyline = L.polyline(
         [[location.lat, location.lng], [encLat, encLng]],
         {
-          color: enc.color,
+          color: color,
           weight: 1.5,
           opacity: 0.4,
           dashArray: "5, 5",
@@ -292,7 +277,7 @@ export function CircleMap() {
       ).addTo(mapObjRef.current);
       linesRef.current.push(polyline);
     });
-  }, [filter, ready, location]);
+  }, [encounters, ready, location]);
 
   useEffect(() => {
     if (mapObjRef.current) mapObjRef.current.setView([location.lat, location.lng], 13);
@@ -301,7 +286,30 @@ export function CircleMap() {
   const zoomIn  = () => mapObjRef.current?.zoomIn();
   const zoomOut = () => mapObjRef.current?.zoomOut();
   const locate  = () => mapObjRef.current?.setView([location.lat, location.lng], 14);
-  const currentEncounters = ENCOUNTERS[filter] || [];
+
+  /* Handle Free Now toggle */
+  const handleFreeNowToggle = () => {
+    const next = !freeNowEnabled;
+    setFreeNowEnabled(next);
+    updateFreeNowStatus(next).catch(() => {});
+  };
+
+  /* Handle circle setting changes */
+  const handleCircleSettingChange = (circleId: string, setting: string, value: boolean) => {
+    setCircles(prev => prev.map(c =>
+      c.circleId === circleId
+        ? { ...c, settings: { ...c.settings, [setting]: value } }
+        : c
+    ));
+    updateCircleSettings(circleId, { [setting]: value }).catch(() => {});
+  };
+
+  /* Handle wave action */
+  const handleWave = async (userId: string) => {
+    try {
+      await sendWave(userId);
+    } catch { /* noop */ }
+  };
 
   /* Search location via Nominatim */
   const handleSearch = async () => {
@@ -484,14 +492,21 @@ export function CircleMap() {
             position: "relative", height: timelineHeight, overflowY: "auto", background: "#07050f",
             borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 12, paddingBottom: 80,
           }} className="timeline-container">
-            {currentEncounters.length > 0 ? (
+            {isLoadingEncounters ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+                  <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Loading encounters…</p>
+                </div>
+              </div>
+            ) : encounters.length > 0 ? (
               <div style={{ padding: "0 16px" }}>
-                {currentEncounters.map((enc, idx) => (
-                  <div key={enc.id} style={{
+                {encounters.map((enc, idx) => (
+                  <div key={enc.userId} style={{
                     display: "flex", gap: 12, marginBottom: 16, position: "relative",
                   }}>
                     {/* Timeline line */}
-                    {idx < currentEncounters.length - 1 && (
+                    {idx < encounters.length - 1 && (
                       <div style={{
                         position: "absolute", left: 19, top: 48, width: 2, height: "calc(100% + 16px)",
                         borderLeft: "1px dashed rgba(255,255,255,.2)",
@@ -500,11 +515,11 @@ export function CircleMap() {
 
                     {/* Avatar */}
                     <div style={{
-                      width: 40, height: 40, borderRadius: "50%", background: enc.color,
+                      width: 40, height: 40, borderRadius: "50%", background: COLORS[idx % COLORS.length],
                       display: "flex", alignItems: "center", justifyContent: "center",
                       color: "#fff", fontSize: 14, fontWeight: 700, flexShrink: 0, position: "relative", zIndex: 2,
                     }}>
-                      {enc.name[0]}
+                      {enc.displayName[0]}
                     </div>
 
                     {/* Content */}
@@ -512,10 +527,10 @@ export function CircleMap() {
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
-                            {enc.name}, {enc.age}
+                            {enc.displayName}, {enc.age}
                           </div>
                           <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)", marginTop: 2 }}>
-                            {enc.area} • {enc.distance} km
+                            {enc.area} • {enc.distanceKm?.toFixed(1) || "?"} km
                           </div>
                         </div>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", textAlign: "right" }}>
@@ -526,7 +541,7 @@ export function CircleMap() {
                       {/* Story-framing text */}
                       <div style={{ fontSize: 12, color: "rgba(255,255,255,.65)", marginBottom: 8, lineHeight: 1.4 }}>
                         {enc.mutual ? (
-                          <>Du hast <b>{enc.name}</b> zum 2. Mal diese Woche gekreuzt</>
+                          <>Du hast <b>{enc.displayName}</b> zum 2. Mal diese Woche gekreuzt</>
                         ) : (
                           <>Erste Begegnung in der Nähe vom Café</>
                         )}
@@ -544,7 +559,7 @@ export function CircleMap() {
 
                       {/* Action buttons */}
                       <div style={{ display: "flex", gap: 6 }}>
-                        <button style={{
+                        <button onClick={() => handleWave(enc.userId)} style={{
                           padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
                           background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
                           fontWeight: 600,
@@ -592,7 +607,7 @@ export function CircleMap() {
               <input
                 type="checkbox"
                 checked={freeNowEnabled}
-                onChange={(e) => setFreeNowEnabled(e.target.checked)}
+                onChange={handleFreeNowToggle}
                 style={{ width: 20, height: 20, cursor: "pointer", accentColor: "#a855f7" }}
               />
               <div style={{ flex: 1 }}>
@@ -610,65 +625,100 @@ export function CircleMap() {
               <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,.45)", textTransform: "uppercase", marginBottom: 12, letterSpacing: "0.08em" }}>
                 {t.myCircle}
               </div>
-              {CIRCLES.map(circle => (
-                <div key={circle.id} style={{
-                  background: "rgba(255,255,255,.06)", borderRadius: 12, padding: 16, marginBottom: 12,
-                  border: "1px solid rgba(255,255,255,.08)",
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                    <span style={{ fontSize: 20 }}>{circle.emoji}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
-                        {circle.name}
-                      </div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>
-                        {circle.members} {t.members}
-                      </div>
-                    </div>
-                    <button style={{
-                      padding: "6px 12px", borderRadius: 8, border: "none",
-                      background: "rgba(168,85,247,.2)", color: "#c084fc", fontSize: 12, fontWeight: 600, cursor: "pointer",
-                    }}>
-                      {t.invite}
-                    </button>
-                  </div>
-
-                  {/* Member avatars */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    {circle.memberAvatars.map((avatar, i) => (
-                      <div key={i} style={{
-                        width: 32, height: 32, borderRadius: "50%", background: "rgba(168,85,247,.2)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: "#c084fc", fontSize: 12, fontWeight: 700,
-                      }}>
-                        {avatar}
-                      </div>
-                    ))}
-                    <button style={{
-                      width: 32, height: 32, borderRadius: "50%", border: "1px dashed rgba(168,85,247,.4)",
-                      background: "transparent", color: "#a855f7", fontSize: 16, cursor: "pointer",
-                    }}>
-                      +
-                    </button>
-                  </div>
-
-                  {/* Privacy toggles */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
-                      <input type="checkbox" defaultChecked={circle.locationSharing} style={{ width: 16, height: 16, accentColor: "#a855f7" }} />
-                      <span style={{ color: "rgba(255,255,255,.7)" }}>📍 {t.locationSharing}</span>
-                    </label>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
-                      <input type="checkbox" defaultChecked={circle.presenceSharing} style={{ width: 16, height: 16, accentColor: "#a855f7" }} />
-                      <span style={{ color: "rgba(255,255,255,.7)" }}>👁 {t.presenceSharing}</span>
-                    </label>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
-                      <input type="checkbox" defaultChecked={circle.availabilitySharing} style={{ width: 16, height: 16, accentColor: "#a855f7" }} />
-                      <span style={{ color: "rgba(255,255,255,.7)" }}>📅 {t.availabilitySharing}</span>
-                    </label>
+              {isLoadingCircles ? (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+                    <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Loading circles…</p>
                   </div>
                 </div>
-              ))}
+              ) : (
+                <>
+                  {circles.map(circle => (
+                    <div key={circle.circleId} style={{
+                      background: "rgba(255,255,255,.06)", borderRadius: 12, padding: 16, marginBottom: 12,
+                      border: "1px solid rgba(255,255,255,.08)",
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                        <span style={{ fontSize: 20 }}>{circle.emoji}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                            {circle.name}
+                          </div>
+                          <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)" }}>
+                            {circle.members.length} {t.members}
+                          </div>
+                        </div>
+                        <button style={{
+                          padding: "6px 12px", borderRadius: 8, border: "none",
+                          background: "rgba(168,85,247,.2)", color: "#c084fc", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                        }}>
+                          {t.invite}
+                        </button>
+                      </div>
+
+                      {/* Member avatars */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                        {circle.members.slice(0, 4).map((member, i) => (
+                          <div key={i} style={{
+                            width: 32, height: 32, borderRadius: "50%", background: "rgba(168,85,247,.2)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            color: "#c084fc", fontSize: 12, fontWeight: 700,
+                          }}>
+                            {member.displayName[0]}
+                          </div>
+                        ))}
+                        {circle.members.length > 4 && (
+                          <div style={{
+                            width: 32, height: 32, borderRadius: "50%", background: "rgba(168,85,247,.2)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            color: "#c084fc", fontSize: 12, fontWeight: 700,
+                          }}>
+                            +{circle.members.length - 4}
+                          </div>
+                        )}
+                        <button style={{
+                          width: 32, height: 32, borderRadius: "50%", border: "1px dashed rgba(168,85,247,.4)",
+                          background: "transparent", color: "#a855f7", fontSize: 16, cursor: "pointer",
+                        }}>
+                          +
+                        </button>
+                      </div>
+
+                      {/* Privacy toggles */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
+                          <input
+                            type="checkbox"
+                            checked={circle.settings?.locationSharing ?? false}
+                            onChange={(e) => handleCircleSettingChange(circle.circleId, "locationSharing", e.target.checked)}
+                            style={{ width: 16, height: 16, accentColor: "#a855f7" }}
+                          />
+                          <span style={{ color: "rgba(255,255,255,.7)" }}>📍 {t.locationSharing}</span>
+                        </label>
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
+                          <input
+                            type="checkbox"
+                            checked={circle.settings?.presenceSharing ?? false}
+                            onChange={(e) => handleCircleSettingChange(circle.circleId, "presenceSharing", e.target.checked)}
+                            style={{ width: 16, height: 16, accentColor: "#a855f7" }}
+                          />
+                          <span style={{ color: "rgba(255,255,255,.7)" }}>👁 {t.presenceSharing}</span>
+                        </label>
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
+                          <input
+                            type="checkbox"
+                            checked={circle.settings?.availabilitySharing ?? false}
+                            onChange={(e) => handleCircleSettingChange(circle.circleId, "availabilitySharing", e.target.checked)}
+                            style={{ width: 16, height: 16, accentColor: "#a855f7" }}
+                          />
+                          <span style={{ color: "rgba(255,255,255,.7)" }}>📅 {t.availabilitySharing}</span>
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
 
             {/* Create Circle Button */}
@@ -720,7 +770,7 @@ export function CircleMap() {
             bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
             display: "flex", flexDirection: "column", gap: 8,
           }}>
-            <button style={ctrlBtn}><UserIcon size={16} /><span style={{ fontSize: 8, color: "rgba(255,255,255,.4)", lineHeight: 1 }}>{currentEncounters.length}</span></button>
+            <button style={ctrlBtn}><UserIcon size={16} /><span style={{ fontSize: 8, color: "rgba(255,255,255,.4)", lineHeight: 1 }}>{encounters.length}</span></button>
             <button onClick={locate} style={ctrlBtn}><CrosshairIcon /></button>
             <button onClick={zoomIn}  style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>+</button>
             <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>−</button>
