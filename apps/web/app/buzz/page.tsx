@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AppShell from '@/components/app-shell';
+import { AppShell } from '@/components/app-shell';
 
 export default function BuzzPage() {
   const [vibrationEnabled, setVibrationEnabled] = useState(true);

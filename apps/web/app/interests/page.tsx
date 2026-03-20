@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import AppShell from '@/components/app-shell';
+import { AppShell } from '@/components/app-shell';
 
 export default function InterestsPage() {
   const [searchGender, setSearchGender] = useState('women');

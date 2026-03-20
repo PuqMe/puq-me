@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import AppShell from '@/components/app-shell';
+import { AppShell } from '@/components/app-shell';
 
 interface GroupCard {
   id: string;
