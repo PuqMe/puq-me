@@ -43,6 +43,11 @@ export const googleLoginBodySchema = z.object({
   credential: z.string().min(1)
 });
 
+export const resetPasswordBodySchema = z.object({
+  token: z.string().min(32),
+  password: securePasswordSchema
+});
+
 export const authUserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
@@ -73,4 +78,5 @@ export type ForgotPasswordBody = z.infer<typeof forgotPasswordBodySchema>;
 export type EmailVerificationRequestBody = z.infer<typeof emailVerificationRequestBodySchema>;
 export type EmailVerificationConfirmBody = z.infer<typeof emailVerificationConfirmBodySchema>;
 export type GoogleLoginBody = z.infer<typeof googleLoginBodySchema>;
+export type ResetPasswordBody = z.infer<typeof resetPasswordBodySchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;

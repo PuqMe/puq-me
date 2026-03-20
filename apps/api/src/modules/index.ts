@@ -6,6 +6,7 @@ import { billingModule } from "./billing/index.js";
 import { chatModule } from "./chat/index.js";
 import { circleModule } from "./circle/index.js";
 import { experimentsModule } from "./experiments/index.js";
+import { gdprModule } from "./gdpr/index.js";
 import { healthModule } from "./health/index.js";
 import { matchModule } from "./match/index.js";
 import { mediaModule } from "./media/index.js";
@@ -30,5 +31,6 @@ export const modules: AppModule[] = [
   chatModule,
   notificationsModule,
   moderationModule,
-  adminModule
+  adminModule,
+  gdprModule
 ];

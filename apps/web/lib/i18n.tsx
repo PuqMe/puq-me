@@ -348,11 +348,60 @@ export const translations = {
     genericError: "An error occurred",
     enableLocationMsg: "Enable location to see people nearby",
 
+    // ── Error Pages ──
+    notFoundTitle: "Page not found",
+    notFoundDesc: "The page you're looking for doesn't exist or has been moved.",
+    goHome: "Go home",
+    goBack: "Go back",
+    serverErrorTitle: "Something went wrong",
+    serverErrorDesc: "An unexpected error occurred. Please try again.",
+    tryAgain: "Try again",
+
+    // ── Email Verification ──
+    verifyEmailTitle: "Verify your email",
+    verifyEmailDesc: "We sent a verification link to your email address. Please check your inbox.",
+    verifyEmailSuccess: "Email verified successfully!",
+    verifyEmailSuccessDesc: "Your email has been confirmed. You can now use all features.",
+    verifyEmailFailed: "Verification failed",
+    verifyEmailFailedDesc: "The verification link is invalid or has expired.",
+    verifyEmailExpired: "Link expired",
+    verifyEmailExpiredDesc: "This verification link has expired. Please request a new one.",
+    resendVerification: "Resend verification email",
+    resendVerificationSent: "Verification email sent!",
+    checkYourInbox: "Check your inbox",
+    verifying: "Verifying...",
+
+    // ── Password Reset ──
+    forgotPassword: "Forgot password?",
+    forgotPasswordTitle: "Reset your password",
+    forgotPasswordDesc: "Enter your email and we'll send you a reset link.",
+    sendResetLink: "Send reset link",
+    sendingResetLink: "Sending...",
+    resetLinkSent: "Reset link sent!",
+    resetLinkSentDesc: "Check your email for instructions to reset your password.",
+    newPassword: "New password",
+    confirmNewPassword: "Confirm new password",
+    resetPassword: "Reset password",
+    resettingPassword: "Resetting...",
+    passwordResetSuccess: "Password reset!",
+    passwordResetSuccessDesc: "Your password has been changed. You can now sign in.",
+    invalidResetToken: "Invalid or expired reset link",
+    invalidResetTokenDesc: "This password reset link is invalid or has expired. Please request a new one.",
+
+    // ── GDPR / Data ──
+    exportData: "Export my data",
+    exportDataDesc: "Download a copy of all your personal data.",
+    exportDataRequested: "Export requested",
+    exportDataRequestedDesc: "We're preparing your data export. You'll receive an email when it's ready.",
+    dataExportPreparing: "Preparing your data...",
+
     // ── Common ──
     save: "Save",
     cancel: "Cancel",
     loading: "Loading...",
     error: "An error occurred",
+    backToLogin: "Already have an account?",
+    orDivider: "or",
   },
 
   de: {
@@ -696,11 +745,60 @@ export const translations = {
     genericError: "Ein Fehler ist aufgetreten",
     enableLocationMsg: "Aktiviere den Standort, um Menschen in der Nähe zu sehen",
 
+    // ── Error Pages ──
+    notFoundTitle: "Seite nicht gefunden",
+    notFoundDesc: "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    goHome: "Zur Startseite",
+    goBack: "Zurück",
+    serverErrorTitle: "Etwas ist schiefgelaufen",
+    serverErrorDesc: "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
+    tryAgain: "Erneut versuchen",
+
+    // ── Email Verification ──
+    verifyEmailTitle: "E-Mail bestätigen",
+    verifyEmailDesc: "Wir haben einen Bestätigungslink an deine E-Mail-Adresse gesendet. Bitte prüfe dein Postfach.",
+    verifyEmailSuccess: "E-Mail erfolgreich bestätigt!",
+    verifyEmailSuccessDesc: "Deine E-Mail wurde bestätigt. Du kannst jetzt alle Funktionen nutzen.",
+    verifyEmailFailed: "Bestätigung fehlgeschlagen",
+    verifyEmailFailedDesc: "Der Bestätigungslink ist ungültig oder abgelaufen.",
+    verifyEmailExpired: "Link abgelaufen",
+    verifyEmailExpiredDesc: "Dieser Bestätigungslink ist abgelaufen. Bitte fordere einen neuen an.",
+    resendVerification: "Bestätigungsmail erneut senden",
+    resendVerificationSent: "Bestätigungsmail gesendet!",
+    checkYourInbox: "Prüfe dein Postfach",
+    verifying: "Wird bestätigt...",
+
+    // ── Password Reset ──
+    forgotPassword: "Passwort vergessen?",
+    forgotPasswordTitle: "Passwort zurücksetzen",
+    forgotPasswordDesc: "Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen.",
+    sendResetLink: "Link senden",
+    sendingResetLink: "Wird gesendet...",
+    resetLinkSent: "Link gesendet!",
+    resetLinkSentDesc: "Prüfe dein Postfach für Anweisungen zum Zurücksetzen deines Passworts.",
+    newPassword: "Neues Passwort",
+    confirmNewPassword: "Neues Passwort bestätigen",
+    resetPassword: "Passwort zurücksetzen",
+    resettingPassword: "Wird zurückgesetzt...",
+    passwordResetSuccess: "Passwort zurückgesetzt!",
+    passwordResetSuccessDesc: "Dein Passwort wurde geändert. Du kannst dich jetzt anmelden.",
+    invalidResetToken: "Ungültiger oder abgelaufener Link",
+    invalidResetTokenDesc: "Dieser Link ist ungültig oder abgelaufen. Bitte fordere einen neuen an.",
+
+    // ── GDPR / Data ──
+    exportData: "Meine Daten exportieren",
+    exportDataDesc: "Lade eine Kopie aller deiner persönlichen Daten herunter.",
+    exportDataRequested: "Export angefordert",
+    exportDataRequestedDesc: "Wir bereiten deinen Datenexport vor. Du erhältst eine E-Mail, wenn er bereit ist.",
+    dataExportPreparing: "Daten werden vorbereitet...",
+
     // ── Common ──
     save: "Speichern",
     cancel: "Abbrechen",
     loading: "Wird geladen...",
     error: "Ein Fehler ist aufgetreten",
+    backToLogin: "Bereits ein Konto?",
+    orDivider: "oder",
   },
 } satisfies Record<Locale, Record<string, string>>;
 

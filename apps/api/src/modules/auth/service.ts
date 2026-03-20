@@ -250,4 +250,35 @@ export class AuthService {
       })
     };
   }
+
+  async resetPassword(token: string, newPassword: string) {
+    if (token.length < 32) {
+      throw new BadRequestError("invalid_reset_token");
+    }
+
+    // Verify the reset token exists and belongs to a user
+    const resetRequest = await this.repository.findActiveResetRequest(token);
+    if (!resetRequest) {
+      throw new UnauthorizedError("invalid_or_expired_reset_token");
+    }
+
+    // Hash the new password
+    const passwordHash = await argon2.hash(newPassword, {
+      type: argon2.argon2id,
+      memoryCost: 19456,
+      timeCost: 2,
+      parallelism: 1
+    });
+
+    // Update the user's password
+    await this.repository.updateUserPassword(resetRequest.userId, passwordHash);
+
+    // Invalidate all existing sessions for this user
+    await this.repository.revokeAllUserSessions(resetRequest.userId);
+
+    // Mark the reset request as consumed
+    await this.repository.consumeResetRequest(token);
+
+    return { message: "password_reset_successful" };
+  }
 }

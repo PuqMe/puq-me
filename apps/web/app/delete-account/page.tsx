@@ -14,6 +14,8 @@ export default function DeleteAccountPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [exportRequested, setExportRequested] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const styles = {
     container: {
@@ -267,6 +269,50 @@ export default function DeleteAccountPage() {
             <p style={styles.errorText as React.CSSProperties}>{error}</p>
           </div>
         )}
+
+        {/* GDPR Data Export */}
+        <div style={{ ...styles.card, borderColor: "rgba(168,85,247,0.3)" } as React.CSSProperties}>
+          <div style={styles.section as React.CSSProperties}>
+            <h2 style={styles.sectionTitle as React.CSSProperties}>
+              {t.exportData}
+            </h2>
+            <p style={styles.paragraph as React.CSSProperties}>
+              {t.exportDataDesc}
+            </p>
+            {exportRequested ? (
+              <div style={styles.successMessage as React.CSSProperties}>
+                <p style={styles.successText as React.CSSProperties}>
+                  {t.exportDataRequestedDesc}
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={async () => {
+                  setIsExporting(true);
+                  try {
+                    await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/v1/gdpr/export`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                    });
+                    setExportRequested(true);
+                  } catch {
+                    // silent
+                  } finally {
+                    setIsExporting(false);
+                  }
+                }}
+                disabled={isExporting}
+                style={{
+                  ...styles.button,
+                  ...styles.secondaryButton,
+                  opacity: isExporting ? 0.6 : 1,
+                } as React.CSSProperties}
+              >
+                {isExporting ? t.dataExportPreparing : t.exportData}
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Warning */}
         <div style={styles.card as React.CSSProperties}>

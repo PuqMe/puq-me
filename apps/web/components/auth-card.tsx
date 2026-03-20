@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AuthFormShell } from "@/components/auth-form-shell";
 import { FormField } from "@/components/form-field";
 import { useAuth } from "@/lib/auth";
@@ -55,6 +56,11 @@ export function AuthCard() {
         type="password"
         value={password}
       />
+      <div className="flex justify-end">
+        <Link href="/forgot-password" className="text-[12px] font-medium text-[#a855f7]/80 hover:text-[#a855f7]">
+          {t.forgotPassword}
+        </Link>
+      </div>
     </AuthFormShell>
   );
 }

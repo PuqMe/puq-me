@@ -7,7 +7,8 @@ import {
   loginBodySchema,
   logoutBodySchema,
   refreshTokenBodySchema,
-  registerBodySchema
+  registerBodySchema,
+  resetPasswordBodySchema
 } from "./schema.js";
 import { AuthService } from "./service.js";
 
@@ -76,6 +77,11 @@ const routes: FastifyPluginAsync = async (app) => {
   app.post("/email-verification/confirm", async (request) => {
     const payload = emailVerificationConfirmBodySchema.parse(request.body);
     return service.confirmEmailVerification(payload.token);
+  });
+
+  app.post("/reset-password", async (request) => {
+    const payload = resetPasswordBodySchema.parse(request.body);
+    return service.resetPassword(payload.token, payload.password);
   });
 };
 

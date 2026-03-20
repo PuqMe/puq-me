@@ -262,4 +262,53 @@ export class AuthRepository {
       [userId, JSON.stringify(payload)]
     );
   }
+
+  async findActiveResetRequest(token: string): Promise<{ userId: string } | null> {
+    const result = await this.app.db.query<{
+      user_id: string;
+    }>(
+      `select user_id::text
+       from verification_requests
+       where request_payload->>'token' = $1
+         and verification_type = 'manual'
+         and status = 'pending'
+         and created_at > now() - interval '1 hour'
+       limit 1`,
+      [token]
+    );
+
+    const row = result.rows[0];
+    return row ? { userId: row.user_id } : null;
+  }
+
+  async updateUserPassword(userId: string, passwordHash: string) {
+    await this.app.db.query(
+      `update users
+       set password_hash = $2,
+           updated_at = now()
+       where id = $1 and deleted_at is null`,
+      [userId, passwordHash]
+    );
+  }
+
+  async revokeAllUserSessions(userId: string) {
+    await this.app.db.query(
+      `update user_sessions
+       set revoked_at = now(),
+           updated_at = now()
+       where user_id = $1 and revoked_at is null`,
+      [userId]
+    );
+  }
+
+  async consumeResetRequest(token: string) {
+    await this.app.db.query(
+      `update verification_requests
+       set status = 'consumed',
+           updated_at = now()
+       where request_payload->>'token' = $1
+         and verification_type = 'manual'`,
+      [token]
+    );
+  }
 }
