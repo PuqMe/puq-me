@@ -198,9 +198,22 @@ export function HomeFeed() {
       );
     });
 
-    // Self marker — "Du"
+    // Self marker — "Du" with sweep animation
+    const sweepSize = 140;
+    const sweepHtml = `<div style="position:relative;width:${sweepSize}px;height:${sweepSize}px;">
+      <div style="position:absolute;inset:0;border-radius:50%;overflow:hidden;">
+        <div class="radar-sweep" style="
+          background:conic-gradient(from 0deg,transparent 0deg,rgba(168,85,247,.35) 30deg,transparent 60deg);
+          width:${sweepSize}px;height:${sweepSize}px;
+          margin-left:-${sweepSize/2}px;margin-top:-${sweepSize/2}px;
+        "></div>
+      </div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+        ${avatarHtml("Du", "#a855f7", 58, true)}
+      </div>
+    </div>`;
     selfMarkerRef.current = L.marker([loc.lat, loc.lng], {
-      icon: L.divIcon({ html: avatarHtml("Du", "#a855f7", 58, true), className: "", iconSize: [58,58], iconAnchor: [29,29] }),
+      icon: L.divIcon({ html: sweepHtml, className: "", iconSize: [sweepSize,sweepSize], iconAnchor: [sweepSize/2,sweepSize/2] }),
       zIndexOffset: 1000,
     }).addTo(map);
 
@@ -228,6 +241,17 @@ export function HomeFeed() {
         }
         .hf-scroll::-webkit-scrollbar { display:none; }
         @keyframes hf-spin { to { transform:rotate(360deg); } }
+        @keyframes hf-sweep {
+          0% { transform:rotate(0deg); }
+          100% { transform:rotate(360deg); }
+        }
+        .radar-sweep {
+          position:absolute; top:50%; left:50%;
+          width:100%; height:100%;
+          transform-origin:0 0;
+          animation: hf-sweep 4s linear infinite;
+          pointer-events:none;
+        }
       `}</style>
 
       {/* ════ OUTER SHELL ════ */}
@@ -260,6 +284,53 @@ export function HomeFeed() {
             background: "linear-gradient(to bottom, transparent, #08070f)",
             zIndex: 6, pointerEvents: "none",
           }} />
+
+          {/* ── MAP CONTROLS — Zoom +/-, Center ── */}
+          <div style={{
+            position: "absolute", right: 12, bottom: 100, zIndex: 10,
+            display: "flex", flexDirection: "column", gap: 6,
+          }}>
+            <button
+              onClick={() => mapObjRef.current?.zoomIn()}
+              style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: "rgba(6,4,15,.75)", border: "1px solid rgba(255,255,255,.1)",
+                color: "#fff", fontSize: 18, fontWeight: 600,
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                backdropFilter: "blur(12px)",
+              }}
+            >+</button>
+            <button
+              onClick={() => mapObjRef.current?.zoomOut()}
+              style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: "rgba(6,4,15,.75)", border: "1px solid rgba(255,255,255,.1)",
+                color: "#fff", fontSize: 18, fontWeight: 600,
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                backdropFilter: "blur(12px)",
+              }}
+            >−</button>
+            <button
+              onClick={() => {
+                if (mapObjRef.current) mapObjRef.current.setView([loc.lat, loc.lng], 14);
+              }}
+              style={{
+                width: 34, height: 34, borderRadius: 10,
+                background: "rgba(6,4,15,.75)", border: "1px solid rgba(255,255,255,.1)",
+                color: "#fff", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3" />
+                <line x1="12" y1="2" x2="12" y2="6" />
+                <line x1="12" y1="18" x2="12" y2="22" />
+                <line x1="2" y1="12" x2="6" y2="12" />
+                <line x1="18" y1="12" x2="22" y2="12" />
+              </svg>
+            </button>
+          </div>
 
           {/* ── HEADER OVERLAY — ONE ROW: Bell | Logo + PuQ.me | Time | Battery ── */}
           <div style={{

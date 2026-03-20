@@ -4,18 +4,19 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { updateMyVisibility } from "@/lib/profile";
 
 // ── Types ────────────────────────────────────────────────────────────────────
-export type VisibilityMode = "visible" | "friends" | "invisible";
-export type VisibilityTimer = "1h" | "3h" | "today" | "unlimited";
+export type VisibilityMode = "visible" | "friends" | "invisible" | "zero";
+export type VisibilityTimer = "15m" | "30m" | "1h" | "3h" | "5h" | "8h" | "today" | "unlimited";
 
 export type VisibilityState = {
   mode: VisibilityMode;
   timer: VisibilityTimer;
   activeUntil: number | null; // epoch ms, null = unlimited
   browserLocationGranted: boolean;
-  locationDenied: boolean; // true if user explicitly denied geolocation
+  locationDenied: boolean;
+  scanRadiusKm: number; // 1–10000
 };
 
-const STORAGE_KEY = "puqme.visibility.v1";
+const STORAGE_KEY = "puqme.visibility.v2";
 
 const DEFAULT_STATE: VisibilityState = {
   mode: "invisible",
@@ -23,6 +24,7 @@ const DEFAULT_STATE: VisibilityState = {
   activeUntil: null,
   browserLocationGranted: false,
   locationDenied: false,
+  scanRadiusKm: 5,
 };
 
 // ── Persistence ──────────────────────────────────────────────────────────────
@@ -30,13 +32,30 @@ function loadVisibility(): VisibilityState {
   if (typeof window === "undefined") return DEFAULT_STATE;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_STATE;
-    const parsed = JSON.parse(raw) as VisibilityState;
-    // Check if timer has expired
-    if (parsed.activeUntil && Date.now() > parsed.activeUntil) {
-      return { ...DEFAULT_STATE, browserLocationGranted: parsed.browserLocationGranted };
+    if (!raw) {
+      // Migrate from v1 if exists
+      const v1 = localStorage.getItem("puqme.visibility.v1");
+      if (v1) {
+        const old = JSON.parse(v1);
+        const migrated: VisibilityState = {
+          ...DEFAULT_STATE,
+          mode: old.mode === "invisible" ? "invisible" : old.mode,
+          timer: old.timer === "1h" || old.timer === "3h" || old.timer === "today" || old.timer === "unlimited"
+            ? old.timer : "unlimited",
+          activeUntil: old.activeUntil ?? null,
+          browserLocationGranted: old.browserLocationGranted ?? false,
+          locationDenied: old.locationDenied ?? false,
+        };
+        saveVisibility(migrated);
+        return migrated;
+      }
+      return DEFAULT_STATE;
     }
-    return parsed;
+    const parsed = JSON.parse(raw) as VisibilityState;
+    if (parsed.activeUntil && Date.now() > parsed.activeUntil) {
+      return { ...DEFAULT_STATE, browserLocationGranted: parsed.browserLocationGranted, scanRadiusKm: parsed.scanRadiusKm ?? 5 };
+    }
+    return { ...DEFAULT_STATE, ...parsed };
   } catch {
     return DEFAULT_STATE;
   }
@@ -50,8 +69,12 @@ function saveVisibility(state: VisibilityState) {
 function computeActiveUntil(timer: VisibilityTimer): number | null {
   const now = Date.now();
   switch (timer) {
+    case "15m": return now + 15 * 60 * 1000;
+    case "30m": return now + 30 * 60 * 1000;
     case "1h": return now + 60 * 60 * 1000;
     case "3h": return now + 3 * 60 * 60 * 1000;
+    case "5h": return now + 5 * 60 * 60 * 1000;
+    case "8h": return now + 8 * 60 * 60 * 1000;
     case "today": {
       const end = new Date();
       end.setHours(23, 59, 59, 999);
@@ -74,7 +97,7 @@ export function useVisibility() {
     const id = setInterval(() => {
       const current = loadVisibility();
       if (current.activeUntil && Date.now() > current.activeUntil) {
-        const reset = { ...DEFAULT_STATE, browserLocationGranted: current.browserLocationGranted };
+        const reset = { ...DEFAULT_STATE, browserLocationGranted: current.browserLocationGranted, scanRadiusKm: current.scanRadiusKm };
         saveVisibility(reset);
         setState(reset);
       }
@@ -82,32 +105,38 @@ export function useVisibility() {
     return () => clearInterval(id);
   }, []);
 
-  // Track whether we're syncing to avoid double calls
   const syncRef = useRef(false);
 
   const setMode = useCallback((mode: VisibilityMode, timer: VisibilityTimer = state.timer) => {
+    const isOff = mode === "invisible" || mode === "zero";
     const next: VisibilityState = {
       ...state,
       mode,
       timer,
-      activeUntil: mode === "invisible" ? null : computeActiveUntil(timer),
+      activeUntil: isOff ? null : computeActiveUntil(timer),
     };
     saveVisibility(next);
     setState(next);
 
-    // Sync to backend: visible/friends → isVisible=true, invisible → isVisible=false
     if (!syncRef.current) {
       syncRef.current = true;
-      updateMyVisibility(mode !== "invisible").catch(() => {}).finally(() => { syncRef.current = false; });
+      updateMyVisibility(!isOff).catch(() => {}).finally(() => { syncRef.current = false; });
     }
   }, [state]);
 
   const setTimer = useCallback((timer: VisibilityTimer) => {
+    const isOff = state.mode === "invisible" || state.mode === "zero";
     const next: VisibilityState = {
       ...state,
       timer,
-      activeUntil: state.mode === "invisible" ? null : computeActiveUntil(timer),
+      activeUntil: isOff ? null : computeActiveUntil(timer),
     };
+    saveVisibility(next);
+    setState(next);
+  }, [state]);
+
+  const setScanRadius = useCallback((km: number) => {
+    const next = { ...state, scanRadiusKm: Math.max(1, Math.min(10000, km)) };
     saveVisibility(next);
     setState(next);
   }, [state]);
@@ -134,7 +163,7 @@ export function useVisibility() {
     return `${mins}m`;
   }, [state.activeUntil]);
 
-  return { ...state, setMode, setTimer, setBrowserLocation, setLocationDenied, remainingLabel };
+  return { ...state, setMode, setTimer, setScanRadius, setBrowserLocation, setLocationDenied, remainingLabel };
 }
 
 // ── SVG Icons ────────────────────────────────────────────────────────────────
@@ -168,6 +197,15 @@ function GhostIcon() {
   );
 }
 
+function PowerOffIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+      <line x1="12" y1="2" x2="12" y2="12" />
+    </svg>
+  );
+}
+
 function LocationIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -186,6 +224,17 @@ function ClockIcon() {
   );
 }
 
+function RadarIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <line x1="12" y1="12" x2="20" y2="5.5" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
 // ── Mode descriptions ────────────────────────────────────────────────────────
 const MODE_CONFIG: Record<VisibilityMode, {
   icon: () => React.ReactElement;
@@ -197,7 +246,7 @@ const MODE_CONFIG: Record<VisibilityMode, {
 }> = {
   visible: {
     icon: EyeIcon,
-    en: { label: "Visible", desc: "Everyone nearby sees your approximate position" },
+    en: { label: "Global", desc: "Everyone nearby sees your approximate position" },
     de: { label: "Sichtbar", desc: "Jeder in der Nähe sieht deine ungefähre Position" },
     color: "#22c55e",
     activeColor: "#4ade80",
@@ -213,27 +262,60 @@ const MODE_CONFIG: Record<VisibilityMode, {
   },
   invisible: {
     icon: GhostIcon,
-    en: { label: "Invisible", desc: "Nobody sees you — you still see others" },
-    de: { label: "Unsichtbar", desc: "Niemand sieht dich — du siehst aber andere" },
+    en: { label: "Phantom", desc: "Nobody sees you — you still see others" },
+    de: { label: "Phantom", desc: "Niemand sieht dich — du siehst aber andere" },
     color: "#a855f7",
     activeColor: "#c084fc",
     activeBg: "rgba(168,85,247,.12)",
   },
+  zero: {
+    icon: PowerOffIcon,
+    en: { label: "Zero", desc: "Completely invisible — you don't see anyone either" },
+    de: { label: "Zero", desc: "Komplett aus — du siehst auch niemanden" },
+    color: "#ef4444",
+    activeColor: "#f87171",
+    activeBg: "rgba(239,68,68,.10)",
+  },
 };
 
 const TIMER_OPTIONS: { value: VisibilityTimer; en: string; de: string }[] = [
-  { value: "1h",        en: "1 hour",   de: "1 Stunde" },
-  { value: "3h",        en: "3 hours",  de: "3 Stunden" },
+  { value: "15m",       en: "15 min",   de: "15 Min" },
+  { value: "30m",       en: "30 min",   de: "30 Min" },
+  { value: "1h",        en: "1 hour",   de: "1 Std" },
+  { value: "3h",        en: "3 hours",  de: "3 Std" },
+  { value: "5h",        en: "5 hours",  de: "5 Std" },
+  { value: "8h",        en: "8 hours",  de: "8 Std" },
   { value: "today",     en: "Today",    de: "Heute" },
   { value: "unlimited", en: "Always",   de: "Immer" },
 ];
+
+// ── Scan Radius helpers ──────────────────────────────────────────────────────
+const RADIUS_STOPS = [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
+
+function radiusToSlider(km: number): number {
+  for (let i = 0; i < RADIUS_STOPS.length; i++) {
+    if (km <= RADIUS_STOPS[i]) return i;
+  }
+  return RADIUS_STOPS.length - 1;
+}
+
+function sliderToRadius(idx: number): number {
+  return RADIUS_STOPS[Math.min(idx, RADIUS_STOPS.length - 1)] ?? 5;
+}
+
+function formatRadius(km: number): string {
+  if (km >= 1000) return `${(km / 1000).toFixed(km % 1000 === 0 ? 0 : 1)}k km`;
+  return `${km} km`;
+}
 
 // ── Settings Card Component ──────────────────────────────────────────────────
 export function VisibilitySettingsCard({ locale = "de" }: { locale?: "en" | "de" }) {
   const vis = useVisibility();
   const [showTimer, setShowTimer] = useState(false);
+  const [showRadius, setShowRadius] = useState(false);
   const remaining = vis.remainingLabel();
   const lang = locale;
+  const isOff = vis.mode === "invisible" || vis.mode === "zero";
 
   return (
     <article className="glass-card rounded-[2rem] px-4 py-4">
@@ -300,7 +382,6 @@ export function VisibilitySettingsCard({ locale = "de" }: { locale?: "en" | "de"
                   {text.desc}
                 </div>
               </div>
-              {/* Active indicator */}
               {isActive && (
                 <div style={{
                   width: 8, height: 8, borderRadius: "50%",
@@ -314,9 +395,60 @@ export function VisibilitySettingsCard({ locale = "de" }: { locale?: "en" | "de"
         })}
       </div>
 
+      {/* Scan-Radius — always visible */}
+      <div style={{ marginTop: 14 }}>
+        <button
+          onClick={() => setShowRadius(!showRadius)}
+          style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "8px 12px",
+            borderRadius: 12,
+            border: "1px solid rgba(255,255,255,.06)",
+            background: "rgba(255,255,255,.03)",
+            width: "100%",
+            cursor: "pointer",
+            color: "rgba(255,255,255,.6)",
+            fontSize: 12, fontWeight: 500,
+          }}
+        >
+          <RadarIcon />
+          <span style={{ flex: 1, textAlign: "left" }}>
+            {lang === "de" ? "Scan-Radius" : "Scan Radius"}:{" "}
+            <strong style={{ color: "#c084fc" }}>
+              {formatRadius(vis.scanRadiusKm)}
+            </strong>
+          </span>
+          <span style={{ fontSize: 14, color: "rgba(255,255,255,.25)" }}>
+            {showRadius ? "▴" : "▾"}
+          </span>
+        </button>
+
+        {showRadius && (
+          <div style={{ padding: "10px 4px 4px" }}>
+            <input
+              type="range"
+              min={0}
+              max={RADIUS_STOPS.length - 1}
+              value={radiusToSlider(vis.scanRadiusKm)}
+              onChange={(e) => vis.setScanRadius(sliderToRadius(Number(e.target.value)))}
+              style={{ width: "100%", accentColor: "#a855f7" }}
+            />
+            <div style={{
+              display: "flex", justifyContent: "space-between",
+              fontSize: 10, color: "rgba(255,255,255,.3)", marginTop: 2,
+              padding: "0 2px",
+            }}>
+              <span>1 km</span>
+              <span>100 km</span>
+              <span>10.000 km</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Timer section — only for visible and friends modes */}
-      {vis.mode !== "invisible" && (
-        <div style={{ marginTop: 14 }}>
+      {!isOff && (
+        <div style={{ marginTop: 8 }}>
           <button
             onClick={() => setShowTimer(!showTimer)}
             style={{
@@ -350,7 +482,7 @@ export function VisibilitySettingsCard({ locale = "de" }: { locale?: "en" | "de"
 
           {showTimer && (
             <div style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr",
+              display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
               gap: 6, marginTop: 8,
             }}>
               {TIMER_OPTIONS.map(opt => {
@@ -507,6 +639,9 @@ export function VisibilityPrompt({
             · {remaining} {lang === "de" ? "übrig" : "left"}
           </span>
         )}
+        <span style={{ marginLeft: 6, color: "rgba(255,255,255,.25)", fontSize: 10 }}>
+          · {formatRadius(vis.scanRadiusKm)}
+        </span>
       </div>
       {/* Quick toggle buttons */}
       <div style={{ display: "flex", gap: 4 }}>
