@@ -1,5 +1,5 @@
-const CACHE_NAME = "puqme-shell-v3";
-const PAGES_CACHE_NAME = "puqme-pages-v1";
+const CACHE_NAME = "puqme-shell-v4";
+const PAGES_CACHE_NAME = "puqme-pages-v2";
 const STATIC_URLS = ["/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/apple-icon.png"];
 const SEO_PAGES = ["/", "/login", "/register", "/nearby", "/smart-match", "/groups"];
 
@@ -35,19 +35,20 @@ function isStaticAsset(request) {
   return /\.(js|css|png|svg|woff2)$/.test(pathname);
 }
 
-// Stale-while-revalidate for navigation
-async function staleWhileRevalidate(request) {
+// Network-first for navigation (prevents stale cache from blocking updates)
+async function networkFirstNavigation(request) {
   const cache = await caches.open(PAGES_CACHE_NAME);
-  const cached = await cache.match(request);
 
-  const fetchPromise = fetch(request).then(response => {
+  try {
+    const response = await fetch(request);
     if (response.ok) {
       cache.put(request, response.clone());
     }
     return response;
-  }).catch(() => cached);
-
-  return cached || fetchPromise;
+  } catch {
+    const cached = await cache.match(request);
+    return cached || new Response("Offline", { status: 503, statusText: "Service Unavailable" });
+  }
 }
 
 // Cache-first for static assets
@@ -135,13 +136,9 @@ self.addEventListener("notificationclick", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  // Navigation requests: stale-while-revalidate for SEO
+  // Navigation requests: network-first (always show latest version)
   if (isNavigationRequest(event.request)) {
-    event.respondWith(
-      staleWhileRevalidate(event.request).catch(() =>
-        caches.match(event.request).then((cached) => cached ?? caches.match("/"))
-      )
-    );
+    event.respondWith(networkFirstNavigation(event.request));
     return;
   }
 
