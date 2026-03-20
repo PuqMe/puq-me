@@ -78,7 +78,7 @@ export function AppShell({
   ));
 
   return (
-    <div className="relative z-10 min-h-screen" style={{ background: "rgba(7,5,15,0.92)" }}>
+    <div className="relative z-10 min-h-screen" style={{ background: "#07050f" }}>
       {/* Desktop sidebar + content */}
       <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-5">
         {/* Desktop sidebar */}
@@ -123,7 +123,7 @@ export function AppShell({
 
           {/* Notification toast */}
           {showNotifToast && (
-            <div className="fixed top-16 left-1/2 z-50 -translate-x-1/2 rounded-2xl border border-white/12 bg-[#0c081c]/95 px-5 py-3 text-[13px] text-white/80 backdrop-blur-xl lg:hidden">
+            <div className="fixed top-16 left-1/2 z-[9999] -translate-x-1/2 rounded-2xl border border-white/12 bg-[#0c081c]/95 px-5 py-3 text-[13px] text-white/80 backdrop-blur-xl lg:hidden">
               {t.noNotifications}
             </div>
           )}

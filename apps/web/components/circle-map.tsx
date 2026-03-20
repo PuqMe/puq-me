@@ -380,7 +380,7 @@ export function CircleMap() {
         {/* ── NOTIFICATION TOAST ── */}
         {showNotifToast && (
           <div style={{
-            position: "absolute", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 40,
+            position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 9999,
             background: "rgba(12,8,28,.95)", border: "1px solid rgba(255,255,255,.12)",
             borderRadius: 16, padding: "12px 20px", fontSize: 13, color: "rgba(255,255,255,.8)",
             backdropFilter: "blur(12px)", whiteSpace: "nowrap",
