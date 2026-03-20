@@ -279,7 +279,7 @@ export function CircleMap() {
                   <span style={{ fontSize: 13, fontWeight: 800, color: "#a855f7", letterSpacing: "0.01em" }}>{BRAND_NAME}</span>
                   <span style={{ fontSize: 15, fontWeight: 700, color: "#ffffff", letterSpacing: "-0.01em" }}>Circle</span>
                 </div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,.45)", marginTop: 2 }}>Your encounters</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,.45)", marginTop: 2 }}>{t.yourEncounters}</div>
               </div>
             </Link>
 

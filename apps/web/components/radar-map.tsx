@@ -248,7 +248,7 @@ export function RadarMap() {
             <LogoMark className="h-5 w-5 shrink-0 text-[#a855f7]" size={20} />
             <div style={{ lineHeight: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#ffffff", letterSpacing: "-0.01em" }}>{BRAND_NAME}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", marginTop: 2 }}>Nearby</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", marginTop: 2 }}>{t.nearby}</div>
             </div>
           </Link>
 

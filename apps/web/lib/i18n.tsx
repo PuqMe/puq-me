@@ -177,6 +177,7 @@ export const translations = {
     couldNotSaveSwipe: "Could not save swipe.",
 
     // ── Circle ──
+    yourEncounters: "Your encounters",
     circleSubtitle: "Your encounters on a map or list — deliberately blurred for privacy",
     noEncounters: "No encounters found",
     noEncountersDesc: "Keep exploring. Nearby users appear here as blurred encounter zones.",
@@ -388,6 +389,7 @@ export const translations = {
     couldNotSaveSwipe: "Konnte Swipe nicht speichern.",
 
     // ── Circle ──
+    yourEncounters: "Deine Begegnungen",
     circleSubtitle: "Deine Begegnungen auf Karte oder Liste — aus Datenschutzgründen verschwommen",
     noEncounters: "Keine Begegnungen gefunden",
     noEncountersDesc: "Erkunde weiter. Nutzer aus deiner Nähe erscheinen hier als verschwommene Begegnungszonen.",
