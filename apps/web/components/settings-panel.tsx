@@ -7,6 +7,7 @@ import { PushPermissionCard } from "@/components/push-permission-card";
 import { fetchMyProfile, updateMyPreferences, updateMyVisibility, type ProfileResponse } from "@/lib/profile";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/i18n";
+import { VisibilitySettingsCard } from "@/components/visibility-control";
 
 export function SettingsPanel() {
   const router = useRouter();
@@ -191,15 +192,8 @@ export function SettingsPanel() {
           </div>
         </article>
 
-        <article className="glass-card rounded-[2rem] px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-white">{t.visibility}</div>
-              <div className="mt-1 text-xs text-white/58">{t.visibilityDesc}</div>
-            </div>
-            <input checked={data?.profile.isVisible ?? true} disabled={!data || isSaving} onChange={(event) => void saveProfileVisibility(event.target.checked)} type="checkbox" />
-          </div>
-        </article>
+        {/* ── Location Visibility (3-mode + timer) ── */}
+        <VisibilitySettingsCard locale={locale} />
 
         {/* Sign out */}
         <article className="glass-card rounded-[2rem] px-4 py-4">

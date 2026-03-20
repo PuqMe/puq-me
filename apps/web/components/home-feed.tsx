@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { LogoMark } from "@puqme/ui";
 import { BRAND_NAME } from "@puqme/config";
+import { VisibilityPrompt, useVisibility } from "@/components/visibility-control";
 
 // ── Static data ───────────────────────────────────────────────────────────────
 const NEARBY_PEOPLE = [
@@ -89,6 +90,7 @@ export function HomeFeed() {
   const [loc,    setLoc]    = useState({ lat: 48.1351, lng: 11.582 });
   const [clock,  setClock]  = useState("9:41");
   const [toast,  setToast]  = useState(false);
+  const vis = useVisibility();
 
   // Live clock
   useEffect(() => {
@@ -118,14 +120,21 @@ export function HomeFeed() {
   }, []);
 
   // Geolocation
-  useEffect(() => {
+  const requestLocation = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => setLoc({ lat: coords.latitude, lng: coords.longitude }),
-      undefined,
+      ({ coords }) => {
+        setLoc({ lat: coords.latitude, lng: coords.longitude });
+        vis.setBrowserLocation(true);
+      },
+      () => { /* denied or error — keep default location */ },
       { timeout: 8000, maximumAge: 60_000 }
     );
-  }, []);
+  };
+
+  useEffect(() => {
+    requestLocation();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Init Leaflet map
   useEffect(() => {
@@ -285,6 +294,9 @@ export function HomeFeed() {
           flex: 1, overflowY: "auto", scrollbarWidth: "none",
           paddingBottom: 78,
         }}>
+
+          {/* ── Visibility Prompt ── */}
+          <VisibilityPrompt locale="de" onRequestLocation={requestLocation} />
 
           {/* ── In der Nähe ── */}
           <div style={{ padding: "10px 14px 0", marginBottom: 10 }}>
