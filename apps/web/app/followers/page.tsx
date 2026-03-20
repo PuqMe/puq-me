@@ -105,7 +105,10 @@ export default function FollowersPage() {
               id: encounter.userId,
               name: encounter.displayName,
               city: encounter.area,
-              followsSince: new Date(encounter.timestamp).toLocaleDateString('de-DE'),
+              followsSince: (() => {
+                const d = new Date(encounter.timestamp);
+                return isNaN(d.getTime()) ? `Heute ${encounter.timestamp}` : d.toLocaleDateString('de-DE');
+              })(),
               gradientFrom: colors.from,
               gradientTo: colors.to,
               isFollowing: encounter.mutual,
