@@ -52,7 +52,7 @@ export function ProfileOverview() {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Could not load profile.");
+          setErrorMessage(error instanceof Error ? error.message : t.couldNotLoadProfile);
         }
       }
     })();

@@ -31,7 +31,7 @@ export function RegisterCard() {
       await register(email.trim(), password);
       await navigateToPostAuthPath(router);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Registration failed.");
+      setErrorMessage(error instanceof Error ? error.message : t.registrationFailed);
     } finally {
       setIsSubmitting(false);
     }

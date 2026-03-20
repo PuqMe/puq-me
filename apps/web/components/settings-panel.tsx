@@ -28,7 +28,7 @@ export function SettingsPanel() {
         }
       } catch (error) {
         if (!cancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Could not load settings.");
+          setErrorMessage(error instanceof Error ? error.message : t.couldNotLoadSettings);
         }
       }
     })();
@@ -47,9 +47,9 @@ export function SettingsPanel() {
     try {
       const next = await updateMyVisibility(isVisible);
       setData(next);
-      setSuccessMessage("Visibility updated.");
+      setSuccessMessage(t.visibilityUpdated);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Could not save visibility.");
+      setErrorMessage(error instanceof Error ? error.message : t.couldNotSaveVisibility);
     } finally {
       setIsSaving(false);
     }
@@ -71,9 +71,9 @@ export function SettingsPanel() {
         onlyVerifiedProfiles: input.onlyVerifiedProfiles ?? data.preferences.onlyVerifiedProfiles
       });
       setData(next);
-      setSuccessMessage("Radar-Settings gespeichert.");
+      setSuccessMessage(t.radarSettingsSaved);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Could not save settings.");
+      setErrorMessage(error instanceof Error ? error.message : t.couldNotSaveSettings);
     } finally {
       setIsSaving(false);
     }

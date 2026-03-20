@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { LogoMark } from "@puqme/ui";
 import { BRAND_NAME } from "@puqme/config";
+import { useLanguage } from "@/lib/i18n";
 
 /* ── Time filters ── */
 type TimeFilter = "24h" | "3d" | "7d" | "1m" | "3m" | "1y";
@@ -97,6 +98,7 @@ function dotMarkerHtml(color: string) {
 
 /* ── Component ── */
 export function CircleMap() {
+  const { t } = useLanguage();
   const mapRef     = useRef<HTMLDivElement>(null);
   const mapObjRef  = useRef<any>(null);
   const tileRef    = useRef<any>(null);
@@ -470,14 +472,19 @@ export function CircleMap() {
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,.45)", marginBottom: 8 }}>2. Filter</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
-              {["All", "Women", "Men", "Other"].map(g => (
-                <button key={g} onClick={() => setGenderFilter(g.toLowerCase())} style={{
+              {([
+                { value: "all",   label: t.genderAll },
+                { value: "women", label: t.genderWomen },
+                { value: "men",   label: t.genderMen },
+                { value: "other", label: t.genderOther },
+              ] as Array<{ value: string; label: string }>).map(({ value, label }) => (
+                <button key={value} onClick={() => setGenderFilter(value)} style={{
                   padding: "10px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,.12)",
                   cursor: "pointer", fontSize: 14, fontWeight: 600,
-                  background: genderFilter === g.toLowerCase() ? "linear-gradient(135deg, #c084fc, #a855f7)" : "rgba(255,255,255,.06)",
-                  color: genderFilter === g.toLowerCase() ? "#fff" : "rgba(255,255,255,.6)",
+                  background: genderFilter === value ? "linear-gradient(135deg, #c084fc, #a855f7)" : "rgba(255,255,255,.06)",
+                  color: genderFilter === value ? "#fff" : "rgba(255,255,255,.6)",
                 }}>
-                  {g}
+                  {label}
                 </button>
               ))}
             </div>

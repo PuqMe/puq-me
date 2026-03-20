@@ -94,7 +94,7 @@ export function OnboardingFlow() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 50 * 1024 * 1024) {
-      setErrorMessage("Video must be under 50 MB.");
+      setErrorMessage(t.videoTooLarge);
       return;
     }
     const url = URL.createObjectURL(file);
@@ -144,12 +144,12 @@ export function OnboardingFlow() {
     setErrorMessage(null);
 
     if (displayName.trim().length < 2) {
-      setErrorMessage("Name needs at least 2 characters.");
+      setErrorMessage(t.nameMinChars);
       return;
     }
 
     if (selectedInterests.length < 3) {
-      setErrorMessage("Pick at least 3 interests.");
+      setErrorMessage(t.pickMinInterests);
       return;
     }
 
@@ -210,7 +210,7 @@ export function OnboardingFlow() {
 
       setStep(3);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Could not save profile.");
+      setErrorMessage(error instanceof Error ? error.message : t.couldNotSaveProfile);
     } finally {
       setIsSaving(false);
     }

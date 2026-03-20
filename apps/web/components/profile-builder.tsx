@@ -77,12 +77,12 @@ export function ProfileBuilder() {
     setSuccessMessage(null);
 
     if (form.displayName.trim().length < 2) {
-      setErrorMessage("Display name needs at least 2 characters.");
+      setErrorMessage(t.displayNameMinChars);
       return;
     }
 
     if (!form.birthDate) {
-      setErrorMessage("Please enter your date of birth.");
+      setErrorMessage(t.dobRequired);
       return;
     }
 
