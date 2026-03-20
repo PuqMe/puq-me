@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useLanguage } from "@/lib/i18n";
 import { registerPushDevice } from "@/lib/social";
 
-// VAPID public key - replace with actual key from server
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+// VAPID public key - lazy access to avoid issues in edge runtime
+function getVapidPublicKey() {
+  return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+}
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -43,10 +45,10 @@ export function PushPermissionCard() {
 
         let subscription = await registration.pushManager.getSubscription();
 
-        if (!subscription && VAPID_PUBLIC_KEY) {
+        if (!subscription && getVapidPublicKey()) {
           subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+            applicationServerKey: urlBase64ToUint8Array(getVapidPublicKey()),
           });
         }
 

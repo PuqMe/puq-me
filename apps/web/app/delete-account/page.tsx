@@ -290,7 +290,8 @@ export default function DeleteAccountPage() {
                 onClick={async () => {
                   setIsExporting(true);
                   try {
-                    await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/v1/gdpr/export`, {
+                    const { env } = await import("@/lib/env");
+                    await fetch(`${env.apiBaseUrl}/v1/gdpr/export`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                     });
