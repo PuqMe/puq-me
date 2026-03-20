@@ -182,6 +182,105 @@ export function getSocialPostSchema(baseUrl: string, postData?: {
   };
 }
 
+// Breadcrumb Schema for site navigation structure
+export function getBreadcrumbSchema(baseUrl: string, crumbs: { name: string; url: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((crumb, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: crumb.name,
+      item: crumb.url.startsWith("http") ? crumb.url : `${baseUrl}${crumb.url}`,
+    })),
+  };
+}
+
+// Geo/Place Schema for location-based features
+export function getGeoSchema(baseUrl: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Place",
+    name: "PuQ.me – City Dating Radar",
+    description: "Location-based dating and encounter platform active in cities across Europe",
+    url: baseUrl,
+    geo: {
+      "@type": "GeoShape",
+      description: "Available in major European cities",
+    },
+    hasMap: `${baseUrl}/nearby`,
+  };
+}
+
+// CollectionPage schema for feed/list pages
+export function getCollectionPageSchema(baseUrl: string, pagePath: string, title: string, description: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: title,
+    description: description,
+    url: `${baseUrl}${pagePath}`,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "PuQ.me",
+      url: baseUrl,
+    },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: baseUrl },
+        { "@type": "ListItem", position: 2, name: title, item: `${baseUrl}${pagePath}` },
+      ],
+    },
+  };
+}
+
+// Event schema for group activities
+export function getEventSchema(baseUrl: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SocialEvent",
+    name: "PuQ.me Gruppenaktivität",
+    description: "Spontane Gruppenaktivitäten und Begegnungen in deiner Stadt",
+    url: `${baseUrl}/groups`,
+    organizer: {
+      "@type": "Organization",
+      name: "PuQ.me",
+      url: baseUrl,
+    },
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    location: {
+      "@type": "Place",
+      name: "Deine Stadt",
+    },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "EUR",
+      availability: "https://schema.org/InStock",
+    },
+  };
+}
+
+// SearchAction for smart-match
+export function getSearchActionSchema(baseUrl: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Smart Match – KI-basiertes Matching",
+    url: `${baseUrl}/smart-match`,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${baseUrl}/smart-match?filter={search_term}`,
+      },
+      "query-input": "required name=search_term",
+    },
+  };
+}
+
 // Combine all schemas for the root layout
 export function getAllStructuredData(baseUrl: string) {
   return [
@@ -190,5 +289,6 @@ export function getAllStructuredData(baseUrl: string) {
     getSoftwareAppSchema(baseUrl),
     getFAQSchema(),
     getSpeakableSchema(baseUrl),
+    getGeoSchema(baseUrl),
   ];
 }

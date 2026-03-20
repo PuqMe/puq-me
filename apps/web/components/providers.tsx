@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import { ConsentBanner } from "@/components/consent-banner";
 import { analyzeBehavior, loadBehaviorProfile } from "@/lib/ai-features";
 import { loadRadarMetrics, loadContentAffinity } from "@/lib/radar-ranking";
+import { initWebVitals } from "@/lib/web-vitals";
 
 export function Providers({ children }: PropsWithChildren) {
   useEffect(() => {
@@ -21,6 +22,9 @@ export function Providers({ children }: PropsWithChildren) {
       // Silently ignore - behavior analysis is optional
       console.debug('[PuQ.me] Behavior analysis skipped:', e);
     }
+
+    // Initialize Web Vitals monitoring
+    initWebVitals();
   }, []);
 
   return (

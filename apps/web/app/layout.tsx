@@ -98,6 +98,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           />
         ))}
         <link rel="canonical" href={env.appUrl} />
+        <link rel="preconnect" href="https://api.puq.me" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://api.puq.me" />
+        <link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://b.basemaps.cartocdn.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://a.basemaps.cartocdn.com" />
+        <link rel="dns-prefetch" href="https://b.basemaps.cartocdn.com" />
+        <link rel="alternate" hrefLang="en" href={env.appUrl} />
+        <link rel="alternate" hrefLang="de" href={env.appUrl} />
+        <link rel="alternate" hrefLang="x-default" href={env.appUrl} />
       </head>
       <body className="app-frame min-h-screen font-sans antialiased">
         <script dangerouslySetInnerHTML={{ __html: installPromptScript }} />
