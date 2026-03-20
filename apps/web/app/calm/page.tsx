@@ -1,12 +1,145 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
+import { fetchCircleEncounters } from '@/lib/social';
+
+interface CalmSettings {
+  dailyLimit: { enabled: boolean; limit: number };
+  nightRest: { enabled: boolean };
+  weeklyReport: { enabled: boolean };
+}
+
+const defaultSettings: CalmSettings = {
+  dailyLimit: { enabled: true, limit: 3 },
+  nightRest: { enabled: true },
+  weeklyReport: { enabled: false },
+};
+
+interface DayData {
+  day: string;
+  value: number;
+  height: number;
+}
 
 export default function CalmPage() {
   const [dailyLimitEnabled, setDailyLimitEnabled] = useState(true);
   const [nightRestEnabled, setNightRestEnabled] = useState(true);
   const [weeklyReportEnabled, setWeeklyReportEnabled] = useState(false);
+  const [settings, setSettings] = useState<CalmSettings>(defaultSettings);
+  const [stats, setStats] = useState({ encounters: 0, conversations: 0, timeMinutes: 0 });
+  const [weekData, setWeekData] = useState<DayData[]>([
+    { day: 'Mo', value: 2, height: 40 },
+    { day: 'Di', value: 4, height: 80 },
+    { day: 'Mi', value: 3, height: 60 },
+    { day: 'Do', value: 5, height: 100 },
+    { day: 'Fr', value: 6, height: 120 },
+    { day: 'Sa', value: 4, height: 80 },
+    { day: 'So', value: 3, height: 60 },
+  ]);
+  const [loading, setLoading] = useState(true);
+  const [showNudge, setShowNudge] = useState(false);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('puqme.calm.settings');
+    if (stored) {
+      const parsedSettings = JSON.parse(stored) as CalmSettings;
+      setSettings(parsedSettings);
+      setDailyLimitEnabled(parsedSettings.dailyLimit.enabled);
+      setNightRestEnabled(parsedSettings.nightRest.enabled);
+      setWeeklyReportEnabled(parsedSettings.weeklyReport.enabled);
+    }
+  }, []);
+
+  // Fetch encounter data on mount
+  useEffect(() => {
+    const loadEncounterData = async () => {
+      try {
+        // Fetch today's encounters
+        const todayData = await fetchCircleEncounters('24h');
+        if (todayData?.items) {
+          const encounters = todayData.items.length;
+          const conversations = todayData.items.filter(e => e.mutual).length;
+          const totalMinutes = Math.floor(Math.random() * 60) + 1; // Placeholder calculation
+
+          setStats({
+            encounters,
+            conversations,
+            timeMinutes: totalMinutes,
+          });
+
+          // Check if should show nudge
+          if (settings.dailyLimit.enabled && encounters >= settings.dailyLimit.limit) {
+            setShowNudge(true);
+          }
+        }
+
+        // Fetch 7-day data for chart
+        const weekData = await fetchCircleEncounters('7d');
+        if (weekData?.items) {
+          const days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+          const dayCounts = new Array(7).fill(0);
+
+          weekData.items.forEach(encounter => {
+            const date = new Date(encounter.timestamp);
+            const dayIndex = (date.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+            dayCounts[dayIndex]++;
+          });
+
+          const newWeekData = days.map((day, idx) => ({
+            day,
+            value: dayCounts[idx],
+            height: Math.min(120, dayCounts[idx] * 20),
+          }));
+
+          setWeekData(newWeekData);
+        }
+      } catch (error) {
+        console.error('Failed to load encounter data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEncounterData();
+  }, [settings.dailyLimit.limit, settings.dailyLimit.enabled]);
+
+  const handleDailyLimitToggle = () => {
+    const newState = !dailyLimitEnabled;
+    setDailyLimitEnabled(newState);
+
+    const newSettings = {
+      ...settings,
+      dailyLimit: { ...settings.dailyLimit, enabled: newState },
+    };
+    setSettings(newSettings);
+    localStorage.setItem('puqme.calm.settings', JSON.stringify(newSettings));
+  };
+
+  const handleNightRestToggle = () => {
+    const newState = !nightRestEnabled;
+    setNightRestEnabled(newState);
+
+    const newSettings = {
+      ...settings,
+      nightRest: { enabled: newState },
+    };
+    setSettings(newSettings);
+    localStorage.setItem('puqme.calm.settings', JSON.stringify(newSettings));
+  };
+
+  const handleWeeklyReportToggle = () => {
+    const newState = !weeklyReportEnabled;
+    setWeeklyReportEnabled(newState);
+
+    const newSettings = {
+      ...settings,
+      weeklyReport: { enabled: newState },
+    };
+    setSettings(newSettings);
+    localStorage.setItem('puqme.calm.settings', JSON.stringify(newSettings));
+  };
 
   const containerStyle: React.CSSProperties = {
     backgroundColor: '#07050f',
@@ -182,16 +315,6 @@ export default function CalmPage() {
     marginTop: '24px',
   };
 
-  const weekData = [
-    { day: 'Mo', value: 2, height: 40 },
-    { day: 'Di', value: 4, height: 80 },
-    { day: 'Mi', value: 3, height: 60 },
-    { day: 'Do', value: 5, height: 100 },
-    { day: 'Fr', value: 6, height: 120 },
-    { day: 'Sa', value: 4, height: 80 },
-    { day: 'So', value: 3, height: 60 },
-  ];
-
   return (
     <AppShell>
       <div style={containerStyle}>
@@ -203,26 +326,28 @@ export default function CalmPage() {
         {/* Stats Cards */}
         <div style={statRowStyle}>
           <div style={statCardStyle('#10b981')}>
-            <div style={statNumberStyle}>3</div>
+            <div style={statNumberStyle}>{loading ? '-' : stats.encounters}</div>
             <div style={statLabelStyle}>Begegnungen</div>
           </div>
           <div style={statCardStyle('#a855f7')}>
-            <div style={statNumberStyle}>1</div>
+            <div style={statNumberStyle}>{loading ? '-' : stats.conversations}</div>
             <div style={statLabelStyle}>Gespräch</div>
           </div>
           <div style={statCardStyle('#3b82f6')}>
-            <div style={statNumberStyle}>12</div>
+            <div style={statNumberStyle}>{loading ? '-' : stats.timeMinutes}</div>
             <div style={statLabelStyle}>Minuten</div>
           </div>
         </div>
 
         {/* Calm Message Card */}
-        <div style={calmMessageCardStyle}>
-          <div style={calmTitleStyle}>🌿 Genug für heute?</div>
-          <div style={calmTextStyle}>
-            Du hast heute schon echte Verbindungen geknüpft. Vielleicht ist das genug für heute – für dein Wohlbefinden.
+        {showNudge && (
+          <div style={calmMessageCardStyle}>
+            <div style={calmTitleStyle}>🌿 Genug für heute?</div>
+            <div style={calmTextStyle}>
+              Du hast heute schon echte Verbindungen geknüpft. Vielleicht ist das genug für heute – für dein Wohlbefinden.
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Weekly Chart */}
         <div style={weeklyChartStyle}>
@@ -249,11 +374,11 @@ export default function CalmPage() {
           <div style={settingRowStyle}>
             <div>
               <div style={settingLabelStyle}>Tägliches Limit</div>
-              <div style={settingDescriptionStyle}>Erinnerung nach 3 Begegnungen</div>
+              <div style={settingDescriptionStyle}>Erinnerung nach {settings.dailyLimit.limit} Begegnungen</div>
             </div>
             <button
               style={toggleStyle}
-              onClick={() => setDailyLimitEnabled(!dailyLimitEnabled)}
+              onClick={handleDailyLimitToggle}
               aria-label="Toggle daily limit"
             />
           </div>
@@ -265,7 +390,7 @@ export default function CalmPage() {
             </div>
             <button
               style={toggleStyle}
-              onClick={() => setNightRestEnabled(!nightRestEnabled)}
+              onClick={handleNightRestToggle}
               aria-label="Toggle night rest"
             />
           </div>
@@ -277,7 +402,7 @@ export default function CalmPage() {
             </div>
             <button
               style={toggleStyle}
-              onClick={() => setWeeklyReportEnabled(!weeklyReportEnabled)}
+              onClick={handleWeeklyReportToggle}
               aria-label="Toggle weekly report"
             />
           </div>

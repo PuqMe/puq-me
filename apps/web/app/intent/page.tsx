@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
+import { updateFreeNowStatus } from "@/lib/social";
+import { fetchMyProfile } from "@/lib/profile";
 
 const INTENT_CATEGORIES = [
   { id: "coffee", emoji: "☕", label: "Kaffee" },
@@ -16,8 +18,123 @@ export default function IntentPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("coffee");
   const [intentActive, setIntentActive] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(120);
+  const [nearbyCount, setNearbyCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const selected = INTENT_CATEGORIES.find((c) => c.id === selectedCategory);
+
+  // Load profile and restore intent on mount
+  useEffect(() => {
+    const initializeIntent = async () => {
+      try {
+        // Load profile to check freeNow/visibility status
+        const profile = await fetchMyProfile();
+        if (profile.freeNow) {
+          setIntentActive(true);
+          // Restore intent details from localStorage if available
+          const savedIntent = localStorage.getItem("puqme.intent.current");
+          if (savedIntent) {
+            const intent = JSON.parse(savedIntent);
+            setSelectedCategory(intent.category);
+            // Check if intent is still valid (not expired)
+            if (new Date(intent.expiresAt) > new Date()) {
+              const remaining = Math.ceil(
+                (new Date(intent.expiresAt).getTime() - Date.now()) / 60000
+              );
+              setTimeRemaining(Math.max(0, remaining));
+            } else {
+              localStorage.removeItem("puqme.intent.current");
+              setIntentActive(false);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    initializeIntent();
+  }, []);
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (!intentActive || timeRemaining <= 0) return;
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          setIntentActive(false);
+          localStorage.removeItem("puqme.intent.current");
+          showToast("Intent abgelaufen");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 60000); // Update every minute
+    return () => clearInterval(timer);
+  }, [intentActive]);
+
+  // Fetch nearby users count
+  useEffect(() => {
+    const fetchNearby = async () => {
+      try {
+        const response = await fetch("/api/social/nearby");
+        if (response.ok) {
+          const data = await response.json();
+          setNearbyCount(data.users?.length || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch nearby users:", error);
+      }
+    };
+
+    if (intentActive) {
+      fetchNearby();
+      const interval = setInterval(fetchNearby, 30000); // Refresh every 30s
+      return () => clearInterval(interval);
+    }
+  }, [intentActive]);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleIntentToggle = async (newState: boolean) => {
+    setSaving(true);
+    try {
+      // Call API to update freeNow status
+      await updateFreeNowStatus(newState);
+      setIntentActive(newState);
+
+      if (newState) {
+        // Activate intent: store in localStorage
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 120 * 60000); // 120 minutes
+        const intentData = {
+          category: selectedCategory,
+          emoji: selected?.emoji,
+          text: selected?.label,
+          activatedAt: now.toISOString(),
+          expiresAt: expiresAt.toISOString(),
+        };
+        localStorage.setItem("puqme.intent.current", JSON.stringify(intentData));
+        setTimeRemaining(120);
+        showToast("Intent aktiviert!");
+      } else {
+        // Deactivate intent: clear localStorage
+        localStorage.removeItem("puqme.intent.current");
+        showToast("Intent deaktiviert");
+      }
+    } catch (error) {
+      console.error("Failed to update intent:", error);
+      showToast("Fehler beim Aktualisieren");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <AppShell title="Was machst du gerade?" active="/intent">
@@ -268,7 +385,7 @@ export default function IntentPage() {
                 gap: "-6px",
               }}
             >
-              {["M", "N", "S"].map((initial, idx) => (
+              {Array.from({ length: Math.min(3, nearbyCount) }).map((_, idx) => (
                 <div
                   key={idx}
                   style={{
@@ -287,26 +404,29 @@ export default function IntentPage() {
                     zIndex: 10 - idx,
                   }}
                 >
-                  {initial}
+                  {String.fromCharCode(65 + idx)}
                 </div>
               ))}
-              <div
-                style={{
-                  marginLeft: "-4px",
-                  paddingLeft: "8px",
-                  fontSize: "13px",
-                  color: "#a855f7",
-                  fontWeight: "500",
-                }}
-              >
-                +5 mehr
-              </div>
+              {nearbyCount > 3 && (
+                <div
+                  style={{
+                    marginLeft: "-4px",
+                    paddingLeft: "8px",
+                    fontSize: "13px",
+                    color: "#a855f7",
+                    fontWeight: "500",
+                  }}
+                >
+                  +{nearbyCount - 3} mehr
+                </div>
+              )}
             </div>
           </div>
 
           {/* Action Button */}
           <button
-            onClick={() => setIntentActive(!intentActive)}
+            onClick={() => handleIntentToggle(!intentActive)}
+            disabled={saving}
             style={{
               width: "100%",
               padding: "16px",
@@ -319,13 +439,38 @@ export default function IntentPage() {
               color: "#ffffff",
               fontSize: "16px",
               fontWeight: "600",
-              cursor: "pointer",
+              cursor: saving ? "not-allowed" : "pointer",
               transition: "all 0.2s ease",
               marginBottom: "24px",
+              opacity: saving ? 0.6 : 1,
             }}
           >
-            {intentActive ? "Intent deaktivieren" : "Intent aktivieren"}
+            {saving
+              ? "Wird gespeichert..."
+              : intentActive
+                ? "Intent deaktivieren"
+                : "Intent aktivieren"}
           </button>
+
+          {/* Toast Notification */}
+          {toast && (
+            <div
+              style={{
+                position: "fixed",
+                bottom: "100px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "rgba(168,85,247,0.9)",
+                color: "#ffffff",
+                padding: "12px 20px",
+                borderRadius: "8px",
+                fontSize: "13px",
+                zIndex: 50,
+              }}
+            >
+              {toast}
+            </div>
+          )}
         </div>
       </main>
     </AppShell>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
+import { fetchNearbyUsers, sendWave } from "@/lib/social";
 
 const DEMO_CARDS = [
   {
@@ -45,11 +46,92 @@ const DEMO_CARDS = [
 export default function CardsPage() {
   const [cards, setCards] = useState(DEMO_CARDS);
   const [showNewCardPrompt, setShowNewCardPrompt] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
-  const handleCardAction = (cardId: number, action: "join" | "message") => {
-    if (action === "join") {
-      // Remove card on join
-      setCards((prev) => prev.filter((c) => c.id !== cardId));
+  // Load nearby users on mount
+  useEffect(() => {
+    const loadNearbyUsers = async () => {
+      try {
+        // Get geolocation
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              try {
+                // Fetch nearby users with current location
+                const nearbyUsers = await fetchNearbyUsers({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                });
+
+                // Map NearbyUser items to card format
+                const mappedCards = nearbyUsers.map(
+                  (user: any, idx: number) => ({
+                    id: idx + 1,
+                    avatar: user.displayName?.charAt(0).toUpperCase() || "U",
+                    color: `hsl(${idx * 60}, 70%, 55%)`,
+                    name: user.displayName,
+                    distance: `${Math.round(user.distanceKm * 1000)}m`,
+                    time: "gerade aktiv",
+                    expireIn: "1h",
+                    emoji: "🎯",
+                    action: user.bio || "Aktiv jetzt",
+                    isLive: user.isOnline,
+                  })
+                );
+
+                // Combine real nearby users with demo fallback
+                setCards(mappedCards.length > 0 ? mappedCards : DEMO_CARDS);
+              } catch (error) {
+                console.error("Failed to fetch nearby users:", error);
+                setCards(DEMO_CARDS); // Fallback to demo
+              }
+            },
+            (error) => {
+              console.error("Geolocation error:", error);
+              setCards(DEMO_CARDS); // Fallback if geolocation fails
+            }
+          );
+        } else {
+          setCards(DEMO_CARDS); // Fallback if geolocation not available
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNearbyUsers();
+  }, []);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleCardAction = async (
+    cardId: number,
+    action: "join" | "message",
+    userId?: string
+  ) => {
+    if (action === "join" && userId) {
+      setSending(cardId);
+      try {
+        // Call sendWave API
+        await sendWave(userId);
+        // Remove card on successful join
+        setCards((prev) => prev.filter((c) => c.id !== cardId));
+        showToast("Wave gesendet! 👋");
+        // Store in localStorage
+        const myCards = JSON.parse(localStorage.getItem("puqme.cards.mine") || "[]");
+        myCards.push({ cardId, userId, timestamp: new Date().toISOString() });
+        localStorage.setItem("puqme.cards.mine", JSON.stringify(myCards));
+      } catch (error) {
+        console.error("Failed to send wave:", error);
+        showToast("Fehler beim Senden");
+      } finally {
+        setSending(null);
+      }
     }
   };
 
@@ -234,7 +316,8 @@ export default function CardsPage() {
                   }}
                 >
                   <button
-                    onClick={() => handleCardAction(card.id, "join")}
+                    onClick={() => handleCardAction(card.id, "join", `user_${card.id}`)}
+                    disabled={sending === card.id}
                     style={{
                       padding: "12px",
                       borderRadius: "10px",
@@ -243,11 +326,12 @@ export default function CardsPage() {
                       color: "#ffffff",
                       fontSize: "13px",
                       fontWeight: "600",
-                      cursor: "pointer",
+                      cursor: sending === card.id ? "not-allowed" : "pointer",
                       transition: "all 0.2s ease",
+                      opacity: sending === card.id ? 0.6 : 1,
                     }}
                   >
-                    Bin dabei!
+                    {sending === card.id ? "Wird gesendet..." : "Bin dabei!"}
                   </button>
                   <button
                     onClick={() => handleCardAction(card.id, "message")}
@@ -368,6 +452,53 @@ export default function CardsPage() {
             >
               Neue Aktion erstellen
             </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0,0,0,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 100,
+            }}
+          >
+            <div
+              style={{
+                fontSize: "14px",
+                color: "#ffffff",
+              }}
+            >
+              Lädt Aktionen...
+            </div>
+          </div>
+        )}
+
+        {/* Action Toast */}
+        {toast && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: "100px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "rgba(168,85,247,0.9)",
+              color: "#ffffff",
+              padding: "12px 20px",
+              borderRadius: "8px",
+              fontSize: "13px",
+              zIndex: 50,
+            }}
+          >
+            {toast}
           </div>
         )}
       </main>

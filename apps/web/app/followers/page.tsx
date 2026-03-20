@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
+import { fetchCircleEncounters } from '@/lib/social';
+import { fetchMyProfile } from '@/lib/profile';
 
 interface Follower {
   id: string;
@@ -13,69 +15,145 @@ interface Follower {
   isFollowing: boolean;
 }
 
+const gradientColors = [
+  { from: '#ff69b4', to: '#ff6b6b' },
+  { from: '#00d4ff', to: '#0099cc' },
+  { from: '#a855f7', to: '#7c3aed' },
+  { from: '#22c55e', to: '#16a34a' },
+  { from: '#fbbf24', to: '#f59e0b' },
+  { from: '#ef4444', to: '#dc2626' },
+];
+
+const demoFollowers: Follower[] = [
+  {
+    id: '1',
+    name: 'Lisa M.',
+    city: 'Berlin',
+    followsSince: '2 Wochen',
+    gradientFrom: '#ff69b4',
+    gradientTo: '#ff6b6b',
+    isFollowing: false,
+  },
+  {
+    id: '2',
+    name: 'Maya K.',
+    city: 'München',
+    followsSince: '1 Monat',
+    gradientFrom: '#00d4ff',
+    gradientTo: '#0099cc',
+    isFollowing: true,
+  },
+  {
+    id: '3',
+    name: 'Tom S.',
+    city: 'Köln',
+    followsSince: '3 Wochen',
+    gradientFrom: '#a855f7',
+    gradientTo: '#7c3aed',
+    isFollowing: true,
+  },
+  {
+    id: '4',
+    name: 'Anna W.',
+    city: 'Hamburg',
+    followsSince: '1 Woche',
+    gradientFrom: '#22c55e',
+    gradientTo: '#16a34a',
+    isFollowing: false,
+  },
+  {
+    id: '5',
+    name: 'Jonas B.',
+    city: 'Frankfurt',
+    followsSince: '4 Wochen',
+    gradientFrom: '#fbbf24',
+    gradientTo: '#f59e0b',
+    isFollowing: false,
+  },
+  {
+    id: '6',
+    name: 'Sophie R.',
+    city: 'Stuttgart',
+    followsSince: '10 Tage',
+    gradientFrom: '#ef4444',
+    gradientTo: '#dc2626',
+    isFollowing: true,
+  },
+];
+
 export default function FollowersPage() {
   const [activeTab, setActiveTab] = useState('followers');
-  const [followers, setFollowers] = useState<Follower[]>([
-    {
-      id: '1',
-      name: 'Lisa M.',
-      city: 'Berlin',
-      followsSince: '2 Wochen',
-      gradientFrom: '#ff69b4',
-      gradientTo: '#ff6b6b',
-      isFollowing: false,
-    },
-    {
-      id: '2',
-      name: 'Maya K.',
-      city: 'München',
-      followsSince: '1 Monat',
-      gradientFrom: '#00d4ff',
-      gradientTo: '#0099cc',
-      isFollowing: true,
-    },
-    {
-      id: '3',
-      name: 'Tom S.',
-      city: 'Köln',
-      followsSince: '3 Wochen',
-      gradientFrom: '#a855f7',
-      gradientTo: '#7c3aed',
-      isFollowing: true,
-    },
-    {
-      id: '4',
-      name: 'Anna W.',
-      city: 'Hamburg',
-      followsSince: '1 Woche',
-      gradientFrom: '#22c55e',
-      gradientTo: '#16a34a',
-      isFollowing: false,
-    },
-    {
-      id: '5',
-      name: 'Jonas B.',
-      city: 'Frankfurt',
-      followsSince: '4 Wochen',
-      gradientFrom: '#fbbf24',
-      gradientTo: '#f59e0b',
-      isFollowing: false,
-    },
-    {
-      id: '6',
-      name: 'Sophie R.',
-      city: 'Stuttgart',
-      followsSince: '10 Tage',
-      gradientFrom: '#ef4444',
-      gradientTo: '#dc2626',
-      isFollowing: true,
-    },
-  ]);
+  const [followers, setFollowers] = useState<Follower[]>(demoFollowers);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    const loadFollowers = async () => {
+      try {
+        const [encountersData, profileData] = await Promise.all([
+          fetchCircleEncounters('24h'),
+          fetchMyProfile(),
+        ]);
+
+        const followerMap = new Map<string, Follower>();
+
+        // Build from encounter users
+        if (encountersData?.items) {
+          encountersData.items.forEach((encounter, index) => {
+            const colors = gradientColors[index % gradientColors.length];
+            followerMap.set(encounter.userId, {
+              id: encounter.userId,
+              name: encounter.displayName,
+              city: encounter.area,
+              followsSince: new Date(encounter.timestamp).toLocaleDateString('de-DE'),
+              gradientFrom: colors.from,
+              gradientTo: colors.to,
+              isFollowing: encounter.mutual,
+            });
+          });
+        }
+
+        // Load follow state from localStorage
+        const storedState = localStorage.getItem('puqme.followers');
+        const followState: Record<string, { following: boolean }> = storedState ? JSON.parse(storedState) : {};
+
+        // Merge with stored state
+        const mergedFollowers = Array.from(followerMap.values()).map(f => ({
+          ...f,
+          isFollowing: followState[f.id]?.following ?? f.isFollowing,
+        }));
+
+        // Use real data if available, fallback to demo
+        setFollowers(mergedFollowers.length > 0 ? mergedFollowers : demoFollowers);
+      } catch (error) {
+        console.error('Failed to load followers:', error);
+        setFollowers(demoFollowers);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFollowers();
+  }, []);
 
   const toggleFollowing = (id: string) => {
     setFollowers(prev =>
       prev.map(f => (f.id === id ? { ...f, isFollowing: !f.isFollowing } : f))
     );
+
+    // Save to localStorage
+    const followerState = localStorage.getItem('puqme.followers');
+    const state: Record<string, { following: boolean }> = followerState ? JSON.parse(followerState) : {};
+    state[id] = { following: !state[id]?.following };
+    localStorage.setItem('puqme.followers', JSON.stringify(state));
+
+    // Show toast
+    const follower = followers.find(f => f.id === id);
+    setToast({
+      message: state[id].following ? `Du folgst ${follower?.name}` : `Du folgst ${follower?.name} nicht mehr`,
+      type: 'success',
+    });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const styles = {
@@ -209,15 +287,33 @@ export default function FollowersPage() {
 
   return (
     <AppShell>
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            right: '1rem',
+            backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
+            color: '#ffffff',
+            padding: '1rem 1.5rem',
+            borderRadius: '0.5rem',
+            zIndex: 1000,
+            fontWeight: 600,
+            fontSize: '0.9rem',
+          }}
+        >
+          {toast.message}
+        </div>
+      )}
       <div style={styles.container}>
         {/* Stats Header */}
         <div style={styles.statsContainer}>
           <div style={styles.statCard}>
-            <div style={styles.statNumber}>128</div>
+            <div style={styles.statNumber}>{followers.length}</div>
             <div style={styles.statLabel}>Follower</div>
           </div>
           <div style={styles.statCard}>
-            <div style={styles.statNumber}>43</div>
+            <div style={styles.statNumber}>{followers.filter(f => f.isFollowing).length}</div>
             <div style={styles.statLabel}>Following</div>
           </div>
         </div>
@@ -229,14 +325,14 @@ export default function FollowersPage() {
             style={styles.tab(activeTab === 'followers')}
           >
             Follower
-            <span style={styles.badge}>128</span>
+            <span style={styles.badge}>{followers.length}</span>
           </button>
           <button
             onClick={() => setActiveTab('following')}
             style={styles.tab(activeTab === 'following')}
           >
             Following
-            <span style={styles.badge}>43</span>
+            <span style={styles.badge}>{followers.filter(f => f.isFollowing).length}</span>
           </button>
         </div>
 

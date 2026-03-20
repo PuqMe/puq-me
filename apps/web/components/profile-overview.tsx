@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
-import { fetchMyProfile, uploadMyPhoto, type ProfileResponse } from "@/lib/profile";
+import { fetchMyProfile, uploadMyPhoto, updateMyProfile, updateMyInterests, type ProfileResponse } from "@/lib/profile";
 import { fetchCircleEncounters, fetchMatches, type CircleEncounter } from "@/lib/social";
 import { useLanguage } from "@/lib/i18n";
 
@@ -159,7 +159,12 @@ export function ProfileOverview() {
   const [toastMsg, setToastMsg] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [bioText, setBioText] = useState<string>("");
+  const [bioSaving, setBioSaving] = useState(false);
+  const [interestInput, setInterestInput] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const bioInputRef = useRef<HTMLTextAreaElement>(null);
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
@@ -173,7 +178,10 @@ export function ProfileOverview() {
     void (async () => {
       try {
         const d = await fetchMyProfile();
-        if (!cancelled) setData(d);
+        if (!cancelled) {
+          setData(d);
+          setBioText(d.profile.bio || "");
+        }
       } catch (error) {
         if (!cancelled) setErrorMessage(error instanceof Error ? error.message : t.couldNotLoadProfile);
       }
@@ -283,6 +291,81 @@ export function ProfileOverview() {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [showToast, tx.photoUpdated, tx.photoError]);
+
+  /* ── Gallery file upload handler ── */
+  const handleGalleryUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 10 * 1024 * 1024) return; // 10MB max
+
+    setUploading(true);
+    try {
+      await uploadMyPhoto(file);
+      // Reload profile to get updated photo list
+      const refreshed = await fetchMyProfile();
+      setData(refreshed);
+      showToast(tx.photoUpdated);
+    } catch {
+      showToast(tx.photoError);
+    } finally {
+      setUploading(false);
+      // Reset input
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
+  }, [showToast, tx.photoUpdated, tx.photoError]);
+
+  /* ── Bio save handler ── */
+  const handleBioSave = useCallback(async () => {
+    if (bioText === data?.profile.bio) return; // No changes
+
+    setBioSaving(true);
+    try {
+      await updateMyProfile({ bio: bioText });
+      // Update local state
+      if (data) {
+        setData({ ...data, profile: { ...data.profile, bio: bioText } });
+      }
+      showToast(tx.photoUpdated); // Reuse success message
+    } catch {
+      showToast(tx.photoError);
+      // Revert to original
+      setBioText(data?.profile.bio || "");
+    } finally {
+      setBioSaving(false);
+    }
+  }, [bioText, data, showToast, tx.photoUpdated, tx.photoError]);
+
+  /* ── Add hobby handler ── */
+  const handleAddHobby = useCallback(async () => {
+    if (!interestInput.trim() || !data) return;
+
+    const newInterests = [...data.interests, interestInput.trim()];
+    try {
+      await updateMyInterests(newInterests);
+      setData({ ...data, interests: newInterests });
+      setInterestInput("");
+      showToast(tx.photoUpdated); // Reuse success message
+    } catch {
+      showToast(tx.photoError);
+    }
+  }, [interestInput, data, showToast, tx.photoUpdated, tx.photoError]);
+
+  /* ── Remove hobby handler ── */
+  const handleRemoveHobby = useCallback(async (hobby: string) => {
+    if (!data) return;
+
+    const newInterests = data.interests.filter(h => h !== hobby);
+    try {
+      await updateMyInterests(newInterests);
+      setData({ ...data, interests: newInterests });
+      showToast(tx.photoUpdated); // Reuse success message
+    } catch {
+      showToast(tx.photoError);
+    }
+  }, [data, showToast, tx.photoUpdated, tx.photoError]);
 
   return (
     <AppShell active="/profile" title={t.profileTitle} subtitle={t.profileSubtitle}>
@@ -424,13 +507,21 @@ export function ProfileOverview() {
         {/* ━━━ PHOTO GALLERY (6 slots, 3x2 grid) ━━━ */}
         {data && (
           <div style={{ padding: "0 2px" }}>
+            {/* Hidden file input for gallery uploads */}
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: "none" }}
+              onChange={handleGalleryUpload}
+            />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px", marginBottom: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5 }}>{tx.gallery}</div>
-              <button onClick={() => fileInputRef.current?.click()} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>{tx.addPhoto}</button>
+              <button onClick={() => galleryInputRef.current?.click()} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>{tx.addPhoto}</button>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
               {/* Main photo (slot 1) */}
-              <button onClick={() => fileInputRef.current?.click()} style={{ aspectRatio: "1", borderRadius: 14, overflow: "hidden", border: "none", padding: 0, cursor: "pointer", background: "rgba(255,255,255,0.03)" }}>
+              <button onClick={() => galleryInputRef.current?.click()} disabled={uploading} style={{ aspectRatio: "1", borderRadius: 14, overflow: "hidden", border: "none", padding: 0, cursor: uploading ? "wait" : "pointer", background: "rgba(255,255,255,0.03)", opacity: uploading ? 0.5 : 1, transition: "opacity 0.2s" }}>
                 {data.profile.photoUrl ? (
                   <img src={data.profile.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
@@ -439,9 +530,9 @@ export function ProfileOverview() {
               </button>
               {/* Slots 2-6: empty placeholders */}
               {[1, 2, 3, 4, 5].map((i) => (
-                <button key={i} onClick={() => fileInputRef.current?.click()} style={{ aspectRatio: "1", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.08)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.15)", fontSize: 24, transition: "background 0.15s" }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}>
+                <button key={i} onClick={() => galleryInputRef.current?.click()} disabled={uploading} style={{ aspectRatio: "1", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.08)", cursor: uploading ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.15)", fontSize: 24, transition: "background 0.15s", opacity: uploading ? 0.5 : 1 }}
+                  onMouseEnter={e => !uploading && (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
+                  onMouseLeave={e => !uploading && (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}>
                   +
                 </button>
               ))}
@@ -454,21 +545,25 @@ export function ProfileOverview() {
           <div style={{ padding: "0 2px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px", marginBottom: 8 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5 }}>{tx.aboutMe}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
-                {1000 - (data.profile.bio?.length ?? 0)} {tx.charsRemaining}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {bioSaving && <div style={{ fontSize: 10, color: "#a855f7" }}>Saving…</div>}
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>
+                  {1000 - bioText.length} {tx.charsRemaining}
+                </div>
               </div>
             </div>
             <div style={{ padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", minHeight: 60 }}>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>
-                {data.profile.bio || (
-                  <span style={{ color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>
-                    {locale === "de" ? "Erzähl etwas über dich…" : "Tell something about yourself…"}
-                  </span>
-                )}
-              </div>
+              <textarea
+                ref={bioInputRef}
+                value={bioText}
+                onChange={(e) => setBioText(e.target.value.slice(0, 1000))}
+                onBlur={handleBioSave}
+                placeholder={locale === "de" ? "Erzähl etwas über dich…" : "Tell something about yourself…"}
+                style={{ width: "100%", minHeight: 60, background: "transparent", border: "none", fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, outline: "none", resize: "none", fontFamily: "inherit", color: bioText ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.2)" }}
+              />
               {/* Progress bar for bio length */}
               <div style={{ marginTop: 10, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.05)" }}>
-                <div style={{ height: 2, borderRadius: 1, background: (data.profile.bio?.length ?? 0) > 800 ? "#ef4444" : "#a855f7", width: `${Math.min(100, ((data.profile.bio?.length ?? 0) / 1000) * 100)}%`, transition: "width 0.3s" }} />
+                <div style={{ height: 2, borderRadius: 1, background: bioText.length > 800 ? "#ef4444" : "#a855f7", width: `${Math.min(100, (bioText.length / 1000) * 100)}%`, transition: "width 0.3s" }} />
               </div>
             </div>
           </div>
@@ -479,16 +574,36 @@ export function ProfileOverview() {
           <div style={{ padding: "0 2px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px", marginBottom: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5 }}>{tx.hobbies}</div>
-              <Link href="/interests" style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>{tx.addHobby}</Link>
+              <button
+                onClick={() => {
+                  const newHobby = prompt(locale === "de" ? "Neues Hobby hinzufügen:" : "Add new hobby:");
+                  if (newHobby?.trim()) {
+                    void handleAddHobby();
+                    setInterestInput(newHobby);
+                  }
+                }}
+                style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>
+                {tx.addHobby}
+              </button>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {(data.interests.length > 0 ? data.interests : ["🎵 Musik", "📸 Fotografie", "☕ Kaffee", "🏃 Laufen", "✈️ Reisen", "🎮 Gaming"]).map((hobby, i) => {
+              {data.interests.map((hobby, i) => {
                 const colors = ["#a855f7", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
                 const c = colors[i % colors.length];
                 return (
-                  <span key={hobby} style={{ display: "inline-flex", alignItems: "center", padding: "7px 14px", borderRadius: 20, background: `${c}15`, border: `1px solid ${c}30`, fontSize: 12.5, fontWeight: 500, color: c, letterSpacing: 0.2 }}>
+                  <button
+                    key={hobby}
+                    onClick={() => {
+                      if (confirm(locale === "de" ? `"${hobby}" entfernen?` : `Remove "${hobby}"?`)) {
+                        void handleRemoveHobby(hobby);
+                      }
+                    }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 20, background: `${c}15`, border: `1px solid ${c}30`, fontSize: 12.5, fontWeight: 500, color: c, letterSpacing: 0.2, cursor: "pointer", transition: "opacity 0.2s" }}
+                    onMouseEnter={e => (e.currentTarget.style.opacity = "0.7")}
+                    onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
                     {hobby}
-                  </span>
+                    <span style={{ fontSize: 14, opacity: 0.5 }}>×</span>
+                  </button>
                 );
               })}
             </div>

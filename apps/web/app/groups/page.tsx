@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
+import { fetchMyCircles, createCircle, FriendCircle } from '@/lib/social';
 
 interface GroupCard {
   id: string;
@@ -17,7 +18,7 @@ interface GroupCard {
 }
 
 export default function GroupsPage() {
-  const [groups, setGroups] = useState<GroupCard[]>([
+  const fallbackGroups: GroupCard[] = [
     {
       id: 'featured',
       emoji: '🏐',
@@ -49,7 +50,44 @@ export default function GroupsPage() {
       spots: 3,
       memberInitials: ['J', 'K'],
     },
-  ]);
+  ];
+
+  const [groups, setGroups] = useState<GroupCard[]>(fallbackGroups);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
+  useEffect(() => {
+    async function loadCircles() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetchMyCircles();
+        if (response && response.items && response.items.length > 0) {
+          // Transform FriendCircle to GroupCard format
+          const transformedGroups = response.items.map((circle: FriendCircle, idx: number) => ({
+            id: circle.circleId,
+            emoji: circle.emoji,
+            title: circle.name,
+            location: `${circle.members.length} Mitglieder`,
+            members: circle.members.length,
+            spots: Math.max(0, 6 - circle.members.length),
+            memberInitials: circle.members.slice(0, 4).map(m => m.displayName.charAt(0).toUpperCase()),
+          }));
+          setGroups(transformedGroups);
+        } else {
+          setGroups(fallbackGroups);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load circles");
+        setGroups(fallbackGroups);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadCircles();
+  }, []);
 
   const featuredGroup = groups[0];
   const nearbyGroups = groups.slice(1);
@@ -272,7 +310,49 @@ export default function GroupsPage() {
           </p>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '60px 0',
+            }}
+          >
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                border: '3px solid rgba(168,85,247,0.2)',
+                borderTopColor: '#a855f7',
+                animation: 'spin 0.8s linear infinite',
+              }}
+            />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <div
+            style={{
+              padding: '12px 16px',
+              borderRadius: '8px',
+              background: 'rgba(239,68,68,0.1)',
+              border: '1px solid rgba(239,68,68,0.3)',
+              color: '#fca5a5',
+              fontSize: '13px',
+              marginBottom: '20px',
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         {/* Featured Group Card */}
+        {!isLoading && (
         <div style={styles.featuredCard}>
           <div style={styles.groupHeader}>
             <div style={styles.emoji}>{featuredGroup.emoji}</div>
@@ -333,12 +413,18 @@ export default function GroupsPage() {
             </button>
           </div>
         </div>
+        )}
 
+        {!isLoading && (
         <div style={styles.divider} />
+        )}
 
         {/* Nearby Groups Section */}
+        {!isLoading && (
         <div style={styles.sectionLabel}>Weitere Gruppen in der Nähe</div>
+        )}
 
+        {!isLoading && (
         <div style={styles.nearbyCards}>
           {nearbyGroups.map(group => (
             <div key={group.id} style={styles.smallCard}>
@@ -356,21 +442,56 @@ export default function GroupsPage() {
             </div>
           ))}
         </div>
+        )}
 
         {/* Create Button */}
+        {!isLoading && (
         <button
           style={styles.createButton}
+          disabled={isCreating}
+          onClick={async () => {
+            const name = prompt("Gruppen-Name:");
+            if (!name) return;
+            const emoji = prompt("Emoji (z.B. 🏐, ☕, 🏃):", "🎯");
+            if (!emoji) return;
+
+            setIsCreating(true);
+            try {
+              const newCircle = await createCircle(name, emoji || "🎯");
+              if (newCircle) {
+                const newGroup: GroupCard = {
+                  id: newCircle.circleId,
+                  emoji: newCircle.emoji,
+                  title: newCircle.name,
+                  location: `${newCircle.members.length} Mitglieder`,
+                  members: newCircle.members.length,
+                  spots: Math.max(0, 6 - newCircle.members.length),
+                  memberInitials: newCircle.members.slice(0, 4).map(m => m.displayName.charAt(0).toUpperCase()),
+                };
+                setGroups([newGroup, ...groups]);
+              }
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "Failed to create circle");
+            } finally {
+              setIsCreating(false);
+            }
+          }}
           onMouseEnter={e => {
-            e.currentTarget.style.borderColor = '#a855f7';
-            e.currentTarget.style.color = '#ffffff';
+            if (!isCreating) {
+              e.currentTarget.style.borderColor = '#a855f7';
+              e.currentTarget.style.color = '#ffffff';
+            }
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.borderColor = '#666666';
-            e.currentTarget.style.color = '#a855f7';
+            if (!isCreating) {
+              e.currentTarget.style.borderColor = '#666666';
+              e.currentTarget.style.color = '#a855f7';
+            }
           }}
         >
-          + Neue Gruppen-Aktivität
+          {isCreating ? "Erstelle..." : "+ Neue Gruppen-Aktivität"}
         </button>
+        )}
       </div>
     </AppShell>
   );

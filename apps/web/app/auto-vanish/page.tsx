@@ -1,12 +1,141 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
+import { updateMyVisibility } from '@/lib/profile';
+
+interface VanishSettings {
+  profileTimer: { enabled: boolean; duration: number; activatedAt?: number };
+  intentTimer: { enabled: boolean; duration: number; activatedAt?: number };
+  cardTimer: { enabled: boolean; duration: number; activatedAt?: number };
+}
+
+const defaultSettings: VanishSettings = {
+  profileTimer: { enabled: true, duration: 4.5 * 60 * 60 * 1000 }, // 4h 30min
+  intentTimer: { enabled: true, duration: 1.75 * 60 * 60 * 1000 }, // 1h 45min
+  cardTimer: { enabled: true, duration: 45 * 60 * 1000 }, // 45min
+};
 
 export default function AutoVanishPage() {
   const [profileVisible, setProfileVisible] = useState(true);
   const [intentVisible, setIntentVisible] = useState(true);
   const [cardVisible, setCardVisible] = useState(true);
+  const [settings, setSettings] = useState<VanishSettings>(defaultSettings);
+  const [timers, setTimers] = useState({
+    profile: { hours: 4, minutes: 30 },
+    intent: { hours: 1, minutes: 45 },
+    card: { hours: 0, minutes: 45 },
+  });
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('puqme.vanish.settings');
+    if (stored) {
+      const parsedSettings = JSON.parse(stored) as VanishSettings;
+      setSettings(parsedSettings);
+    }
+  }, []);
+
+  // Update timer display every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimers(prev => ({
+        ...prev,
+        profile: calculateTimeRemaining(settings.profileTimer),
+        intent: calculateTimeRemaining(settings.intentTimer),
+        card: calculateTimeRemaining(settings.cardTimer),
+      }));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [settings]);
+
+  const calculateTimeRemaining = (timer: VanishSettings['profileTimer']) => {
+    if (!timer.activatedAt) {
+      return { hours: Math.floor(timer.duration / 3600000), minutes: Math.floor((timer.duration % 3600000) / 60000) };
+    }
+
+    const elapsed = Date.now() - timer.activatedAt;
+    const remaining = Math.max(0, timer.duration - elapsed);
+    const hours = Math.floor(remaining / 3600000);
+    const minutes = Math.floor((remaining % 3600000) / 60000);
+
+    // Auto-disable if timer reached zero
+    if (remaining <= 0 && timer === settings.profileTimer && profileVisible) {
+      handleProfileToggle();
+    }
+
+    return { hours, minutes };
+  };
+
+  const handleProfileToggle = async () => {
+    const newState = !profileVisible;
+    setProfileVisible(newState);
+
+    const newSettings = {
+      ...settings,
+      profileTimer: {
+        ...settings.profileTimer,
+        enabled: newState,
+        activatedAt: newState ? Date.now() : undefined,
+      },
+    };
+    setSettings(newSettings);
+    localStorage.setItem('puqme.vanish.settings', JSON.stringify(newSettings));
+
+    try {
+      await updateMyVisibility(newState);
+      showToast(newState ? 'Profil wird sichtbar' : 'Profil wird unsichtbar');
+    } catch (error) {
+      console.error('Failed to update visibility:', error);
+      showToast('Fehler beim Aktualisieren');
+    }
+  };
+
+  const handleIntentToggle = () => {
+    const newState = !intentVisible;
+    setIntentVisible(newState);
+
+    const newSettings = {
+      ...settings,
+      intentTimer: {
+        ...settings.intentTimer,
+        enabled: newState,
+        activatedAt: newState ? Date.now() : undefined,
+      },
+    };
+    setSettings(newSettings);
+    localStorage.setItem('puqme.vanish.settings', JSON.stringify(newSettings));
+    showToast(newState ? 'Intention aktiviert' : 'Intention deaktiviert');
+  };
+
+  const handleCardToggle = () => {
+    const newState = !cardVisible;
+    setCardVisible(newState);
+
+    const newSettings = {
+      ...settings,
+      cardTimer: {
+        ...settings.cardTimer,
+        enabled: newState,
+        activatedAt: newState ? Date.now() : undefined,
+      },
+    };
+    setSettings(newSettings);
+    localStorage.setItem('puqme.vanish.settings', JSON.stringify(newSettings));
+    showToast(newState ? 'Micro Card aktiviert' : 'Micro Card deaktiviert');
+  };
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const getTimerPercentage = (hours: number, minutes: number, maxDuration: number) => {
+    const totalMs = hours * 3600000 + minutes * 60000;
+    return Math.min(100, (totalMs / maxDuration) * 100);
+  };
 
   const containerStyle: React.CSSProperties = {
     backgroundColor: '#07050f',
@@ -180,6 +309,24 @@ export default function AutoVanishPage() {
 
   return (
     <AppShell>
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            right: '1rem',
+            backgroundColor: '#10b981',
+            color: '#ffffff',
+            padding: '1rem 1.5rem',
+            borderRadius: '0.5rem',
+            zIndex: 1000,
+            fontWeight: 600,
+            fontSize: '0.9rem',
+          }}
+        >
+          {toast}
+        </div>
+      )}
       <div style={containerStyle}>
         <div style={headerStyle}>
           <div style={headerTitleStyle}>Auto-Verschwinden</div>
@@ -190,48 +337,48 @@ export default function AutoVanishPage() {
         <div style={timerCardStyle('#10b981')}>
           <div style={cardHeaderStyle}>
             <div>
-              <div style={cardTitleStyle}>Dein Profil ist sichtbar</div>
-              <div style={timerTextStyle}>Noch 4h 30min</div>
+              <div style={cardTitleStyle}>Dein Profil ist {profileVisible ? 'sichtbar' : 'unsichtbar'}</div>
+              <div style={timerTextStyle}>Noch {timers.profile.hours}h {timers.profile.minutes}min</div>
             </div>
             <button
               style={toggleStyle}
-              onClick={() => setProfileVisible(!profileVisible)}
+              onClick={handleProfileToggle}
               aria-label="Toggle profile visibility"
             />
           </div>
-          <div style={timerBarStyle('#10b981', 75)} />
+          <div style={timerBarStyle('#10b981', getTimerPercentage(timers.profile.hours, timers.profile.minutes, settings.profileTimer.duration))} />
         </div>
 
         {/* Active Intent Timer */}
         <div style={timerCardStyle('#a855f7')}>
           <div style={cardHeaderStyle}>
             <div>
-              <div style={cardTitleStyle}>☕ Kaffee trinken</div>
-              <div style={timerTextStyle}>Noch 1h 45min</div>
+              <div style={cardTitleStyle}>☕ {intentVisible ? 'Kaffee trinken' : 'Intention inaktiv'}</div>
+              <div style={timerTextStyle}>Noch {timers.intent.hours}h {timers.intent.minutes}min</div>
             </div>
             <button
               style={toggleStyle}
-              onClick={() => setIntentVisible(!intentVisible)}
+              onClick={handleIntentToggle}
               aria-label="Toggle intent visibility"
             />
           </div>
-          <div style={timerBarStyle('#a855f7', 58)} />
+          <div style={timerBarStyle('#a855f7', getTimerPercentage(timers.intent.hours, timers.intent.minutes, settings.intentTimer.duration))} />
         </div>
 
         {/* Micro Card Timer */}
         <div style={timerCardStyle('#f59e0b')}>
           <div style={cardHeaderStyle}>
             <div>
-              <div style={cardTitleStyle}>Deine aktuelle Micro Card</div>
-              <div style={timerTextStyle}>Noch 45min · 3 Reaktionen</div>
+              <div style={cardTitleStyle}>Deine {cardVisible ? 'aktuelle' : 'inaktive'} Micro Card</div>
+              <div style={timerTextStyle}>Noch {timers.card.hours}h {timers.card.minutes}min · 3 Reaktionen</div>
             </div>
             <button
               style={toggleStyle}
-              onClick={() => setCardVisible(!cardVisible)}
+              onClick={handleCardToggle}
               aria-label="Toggle card visibility"
             />
           </div>
-          <div style={timerBarStyle('#f59e0b', 25)} />
+          <div style={timerBarStyle('#f59e0b', getTimerPercentage(timers.card.hours, timers.card.minutes, settings.cardTimer.duration))} />
         </div>
 
         <div style={dividerStyle} />

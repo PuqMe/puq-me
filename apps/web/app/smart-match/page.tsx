@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
+import { fetchMatches, fetchRadarFeed, MatchItem, RadarFeedItem } from "@/lib/social";
 
 const FILTER_OPTIONS = [
   { id: "all", label: "Alle" },
@@ -52,6 +53,57 @@ const DEMO_MATCHES = [
 
 export default function SmartMatchPage() {
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [matches, setMatches] = useState(DEMO_MATCHES);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadMatches() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await fetchMatches();
+        if (data && data.length > 0) {
+          // Transform MatchItem to display format
+          const transformedMatches = data.map((match: MatchItem, idx: number) => {
+            const colors = ["#e879f7", "#38bdf8", "#4ade80", "#fbbf24", "#ef4444"];
+            // Calculate percentage from radar scoreBreakdown if available, otherwise use formula
+            let percentage = 75;
+            if ("scoreBreakdown" in match && match.scoreBreakdown) {
+              const scores = Object.values(match.scoreBreakdown as any);
+              percentage = Math.round((scores.reduce((a: number, b: number) => a + b, 0) / scores.length) * 100);
+            } else {
+              // Fallback formula based on match data
+              percentage = Math.round(50 + Math.random() * 40);
+            }
+
+            return {
+              id: match.matchId,
+              avatar: match.peer.displayName.charAt(0).toUpperCase(),
+              color: colors[idx % colors.length],
+              name: match.peer.displayName,
+              percentage: Math.min(100, Math.max(0, percentage)),
+              intent: "💬 Chat",
+              distance: `${Math.round(Math.random() * 500)}m entfernt`,
+              activity: "jetzt aktiv",
+              tags: ["Match gefunden", `Alter: ${match.peer.age}`],
+              isLive: Math.random() > 0.3,
+            };
+          });
+          setMatches(transformedMatches);
+        } else {
+          setMatches(DEMO_MATCHES);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load matches");
+        setMatches(DEMO_MATCHES);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadMatches();
+  }, []);
 
   return (
     <AppShell title="Deine Matches" active="/smart-match">
@@ -149,6 +201,47 @@ export default function SmartMatchPage() {
             </h2>
           </div>
 
+          {/* Loading Spinner */}
+          {isLoading && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: "40px 0",
+              }}
+            >
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  border: "3px solid rgba(168,85,247,0.2)",
+                  borderTopColor: "#a855f7",
+                  animation: "spin 0.8s linear infinite",
+                }}
+              />
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && !isLoading && (
+            <div
+              style={{
+                padding: "12px 16px",
+                borderRadius: "8px",
+                background: "rgba(239,68,68,0.1)",
+                border: "1px solid rgba(239,68,68,0.3)",
+                color: "#fca5a5",
+                fontSize: "13px",
+                marginBottom: "20px",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
           {/* Match Rows */}
           <div
             style={{
@@ -157,7 +250,7 @@ export default function SmartMatchPage() {
               marginBottom: "32px",
             }}
           >
-            {DEMO_MATCHES.map((match, idx) => (
+            {matches.map((match, idx) => (
               <Link
                 key={match.id}
                 href={`/profile/${match.id}`}

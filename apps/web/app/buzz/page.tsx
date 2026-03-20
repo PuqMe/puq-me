@@ -2,11 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
+import { fetchNearbyUsers, sendWave } from '@/lib/social';
+
+interface BuzzSettings {
+  vibrationEnabled: boolean;
+  radius: number;
+  quietHoursEnabled: boolean;
+  quietHoursStart: string;
+  quietHoursEnd: string;
+}
 
 export default function BuzzPage() {
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(true);
   const [showBuzz, setShowBuzz] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [nearbyUsers, setNearbyUsers] = useState<any[]>([]);
+  const [buzzSettings, setBuzzSettings] = useState<BuzzSettings>({
+    vibrationEnabled: true,
+    radius: 200,
+    quietHoursEnabled: true,
+    quietHoursStart: "22:00",
+    quietHoursEnd: "08:00",
+  });
 
   const containerStyle: React.CSSProperties = {
     backgroundColor: '#07050f',
@@ -226,6 +246,98 @@ export default function BuzzPage() {
     };
   }, []);
 
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("puqme.buzz.settings");
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        setBuzzSettings(settings);
+        setVibrationEnabled(settings.vibrationEnabled);
+        setQuietHoursEnabled(settings.quietHoursEnabled);
+      } catch (error) {
+        console.error("Failed to load buzz settings:", error);
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  // Fetch nearby users and refresh periodically
+  useEffect(() => {
+    const fetchNearby = async () => {
+      try {
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              try {
+                const users = await fetchNearbyUsers({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  radius: buzzSettings.radius,
+                });
+                setNearbyUsers(users);
+                // Show buzz notification if a nearby user is found
+                if (users.length > 0) {
+                  setShowBuzz(true);
+                }
+              } catch (error) {
+                console.error("Failed to fetch nearby users:", error);
+              }
+            },
+            (error) => {
+              console.error("Geolocation error:", error);
+            }
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch nearby users:", error);
+      }
+    };
+
+    fetchNearby();
+    // Refresh every 30 seconds to simulate live radar
+    const interval = setInterval(fetchNearby, 30000);
+    return () => clearInterval(interval);
+  }, [buzzSettings.radius]);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleWave = async () => {
+    if (nearbyUsers.length === 0) return;
+    setSending(true);
+    try {
+      // Send wave to the first nearby user
+      await sendWave(nearbyUsers[0].id);
+      // Trigger vibration if enabled
+      if (vibrationEnabled && "vibrate" in navigator) {
+        navigator.vibrate([200, 100, 200]);
+      }
+      setShowBuzz(false);
+      showToast("Winken gesendet! 👋");
+    } catch (error) {
+      console.error("Failed to send wave:", error);
+      showToast("Fehler beim Winken");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const updateBuzzSettings = (newSettings: Partial<BuzzSettings>) => {
+    const updated = { ...buzzSettings, ...newSettings };
+    setBuzzSettings(updated);
+    localStorage.setItem("puqme.buzz.settings", JSON.stringify(updated));
+    if (newSettings.vibrationEnabled !== undefined) {
+      setVibrationEnabled(newSettings.vibrationEnabled);
+    }
+    if (newSettings.quietHoursEnabled !== undefined) {
+      setQuietHoursEnabled(newSettings.quietHoursEnabled);
+    }
+    showToast("Einstellungen gespeichert");
+  };
+
   return (
     <AppShell>
       <div style={containerStyle}>
@@ -286,8 +398,19 @@ export default function BuzzPage() {
                 <div style={buzzDetailsStyle}>Maya · ☕ Kaffee · 120m entfernt</div>
                 <div style={buzzStatusStyle}>Gleicher Intent · Kommt näher</div>
                 <div style={buttonRowStyle}>
-                  <button style={buzzButtonStyle('#10b981')}>👋 Winken</button>
                   <button
+                    onClick={handleWave}
+                    disabled={sending}
+                    style={{
+                      ...buzzButtonStyle('#10b981'),
+                      opacity: sending ? 0.6 : 1,
+                      cursor: sending ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {sending ? '⏳ Wird gesendet...' : '👋 Winken'}
+                  </button>
+                  <button
+                    onClick={() => setShowBuzz(false)}
                     style={{
                       ...buzzButtonStyle('rgba(255, 255, 255, 0.08)'),
                       border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -307,24 +430,32 @@ export default function BuzzPage() {
                 <div style={settingLabelStyle}>Vibration bei Match</div>
               </div>
               <button
-                style={toggleStyle}
-                onClick={() => setVibrationEnabled(!vibrationEnabled)}
+                style={{
+                  ...toggleStyle,
+                  background: vibrationEnabled ? '#a855f7' : 'rgba(255, 255, 255, 0.1)',
+                }}
+                onClick={() => updateBuzzSettings({ vibrationEnabled: !vibrationEnabled })}
                 aria-label="Toggle vibration"
               />
             </div>
 
             <div style={settingRowStyle}>
-              <div style={settingLabelStyle}>Buzz-Radius: 200m</div>
+              <div style={settingLabelStyle}>Buzz-Radius: {buzzSettings.radius}m</div>
               <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '18px' }}>›</div>
             </div>
 
             <div style={{ ...settingRowStyle, borderBottom: 'none', marginBottom: 0, paddingBottom: 0 }}>
               <div>
-                <div style={settingLabelStyle}>Ruhezeiten 22:00-08:00</div>
+                <div style={settingLabelStyle}>
+                  Ruhezeiten {buzzSettings.quietHoursStart}-{buzzSettings.quietHoursEnd}
+                </div>
               </div>
               <button
-                style={toggleStyle}
-                onClick={() => setQuietHoursEnabled(!quietHoursEnabled)}
+                style={{
+                  ...toggleStyle,
+                  background: quietHoursEnabled ? '#a855f7' : 'rgba(255, 255, 255, 0.1)',
+                }}
+                onClick={() => updateBuzzSettings({ quietHoursEnabled: !quietHoursEnabled })}
                 aria-label="Toggle quiet hours"
               />
             </div>
@@ -332,6 +463,26 @@ export default function BuzzPage() {
             <div style={panelFooterStyle}>Kein App-Öffnen nötig · Funktioniert im Hintergrund</div>
           </div>
         </div>
+
+        {/* Action Toast */}
+        {toast && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: '100px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(168,85,247,0.9)',
+              color: '#ffffff',
+              padding: '12px 20px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              zIndex: 50,
+            }}
+          >
+            {toast}
+          </div>
+        )}
       </div>
     </AppShell>
   );

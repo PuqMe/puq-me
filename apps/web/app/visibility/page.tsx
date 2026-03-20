@@ -1,13 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
+import { fetchMyProfile, updateMyVisibility } from '@/lib/profile';
 
 export default function VisibilityPage() {
   const [visibilityMode, setVisibilityMode] = useState('global');
   const [visibilityRadius, setVisibilityRadius] = useState(50);
   const [activationMode, setActivationMode] = useState('until-disabled');
   const [timeValues, setTimeValues] = useState({ years: 0, months: 0, days: 0, hours: 0, minutes: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
   const visibilityModes = [
     { id: 'global', title: 'Global', description: 'Alle können dich sehen' },
@@ -19,6 +24,53 @@ export default function VisibilityPage() {
     { id: 'except-friends', title: 'Außer meine Freunde', description: 'Alle außer Freunde' },
     { id: 'group', title: 'Gruppe', description: 'Nur eine bestimmte Gruppe' },
   ];
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  const modeToIsVisible = (mode: string): boolean => {
+    const invisibleModes = ['phantom', 'zero'];
+    return !invisibleModes.includes(mode);
+  };
+
+  const loadProfileData = async () => {
+    try {
+      setIsLoading(true);
+      const profile = await fetchMyProfile();
+      if (profile?.isVisible) {
+        const savedSettings = localStorage.getItem('puqme.visibility.settings');
+        if (savedSettings) {
+          const settings = JSON.parse(savedSettings);
+          setVisibilityMode(settings.mode || 'global');
+          setVisibilityRadius(settings.radius || 50);
+          setActivationMode(settings.activationMode || 'until-disabled');
+          setTimeValues(settings.timeValues || { years: 0, months: 0, days: 0, hours: 0, minutes: 0 });
+        }
+      } else {
+        setVisibilityMode('phantom');
+      }
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+      showToast('Fehler beim Laden des Profils', 'error');
+      const savedSettings = localStorage.getItem('puqme.visibility.settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        setVisibilityMode(settings.mode || 'global');
+        setVisibilityRadius(settings.radius || 50);
+        setActivationMode(settings.activationMode || 'until-disabled');
+        setTimeValues(settings.timeValues || { years: 0, months: 0, days: 0, hours: 0, minutes: 0 });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProfileData();
+  }, []);
 
   const handleTimeChange = (key: keyof typeof timeValues, value: number) => {
     setTimeValues(prev => ({
@@ -187,6 +239,40 @@ export default function VisibilityPage() {
       width: '100%',
       transition: 'background-color 0.2s ease',
     },
+    toast: {
+      position: 'fixed' as const,
+      bottom: '2rem',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      padding: '1rem 1.5rem',
+      borderRadius: '0.75rem',
+      backgroundColor: toastType === 'success' ? '#10b981' : '#ef4444',
+      color: '#ffffff',
+      fontSize: '0.875rem',
+      fontWeight: '600',
+      zIndex: 1000,
+    },
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      const isVisible = modeToIsVisible(visibilityMode);
+      await updateMyVisibility(isVisible);
+      const settingsToStore = {
+        mode: visibilityMode,
+        radius: visibilityRadius,
+        activationMode: activationMode,
+        timeValues: timeValues,
+      };
+      localStorage.setItem('puqme.visibility.settings', JSON.stringify(settingsToStore));
+      showToast('Sichtbarkeit aktualisiert', 'success');
+    } catch (error) {
+      console.error('Failed to save visibility settings:', error);
+      showToast('Fehler beim Speichern der Einstellungen', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -398,16 +484,26 @@ export default function VisibilityPage() {
 
         {/* Save Button */}
         <button
-          onClick={() => console.log('Visibility settings saved')}
+          onClick={handleSave}
+          disabled={isSaving}
           style={{
             ...styles.saveButton,
             marginBottom: '2rem',
+            opacity: isSaving ? 0.6 : 1,
+            cursor: isSaving ? 'not-allowed' : 'pointer',
           }}
-          onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#9333ea')}
-          onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#a855f7')}
+          onMouseEnter={e => !isSaving && (e.currentTarget.style.backgroundColor = '#9333ea')}
+          onMouseLeave={e => !isSaving && (e.currentTarget.style.backgroundColor = '#a855f7')}
         >
-          Speichern
+          {isSaving ? 'Wird gespeichert...' : 'Speichern'}
         </button>
+
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div style={styles.toast}>
+            {toastMessage}
+          </div>
+        )}
       </div>
     </AppShell>
   );

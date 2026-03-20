@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
+import { fetchMyProfile, updateMyPreferences, updateMyInterests } from '@/lib/profile';
 
 export default function InterestsPage() {
   const [searchGender, setSearchGender] = useState('women');
@@ -12,6 +13,46 @@ export default function InterestsPage() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [globalView, setGlobalView] = useState(false);
   const [datingIntent, setDatingIntent] = useState('relationship');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // Load preferences on mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const profile = await fetchMyProfile();
+
+        if (profile.interestedIn && profile.interestedIn.length > 0) {
+          // Map API format back to UI format
+          const uiGender = profile.interestedIn[0];
+          if (uiGender === 'men') setSearchGender('men');
+          else if (uiGender === 'women') setSearchGender('women');
+          else if (uiGender === 'non_binary') setSearchGender('non-binary');
+          else if (uiGender === 'everyone') setSearchGender('all');
+        }
+
+        if (profile.minAge !== undefined) setAgeRange([profile.minAge, ageRange[1]]);
+        if (profile.maxAge !== undefined) setAgeRange([ageRange[0], profile.maxAge]);
+        if (profile.maxDistanceKm !== undefined) setMaxDistance(profile.maxDistanceKm);
+        if (profile.onlyVerifiedProfiles !== undefined) setVerifiedOnly(profile.onlyVerifiedProfiles);
+        if (profile.showMeGlobally !== undefined) setGlobalView(profile.showMeGlobally);
+        if (profile.interests && Array.isArray(profile.interests)) {
+          setHobbies(profile.interests);
+        }
+      } catch (err) {
+        setError('Failed to load preferences');
+        console.error('Error loading preferences:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPreferences();
+  }, []);
 
   const genderOptions = [
     { id: 'women', label: 'Frauen' },
@@ -38,6 +79,52 @@ export default function InterestsPage() {
         ? prev.filter(h => h !== hobby)
         : [...prev, hobby]
     );
+  };
+
+  const mapUIGenderToAPI = (gender: string): 'men' | 'women' | 'non_binary' | 'everyone' => {
+    switch (gender) {
+      case 'women':
+        return 'women';
+      case 'men':
+        return 'men';
+      case 'non-binary':
+        return 'non_binary';
+      case 'all':
+        return 'everyone';
+      default:
+        return 'women';
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setError(null);
+      setSuccess(false);
+
+      const apiGender = mapUIGenderToAPI(searchGender);
+
+      // Save preferences
+      await updateMyPreferences({
+        interestedIn: [apiGender],
+        minAge: ageRange[0],
+        maxAge: ageRange[1],
+        maxDistanceKm: maxDistance,
+        showMeGlobally: globalView,
+        onlyVerifiedProfiles: verifiedOnly,
+      });
+
+      // Save interests/hobbies
+      await updateMyInterests(hobbies);
+
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError('Failed to save preferences');
+      console.error('Error saving preferences:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAgeChange = (index: number, value: number) => {
@@ -213,6 +300,61 @@ export default function InterestsPage() {
   return (
     <AppShell>
       <div style={styles.container}>
+        {/* Error Toast */}
+        {error && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '1rem',
+              right: '1rem',
+              backgroundColor: '#dc2626',
+              color: '#ffffff',
+              padding: '1rem 1.5rem',
+              borderRadius: '0.5rem',
+              fontSize: '0.875rem',
+              zIndex: 1000,
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {/* Success Toast */}
+        {success && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '1rem',
+              right: '1rem',
+              backgroundColor: '#16a34a',
+              color: '#ffffff',
+              padding: '1rem 1.5rem',
+              borderRadius: '0.5rem',
+              fontSize: '0.875rem',
+              zIndex: 1000,
+            }}
+          >
+            Einstellungen gespeichert
+          </div>
+        )}
+
+        {isLoading && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '1rem',
+              right: '1rem',
+              backgroundColor: '#a855f7',
+              color: '#ffffff',
+              padding: '1rem 1.5rem',
+              borderRadius: '0.5rem',
+              fontSize: '0.875rem',
+              zIndex: 1000,
+            }}
+          >
+            Lade Einstellungen...
+          </div>
+        )}
         <div style={styles.header}>
           <h1 style={styles.heading}>Wenn suchst du?</h1>
           <p style={styles.subtitle}>Definiere deinen idealen Match</p>
@@ -400,15 +542,18 @@ export default function InterestsPage() {
 
         {/* Save Button */}
         <button
-          onClick={() => console.log('Preferences saved')}
+          onClick={handleSave}
+          disabled={isSaving || isLoading}
           style={{
             ...styles.button,
             marginBottom: '2rem',
+            opacity: isSaving || isLoading ? 0.6 : 1,
+            cursor: isSaving || isLoading ? 'not-allowed' : 'pointer',
           }}
-          onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#9333ea')}
-          onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#a855f7')}
+          onMouseEnter={e => !isSaving && !isLoading && (e.currentTarget.style.backgroundColor = '#9333ea')}
+          onMouseLeave={e => !isSaving && !isLoading && (e.currentTarget.style.backgroundColor = '#a855f7')}
         >
-          Speichern
+          {isSaving ? 'Speichert...' : 'Speichern'}
         </button>
       </div>
     </AppShell>
