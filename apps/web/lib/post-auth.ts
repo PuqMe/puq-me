@@ -4,10 +4,9 @@ import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.
 import { fetchMyProfile, type ProfileResponse } from "@/lib/profile";
 
 function hasCompletedProfile(profile: ProfileResponse) {
-  return (
-    profile.profile.displayName.trim().length >= 2 &&
-    profile.interests.length >= 3
-  );
+  // User is considered "done" with onboarding once they have a display name.
+  // Interests are nice-to-have but should not block access to the app.
+  return profile.profile.displayName.trim().length >= 2;
 }
 
 export function getPostAuthPath(profile: ProfileResponse) {

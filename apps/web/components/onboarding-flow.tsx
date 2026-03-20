@@ -159,7 +159,7 @@ export function OnboardingFlow() {
       // Save profile info
       await updateMyProfile({
         displayName: displayName.trim(),
-        bio: bio.trim() || undefined,
+        ...(bio.trim() ? { bio: bio.trim() } : {}),
         birthDate: profile?.profile.birthDate || "2000-01-01"
       });
 

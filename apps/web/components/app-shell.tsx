@@ -32,6 +32,13 @@ function NavIcon({ type, size = 22 }: { type: string; size?: number }) {
   return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={cls} stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="7"/></svg>;
 }
 
+/* ── Header icon buttons (matching Nearby/Circle) ── */
+function SearchIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>; }
+function BellIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>; }
+function MenuIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>; }
+
+const headerBtnClass = "inline-flex h-8 w-8 items-center justify-center rounded-full text-white/60 hover:text-white transition";
+
 export function AppShell({
   title,
   active,
@@ -43,6 +50,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showNotifToast, setShowNotifToast] = useState(false);
   const { t } = useLanguage();
 
   const navItems = [
@@ -70,7 +78,7 @@ export function AppShell({
   ));
 
   return (
-    <div className="relative z-10">
+    <div className="relative z-10 min-h-screen" style={{ background: "rgba(7,5,15,0.92)" }}>
       {/* Desktop sidebar + content */}
       <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-5">
         {/* Desktop sidebar */}
@@ -83,25 +91,42 @@ export function AppShell({
         </aside>
 
         <div className="flex flex-col">
-          {/* Single-line compact header */}
-          <header className="mb-3 flex h-10 items-center gap-2">
-            <LogoMark className="h-4 w-4 shrink-0 text-[#d7b8ff] lg:hidden" size={16} />
-            <h1 className="flex-1 text-base font-semibold text-white">{title}</h1>
-            {/* Hamburger – mobile only */}
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen((c) => !c)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-white/70 hover:text-white lg:hidden"
-              aria-expanded={isMenuOpen}
-              aria-label="Navigation öffnen"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="3" y1="12" x2="21" y2="12"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
-            </button>
+          {/* Header matching Nearby/Circle layout */}
+          <header className="mb-3 flex items-center gap-2" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
+            <Link href="/" className="flex items-center gap-2 flex-1 no-underline lg:hidden">
+              <LogoMark className="h-5 w-5 shrink-0 text-[#a855f7]" size={20} />
+              <div style={{ lineHeight: 1 }}>
+                <div className="text-sm font-bold text-white" style={{ letterSpacing: "-0.01em" }}>{BRAND_NAME}</div>
+                <div className="text-[11px] text-white/50" style={{ marginTop: 2 }}>{title}</div>
+              </div>
+            </Link>
+            {/* Desktop: just the title */}
+            <h1 className="hidden lg:block flex-1 text-base font-semibold text-white">{title}</h1>
+
+            {/* Right header icons – matching Nearby/Circle */}
+            <div className="flex gap-0.5 lg:hidden">
+              <Link href="/nearby" aria-label="Nearby" className={headerBtnClass}><NavIcon type="radar" size={18} /></Link>
+              <Link href="/circle" aria-label="Circle" className={headerBtnClass}><NavIcon type="circle" size={18} /></Link>
+              <button aria-label="Search" className={headerBtnClass}><SearchIcon /></button>
+              <button aria-label="Notifications" onClick={() => { setShowNotifToast(true); setTimeout(() => setShowNotifToast(false), 2500); }} className={headerBtnClass}><BellIcon /></button>
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen((c) => !c)}
+                className={headerBtnClass}
+                aria-expanded={isMenuOpen}
+                aria-label="Menu"
+              >
+                <MenuIcon />
+              </button>
+            </div>
           </header>
+
+          {/* Notification toast */}
+          {showNotifToast && (
+            <div className="fixed top-16 left-1/2 z-50 -translate-x-1/2 rounded-2xl border border-white/12 bg-[#0c081c]/95 px-5 py-3 text-[13px] text-white/80 backdrop-blur-xl lg:hidden">
+              {t.noNotifications}
+            </div>
+          )}
 
           <div className="flex-1">{children}</div>
         </div>
@@ -144,14 +169,12 @@ export function AppShell({
             key={item.href}
             href={item.href}
             className={clsx(
-              "flex flex-col items-center justify-center p-1.5 transition-all",
+              "flex flex-col items-center justify-center gap-0.5 p-1 transition-all",
               active === item.href ? "text-[#a855f7]" : "text-white/35 hover:text-white/70"
             )}
           >
-            <NavIcon type={item.icon} size={22} />
-            {active === item.href && (
-              <span className="mt-0.5 h-1 w-1 rounded-full bg-[#a855f7]" />
-            )}
+            <NavIcon type={item.icon} size={20} />
+            <span className="text-[9px] font-medium leading-none">{item.label}</span>
           </Link>
         ))}
       </nav>

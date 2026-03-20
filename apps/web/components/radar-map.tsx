@@ -93,6 +93,7 @@ export function RadarMap() {
   const [showSearch,  setShowSearch]  = useState(false);
   const [showLayers,  setShowLayers]  = useState(false);
   const [showMenu,    setShowMenu]    = useState(false);
+  const [showNotifToast, setShowNotifToast] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [genderFilter, setGenderFilter] = useState<string>("all");
   const [tileKey, setTileKey] = useState<string>("dunkel");
@@ -257,7 +258,7 @@ export function RadarMap() {
             <Link href="/nearby" aria-label="Nearby" style={headerBtn}><NearbyIcon /></Link>
             <Link href="/circle" aria-label="Circle" style={headerBtn}><CircleIcon /></Link>
             <button aria-label="Search" onClick={() => setShowSearch(true)} style={headerBtn}><SearchIcon /></button>
-            <button aria-label="Notifications" style={headerBtn}><BellIcon /></button>
+            <button aria-label="Notifications" onClick={() => { setShowNotifToast(true); setTimeout(() => setShowNotifToast(false), 2500); }} style={headerBtn}><BellIcon /></button>
             <button aria-label="Menu" onClick={() => setShowMenu(true)} style={headerBtn}><MenuIcon /></button>
           </div>
         </div>
@@ -305,6 +306,18 @@ export function RadarMap() {
           </div>
         )}
 
+        {/* ── NOTIFICATION TOAST ── */}
+        {showNotifToast && (
+          <div style={{
+            position: "absolute", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 40,
+            background: "rgba(12,8,28,.95)", border: "1px solid rgba(255,255,255,.12)",
+            borderRadius: 16, padding: "12px 20px", fontSize: 13, color: "rgba(255,255,255,.8)",
+            backdropFilter: "blur(12px)", whiteSpace: "nowrap",
+          }}>
+            {t.noNotifications}
+          </div>
+        )}
+
         {/* ── BOTTOM NAV ── */}
         <nav style={{
           position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 30,
@@ -315,13 +328,11 @@ export function RadarMap() {
           {NAV_ITEMS.map(item => (
             <Link key={item.href} href={item.href} style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 3, padding: "4px 8px", textDecoration: "none",
+              gap: 2, padding: "4px 8px", textDecoration: "none",
               color: item.href === "/nearby" ? "#a855f7" : "rgba(255,255,255,.70)",
             }}>
               <NavIcon type={item.label} />
-              {item.href === "/nearby" && (
-                <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#a855f7" }} />
-              )}
+              <span style={{ fontSize: 9, fontWeight: 500, lineHeight: 1, textTransform: "capitalize" }}>{item.label}</span>
             </Link>
           ))}
         </nav>
@@ -354,16 +365,7 @@ export function RadarMap() {
                   <span style={{ textTransform: "capitalize" }}>{item.label}</span>
                 </Link>
               ))}
-              <div style={{ marginTop: "auto", paddingTop: 20, borderTop: "1px solid rgba(255,255,255,.08)" }}>
-                <Link href="/settings" onClick={() => setShowMenu(false)} style={{
-                  display: "flex", alignItems: "center", gap: 12, padding: "12px 8px",
-                  borderRadius: 10, textDecoration: "none",
-                  color: "rgba(255,255,255,.5)", fontSize: 13, fontWeight: 500,
-                }}>
-                  <GridIcon />
-                  <span>Settings</span>
-                </Link>
-              </div>
+              {/* Settings already in NAV_ITEMS above */}
             </div>
           </>
         )}

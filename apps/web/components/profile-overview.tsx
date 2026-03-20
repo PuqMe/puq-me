@@ -70,7 +70,14 @@ export function ProfileOverview() {
       <section className="grid gap-4">
         <Card className="mesh-panel rounded-[2rem] p-5 text-white">
           {!data && !errorMessage ? (
-            <div className="text-sm text-white/72">{t.loadingProfile}</div>
+            <div className="flex items-start gap-4 animate-pulse">
+              <div className="h-24 w-20 rounded-[1.5rem] bg-white/10" />
+              <div className="flex-1 space-y-3">
+                <div className="h-6 w-32 rounded bg-white/10" />
+                <div className="h-4 w-48 rounded bg-white/8" />
+                <div className="h-4 w-full rounded bg-white/6" />
+              </div>
+            </div>
           ) : null}
 
           {errorMessage ? <div className="text-sm text-[#ffb4c7]">{errorMessage}</div> : null}

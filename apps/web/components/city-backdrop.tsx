@@ -7,7 +7,7 @@ const cityTiles = [
   {
     city: "Hamburg",
     image:
-      "https://images.unsplash.com/photo-1571764170050-3d7b7f3f79b0?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1558443336-dbb3349fd47b?auto=format&fit=crop&w=900&q=80"
   },
   {
     city: "Munich",

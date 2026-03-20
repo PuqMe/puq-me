@@ -68,11 +68,19 @@ export function ChatShell() {
         </div>
 
         <div className="glass-card flex flex-col gap-3 overflow-y-auto rounded-[1.9rem] p-4">
-          {isLoading ? <div className="text-sm text-white/72">{t.chatLoading}</div> : null}
           {errorMessage ? <div className="text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
 
-          {!isLoading && !errorMessage && !selectedConversation ? (
-            <div className="text-sm text-white/72">{t.noMatchChat}</div>
+          {!isLoading && !errorMessage && conversations.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-white/20">
+                <path d="M5 6.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"/>
+              </svg>
+              <div className="text-sm text-white/50">{t.noMatchChat}</div>
+            </div>
+          ) : null}
+
+          {!isLoading && !errorMessage && conversations.length > 0 && !selectedConversation ? (
+            <div className="text-sm text-white/72">{t.chooseChat}</div>
           ) : null}
 
           {messages.map((message) => {

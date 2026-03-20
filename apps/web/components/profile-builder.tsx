@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "@puqme/ui";
+import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { fetchMyProfile, updateMyProfile } from "@/lib/profile";
 import { useLanguage } from "@/lib/i18n";
@@ -114,6 +115,7 @@ export function ProfileBuilder() {
   }
 
   return (
+    <AppShell active="/profile" title={t.createProfileEyebrow}>
     <section className="grid gap-4">
       <PageHeader
         eyebrow={t.createProfileEyebrow}
@@ -179,5 +181,6 @@ export function ProfileBuilder() {
         {isSaving ? t.savingProfile : t.saveProfile}
       </Button>
     </section>
+    </AppShell>
   );
 }
