@@ -1,32 +1,11 @@
-import type { Metadata } from "next";
+import { generatePageMetadata } from "@/lib/seo-utils";
 
-export const metadata: Metadata = {
-  title: "Intent – Was hast du vor? • PuQ.me",
-  description: "Teile deine aktuelle Aktivität",
-  openGraph: {
-    title: "Intent – Was hast du vor? • PuQ.me",
-    description: "Teile deine aktuelle Aktivität",
-  },
-  twitter: {
-    card: "summary",
-    title: "Intent – Was hast du vor? • PuQ.me",
-    description: "Teile deine aktuelle Aktivität",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large" as const,
-      "max-snippet": -1,
-    },
-  },
-  alternates: {
-    canonical: "/intent",
-  },
-};
+export const metadata = generatePageMetadata({
+  title: "Intent",
+  description: "Zeige was du gerade vorhast und finde Gleichgesinnte",
+  path: "/intent",
+  icon: "💡",
+});
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;

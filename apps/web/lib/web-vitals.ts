@@ -131,4 +131,37 @@ export function initWebVitals() {
     });
     navObserver.observe({ type: "navigation", buffered: true });
   } catch {}
+
+  // Flush vitals when user leaves
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      flushVitals();
+    }
+  });
+}
+
+// Flush stored vitals to API endpoint on page unload
+export function flushVitals() {
+  if (typeof window === "undefined") return;
+
+  const stored = getStoredVitals();
+  if (stored.length === 0) return;
+
+  const payload = stored.map((v) => ({
+    name: v.name,
+    value: v.value,
+    rating: v.rating,
+    path: window.location.pathname,
+    userAgent: navigator.userAgent,
+    timestamp: new Date().toISOString(),
+  }));
+
+  // Use sendBeacon for reliable delivery on page unload
+  const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+  const sent = navigator.sendBeacon?.("/api/vitals", blob);
+
+  if (sent) {
+    // Clear sent metrics
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  }
 }

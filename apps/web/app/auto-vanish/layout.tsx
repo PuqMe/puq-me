@@ -1,32 +1,11 @@
-import type { Metadata } from "next";
+import { generatePageMetadata } from "@/lib/seo-utils";
 
-export const metadata: Metadata = {
-  title: "Auto-Vanish • PuQ.me",
-  description: "Automatischer Datenschutz-Modus",
-  openGraph: {
-    title: "Auto-Vanish • PuQ.me",
-    description: "Automatischer Datenschutz-Modus",
-  },
-  twitter: {
-    card: "summary",
-    title: "Auto-Vanish • PuQ.me",
-    description: "Automatischer Datenschutz-Modus",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large" as const,
-      "max-snippet": -1,
-    },
-  },
-  alternates: {
-    canonical: "/auto-vanish",
-  },
-};
+export const metadata = generatePageMetadata({
+  title: "Auto-Vanish",
+  description: "Automatischer Datenschutz – dein Profil verschwindet nach Ablauf",
+  path: "/auto-vanish",
+  icon: "👻",
+});
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;

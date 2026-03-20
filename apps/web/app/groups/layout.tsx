@@ -1,34 +1,13 @@
-import type { Metadata } from "next";
 import { getEventSchema } from "@/lib/structured-data";
 import { env } from "@/lib/env";
+import { generatePageMetadata } from "@/lib/seo-utils";
 
-export const metadata: Metadata = {
-  title: "Gruppen & Aktivitäten • PuQ.me",
-  description: "Entdecke Gruppenaktivitäten in deiner Nähe",
-  openGraph: {
-    title: "Gruppen & Aktivitäten • PuQ.me",
-    description: "Entdecke Gruppenaktivitäten in deiner Nähe",
-  },
-  twitter: {
-    card: "summary",
-    title: "Gruppen & Aktivitäten • PuQ.me",
-    description: "Entdecke Gruppenaktivitäten in deiner Nähe",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large" as const,
-      "max-snippet": -1,
-    },
-  },
-  alternates: {
-    canonical: "/groups",
-  },
-};
+export const metadata = generatePageMetadata({
+  title: "Gruppen",
+  description: "Gruppenaktivitäten und gemeinsame Erlebnisse",
+  path: "/groups",
+  icon: "🎯",
+});
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const schema = getEventSchema(env.appUrl);

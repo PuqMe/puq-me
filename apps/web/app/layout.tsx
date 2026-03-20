@@ -14,6 +14,7 @@ import { InstallNowFab } from "@/components/install-now-fab";
 import { OfflineBanner } from "@/components/offline-banner";
 import { PwaRegistrar } from "@/components/pwa-registrar";
 import { Providers } from "@/components/providers";
+import { SkipNav } from "@/components/skip-nav";
 import { env } from "@/lib/env";
 import { getAllStructuredData } from "@/lib/structured-data";
 
@@ -109,6 +110,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="alternate" hrefLang="x-default" href={env.appUrl} />
       </head>
       <body className="app-frame min-h-screen font-sans antialiased">
+        <SkipNav />
+        <div id="main-content" />
         <script dangerouslySetInnerHTML={{ __html: installPromptScript }} />
         <CityBackdrop />
         <Providers>

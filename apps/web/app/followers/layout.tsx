@@ -1,34 +1,13 @@
-import type { Metadata } from "next";
 import { getCollectionPageSchema } from "@/lib/structured-data";
 import { env } from "@/lib/env";
+import { generatePageMetadata } from "@/lib/seo-utils";
 
-export const metadata: Metadata = {
-  title: "Follower • PuQ.me",
-  description: "Deine Follower und Verbindungen",
-  openGraph: {
-    title: "Follower • PuQ.me",
-    description: "Deine Follower und Verbindungen",
-  },
-  twitter: {
-    card: "summary",
-    title: "Follower • PuQ.me",
-    description: "Deine Follower und Verbindungen",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large" as const,
-      "max-snippet": -1,
-    },
-  },
-  alternates: {
-    canonical: "/followers",
-  },
-};
+export const metadata = generatePageMetadata({
+  title: "Followers",
+  description: "Deine Follower und Verbindungen verwalten",
+  path: "/followers",
+  icon: "👥",
+});
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const schema = getCollectionPageSchema(env.appUrl, "/followers", "Follower", "Deine Follower und Verbindungen");
