@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { updateMyVisibility } from "@/lib/profile";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export type VisibilityMode = "visible" | "friends" | "invisible";
@@ -11,6 +12,7 @@ export type VisibilityState = {
   timer: VisibilityTimer;
   activeUntil: number | null; // epoch ms, null = unlimited
   browserLocationGranted: boolean;
+  locationDenied: boolean; // true if user explicitly denied geolocation
 };
 
 const STORAGE_KEY = "puqme.visibility.v1";
@@ -20,6 +22,7 @@ const DEFAULT_STATE: VisibilityState = {
   timer: "unlimited",
   activeUntil: null,
   browserLocationGranted: false,
+  locationDenied: false,
 };
 
 // ── Persistence ──────────────────────────────────────────────────────────────
@@ -79,6 +82,9 @@ export function useVisibility() {
     return () => clearInterval(id);
   }, []);
 
+  // Track whether we're syncing to avoid double calls
+  const syncRef = useRef(false);
+
   const setMode = useCallback((mode: VisibilityMode, timer: VisibilityTimer = state.timer) => {
     const next: VisibilityState = {
       ...state,
@@ -88,6 +94,12 @@ export function useVisibility() {
     };
     saveVisibility(next);
     setState(next);
+
+    // Sync to backend: visible/friends → isVisible=true, invisible → isVisible=false
+    if (!syncRef.current) {
+      syncRef.current = true;
+      updateMyVisibility(mode !== "invisible").catch(() => {}).finally(() => { syncRef.current = false; });
+    }
   }, [state]);
 
   const setTimer = useCallback((timer: VisibilityTimer) => {
@@ -101,7 +113,13 @@ export function useVisibility() {
   }, [state]);
 
   const setBrowserLocation = useCallback((granted: boolean) => {
-    const next = { ...state, browserLocationGranted: granted };
+    const next = { ...state, browserLocationGranted: granted, locationDenied: false };
+    saveVisibility(next);
+    setState(next);
+  }, [state]);
+
+  const setLocationDenied = useCallback(() => {
+    const next = { ...state, locationDenied: true };
     saveVisibility(next);
     setState(next);
   }, [state]);
@@ -116,7 +134,7 @@ export function useVisibility() {
     return `${mins}m`;
   }, [state.activeUntil]);
 
-  return { ...state, setMode, setTimer, setBrowserLocation, remainingLabel };
+  return { ...state, setMode, setTimer, setBrowserLocation, setLocationDenied, remainingLabel };
 }
 
 // ── SVG Icons ────────────────────────────────────────────────────────────────
@@ -376,6 +394,49 @@ export function VisibilityPrompt({
   const lang = locale;
   const cfg = MODE_CONFIG[vis.mode];
   const remaining = vis.remainingLabel();
+
+  // If location denied by user, show helpful hint
+  if (vis.locationDenied && !vis.browserLocationGranted) {
+    return (
+      <div style={{
+        margin: "0 14px 10px", padding: "14px 16px", borderRadius: 16,
+        background: "linear-gradient(135deg, rgba(251,146,60,.08), rgba(251,146,60,.03))",
+        border: "1px solid rgba(251,146,60,.18)",
+        display: "flex", alignItems: "center", gap: 12,
+      }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: "50%",
+          background: "rgba(251,146,60,.15)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#fb923c", flexShrink: 0,
+        }}>
+          <LocationIcon />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>
+            {lang === "de" ? "Standort blockiert" : "Location blocked"}
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,.45)", marginTop: 2, lineHeight: 1.4 }}>
+            {lang === "de"
+              ? "Du hast den Zugriff verweigert. Gehe in deine Browser-Einstellungen, um den Standort für diese Seite freizugeben."
+              : "You denied access. Go to your browser settings to allow location for this site."}
+          </div>
+        </div>
+        <button
+          onClick={onRequestLocation}
+          style={{
+            padding: "7px 14px", borderRadius: 10,
+            background: "rgba(251,146,60,.15)",
+            color: "#fb923c", fontSize: 12, fontWeight: 700,
+            border: "1px solid rgba(251,146,60,.25)",
+            cursor: "pointer", flexShrink: 0,
+          }}
+        >
+          {lang === "de" ? "Erneut" : "Retry"}
+        </button>
+      </div>
+    );
+  }
 
   // If location not granted by browser yet, show location prompt first
   if (!vis.browserLocationGranted) {

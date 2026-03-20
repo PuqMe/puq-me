@@ -119,15 +119,33 @@ export function HomeFeed() {
     document.head.appendChild(s);
   }, []);
 
+  // ── Position blur: offset by 50-200m in random direction ──
+  const blurPosition = (lat: number, lng: number): { lat: number; lng: number } => {
+    const minMeters = 50;
+    const maxMeters = 200;
+    const dist = minMeters + Math.random() * (maxMeters - minMeters);
+    const angle = Math.random() * 2 * Math.PI;
+    // 1 degree lat ≈ 111320m, 1 degree lng ≈ 111320 * cos(lat)
+    const dLat = (dist * Math.cos(angle)) / 111320;
+    const dLng = (dist * Math.sin(angle)) / (111320 * Math.cos(lat * Math.PI / 180));
+    return { lat: lat + dLat, lng: lng + dLng };
+  };
+
   // Geolocation
   const requestLocation = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setLoc({ lat: coords.latitude, lng: coords.longitude });
+        // Apply blur so exact position is never stored/shown
+        const blurred = blurPosition(coords.latitude, coords.longitude);
+        setLoc(blurred);
         vis.setBrowserLocation(true);
       },
-      () => { /* denied or error — keep default location */ },
+      (err) => {
+        if (err.code === 1) { // PERMISSION_DENIED
+          vis.setLocationDenied();
+        }
+      },
       { timeout: 8000, maximumAge: 60_000 }
     );
   };
