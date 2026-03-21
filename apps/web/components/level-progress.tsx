@@ -94,7 +94,7 @@ export function LevelProgress() {
         }}
       >
         <div style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.7)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-          Level
+          Stufe
         </div>
         <div
           style={{
@@ -144,7 +144,7 @@ export function LevelProgress() {
           }}
         >
           <span>{level.xpForCurrentLevel} XP</span>
-          <span>{level.xpNeededForLevel} to level up</span>
+          <span>{level.xpNeededForLevel} zum Aufstieg</span>
         </div>
       </div>
 
@@ -159,7 +159,7 @@ export function LevelProgress() {
             animation: "pulse 0.6s ease-out",
           }}
         >
-          🎉 Level Up!
+          🎉 Aufgestiegen!
         </div>
       )}
 

@@ -18,9 +18,9 @@ const TIME_FILTERS: { key: TimeFilter; label: string }[] = [
   { key: "24h", label: "24h" },
   { key: "3d",  label: "3d" },
   { key: "7d",  label: "7d" },
-  { key: "1m",  label: "1 month" },
-  { key: "3m",  label: "3 months" },
-  { key: "1y",  label: "1 year" },
+  { key: "1m",  label: "1 Monat" },
+  { key: "3m",  label: "3 Monate" },
+  { key: "1y",  label: "1 Jahr" },
 ];
 
 /* ── Color palette for encounters ── */
@@ -37,10 +37,10 @@ const NAV_ITEMS = [
 
 /* ── Tile layer configs ── */
 const TILE_LAYERS: Record<string, { url: string; label: string }> = {
-  dunkel:   { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",  label: "Dark" },
+  dunkel:   { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",  label: "Dunkel" },
   standard: { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", label: "Standard" },
-  gebaeude: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", label: "Light" },
-  oepnv:    { url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38", label: "Transit" },
+  gebaeude: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", label: "Hell" },
+  oepnv:    { url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38", label: "ÖPNV" },
 };
 
 /* ── SVG icons ── */

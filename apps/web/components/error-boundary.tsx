@@ -61,7 +61,7 @@ export class ErrorBoundary extends Component<Props, State> {
               marginBottom: 8,
               color: "#fff",
             }}>
-              Something went wrong
+              Etwas ist schiefgelaufen
             </h1>
             <p style={{
               fontSize: 14,
@@ -69,7 +69,7 @@ export class ErrorBoundary extends Component<Props, State> {
               marginBottom: 24,
               lineHeight: 1.5,
             }}>
-              We encountered an error while rendering this page. Please try again.
+              Beim Laden dieser Seite ist ein Fehler aufgetreten. Bitte versuche es erneut.
             </p>
             {this.state.error && (
               <pre style={{
@@ -107,7 +107,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 (e.target as HTMLButtonElement).style.transform = "scale(1)";
               }}
             >
-              Try again
+              Erneut versuchen
             </button>
           </div>
         </div>

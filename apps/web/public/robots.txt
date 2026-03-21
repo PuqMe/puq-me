@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /delete-account
+Disallow: /onboarding
+
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+Disallow: /delete-account
+Disallow: /onboarding
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+Sitemap: https://puq.me/sitemap.xml

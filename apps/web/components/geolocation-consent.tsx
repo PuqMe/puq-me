@@ -109,15 +109,15 @@ export function GeolocationConsent({
         >
           <div style={{ marginBottom: 6 }}>
             <strong style={{ color: "rgba(255,255,255,0.9)" }}>
-              Location Blurring:
+              Standort-Unschärfe:
             </strong>{" "}
-            Encounters are shown as blurred zones, not exact locations.
+            Begegnungen werden als unscharfe Zonen angezeigt, nicht als exakte Standorte.
           </div>
           <div>
             <strong style={{ color: "rgba(255,255,255,0.9)" }}>
-              User Control:
+              Benutzer-Kontrolle:
             </strong>{" "}
-            You can disable location sharing anytime in settings.
+            Du kannst die Standortfreigabe jederzeit in den Einstellungen deaktivieren.
           </div>
         </div>
 

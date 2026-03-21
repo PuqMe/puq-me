@@ -81,7 +81,7 @@ export function PushPermissionCard() {
           </button>
         )}
         {status === "granted" && (
-          <span className="text-xs text-emerald-400 font-medium">✓ Active</span>
+          <span className="text-xs text-emerald-400 font-medium">✓ Aktiv</span>
         )}
       </div>
     </article>

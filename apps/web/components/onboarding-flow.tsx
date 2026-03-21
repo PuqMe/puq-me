@@ -16,21 +16,21 @@ import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/i18n";
 
 const interestOptions = [
-  "Live music",
-  "Coffee dates",
-  "City walks",
-  "Museums",
-  "Night drives",
+  "Live-Musik",
+  "Kaffee-Dates",
+  "Stadtspaziergänge",
+  "Museen",
+  "Nachtfahrten",
   "Pilates",
-  "Food spots",
-  "Books",
-  "Travel",
-  "Photography",
-  "Cooking",
+  "Restaurants",
+  "Bücher",
+  "Reisen",
+  "Fotografie",
+  "Kochen",
   "Yoga",
-  "Hiking",
-  "Art",
-  "Movies"
+  "Wandern",
+  "Kunst",
+  "Filme"
 ];
 
 export function OnboardingFlow() {

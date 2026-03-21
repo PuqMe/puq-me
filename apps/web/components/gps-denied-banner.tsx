@@ -29,9 +29,9 @@ export function GpsDeniedBanner() {
       <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
         <span style={{ fontSize: 16 }}>📍</span>
         <div>
-          <div style={{ fontWeight: 600, marginBottom: 2 }}>Location access denied</div>
+          <div style={{ fontWeight: 600, marginBottom: 2 }}>Standortzugriff verweigert</div>
           <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.6)" }}>
-            Some features limited. Check browser settings.
+            Einige Funktionen eingeschränkt. Überprüfe die Browsereinstellungen.
           </div>
         </div>
       </div>
@@ -49,7 +49,7 @@ export function GpsDeniedBanner() {
           fontSize: 20,
           lineHeight: 1,
         }}
-        aria-label="Dismiss"
+        aria-label="Schließen"
       >
         ✕
       </button>

@@ -31,7 +31,7 @@ export function SwipeCard({
     >
       <div className={clsx("flex h-full flex-col justify-between p-5 text-white", profile.gradient)}>
         <div className="flex justify-between gap-3">
-          <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">Nearby now</span>
+          <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">In der Nähe</span>
           <span className="rounded-full bg-black/15 px-3 py-1 text-[11px] font-medium">{profile.distance}</span>
         </div>
 
@@ -54,7 +54,7 @@ export function SwipeCard({
           direction === "right" ? "border-white bg-white text-[#2b1144] opacity-100" : "opacity-0"
         )}
       >
-        Like
+        Mag ich
       </div>
       <div
         className={clsx(
@@ -62,7 +62,7 @@ export function SwipeCard({
           direction === "left" ? "border-white bg-transparent text-white opacity-100" : "opacity-0"
         )}
       >
-        Nope
+        Nein
       </div>
     </article>
   );
