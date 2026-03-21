@@ -1,6 +1,9 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "puqme-web",
+  // OpenNext builds to .open-next/ with worker.js as entry point.
+  // The Pages build command creates _worker.js (required by Cloudflare Pages advanced mode)
+  // that re-exports from worker.js to enable the Worker function.
   "pages_build_output_dir": ".open-next",
   "compatibility_date": "2026-03-17",
   "compatibility_flags": ["nodejs_compat"],
