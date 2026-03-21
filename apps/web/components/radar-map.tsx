@@ -796,7 +796,7 @@ export function RadarMap() {
 
             {/* Title + close */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#fff" }}>Search</h2>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#fff" }}>Suche</h2>
               <button onClick={() => setShowSearch(false)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,.5)", cursor: "pointer" }}><CloseIcon /></button>
             </div>
 

@@ -2,32 +2,32 @@ const cityTiles = [
   {
     city: "Berlin",
     image:
-      "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=600&q=60"
   },
   {
     city: "Hamburg",
     image:
-      "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?auto=format&fit=crop&w=600&q=60"
   },
   {
-    city: "M\u00fcnchen",
+    city: "München",
     image:
-      "https://images.unsplash.com/photo-1595867818082-083862f3d630?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1595867818082-083862f3d630?auto=format&fit=crop&w=600&q=60"
   },
   {
-    city: "K\u00f6ln",
+    city: "Köln",
     image:
-      "https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=600&q=60"
   },
   {
     city: "Wien",
     image:
-      "https://images.unsplash.com/photo-1516557070061-c3d1653fa646?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1516557070061-c3d1653fa646?auto=format&fit=crop&w=600&q=60"
   },
   {
-    city: "Z\u00fcrich",
+    city: "Zürich",
     image:
-      "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?auto=format&fit=crop&w=900&q=80"
+      "https://images.unsplash.com/photo-1534351590666-13e3e96b5017?auto=format&fit=crop&w=600&q=60"
   }
 ];
 
