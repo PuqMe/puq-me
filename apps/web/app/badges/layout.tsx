@@ -1,7 +1,7 @@
 import { generatePageMetadata } from "@/lib/seo-utils";
 
 export const metadata = generatePageMetadata({
-  title: "Badges",
+  title: "Abzeichen",
   description: "Sammle Auszeichnungen und zeige deinen Status",
   path: "/badges",
   icon: "🏆",

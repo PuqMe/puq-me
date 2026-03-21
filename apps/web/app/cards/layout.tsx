@@ -3,7 +3,7 @@ import { env } from "@/lib/env";
 import { generatePageMetadata } from "@/lib/seo-utils";
 
 export const metadata = generatePageMetadata({
-  title: "Activity Cards",
+  title: "Aktivitäts-Karten",
   description: "Spontane Aktivitäten und Begegnungen in deiner Stadt",
   path: "/cards",
   icon: "🎴",

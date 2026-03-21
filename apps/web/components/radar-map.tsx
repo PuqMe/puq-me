@@ -18,20 +18,20 @@ interface LocationInfo {
 }
 
 const NAV_ITEMS = [
-  { href: "/nearby",  label: "nearby" },
-  { href: "/circle",  label: "circle" },
-  { href: "/matches", label: "matches" },
-  { href: "/chat",    label: "chat" },
-  { href: "/profile", label: "profile" },
-  { href: "/settings",label: "settings" },
+  { href: "/nearby",  label: "In der Nähe" },
+  { href: "/circle",  label: "Kreis" },
+  { href: "/matches", label: "Matches" },
+  { href: "/chat",    label: "Chat" },
+  { href: "/profile", label: "Profil" },
+  { href: "/settings",label: "Einstellungen" },
 ];
 
 /* ── Tile layer configs ── */
 const TILE_LAYERS: Record<string, { url: string; label: string }> = {
-  dunkel:   { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",  label: "Dark" },
+  dunkel:   { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",  label: "Dunkel" },
   standard: { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", label: "Standard" },
-  gebaeude: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", label: "Light" },
-  oepnv:    { url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38", label: "Transit" },
+  gebaeude: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", label: "Hell" },
+  oepnv:    { url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38", label: "ÖPNV" },
 };
 
 /* ── SVG Icons ── */
@@ -443,9 +443,9 @@ export function RadarMap() {
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;font-weight:600;cursor:pointer;">👋 Wave</button>
+        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;font-weight:600;cursor:pointer;">👋 Winken</button>
         <button onclick="window.location.href='/chat'" style="padding:8px;border-radius:8px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;font-weight:600;cursor:pointer;">💬 Chat</button>
-        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(255,0,0,.2);background:rgba(255,0,0,.05);color:#ff6b7a;font-size:11px;font-weight:600;cursor:pointer;">♥ Like</button>
+        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(255,0,0,.2);background:rgba(255,0,0,.05);color:#ff6b7a;font-size:11px;font-weight:600;cursor:pointer;">♥ Mag ich</button>
       </div>
     </div>`;
   };

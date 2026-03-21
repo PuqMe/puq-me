@@ -27,12 +27,12 @@ const TIME_FILTERS: { key: TimeFilter; label: string }[] = [
 const COLORS = ["#f15bb5", "#38bdf8", "#fbbf24", "#4ade80", "#ec4899", "#06b6d4", "#eab308", "#10b981"];
 
 const NAV_ITEMS = [
-  { href: "/nearby",  label: "nearby" },
-  { href: "/circle",  label: "circle" },
-  { href: "/matches", label: "matches" },
-  { href: "/chat",    label: "chat" },
-  { href: "/profile", label: "profile" },
-  { href: "/settings",label: "settings" },
+  { href: "/nearby",  label: "In der Nähe" },
+  { href: "/circle",  label: "Kreis" },
+  { href: "/matches", label: "Matches" },
+  { href: "/chat",    label: "Chat" },
+  { href: "/profile", label: "Profil" },
+  { href: "/settings",label: "Einstellungen" },
 ];
 
 /* ── Tile layer configs ── */

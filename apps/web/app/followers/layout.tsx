@@ -3,7 +3,7 @@ import { env } from "@/lib/env";
 import { generatePageMetadata } from "@/lib/seo-utils";
 
 export const metadata = generatePageMetadata({
-  title: "Followers",
+  title: "Follower",
   description: "Deine Follower und Verbindungen verwalten",
   path: "/followers",
   icon: "👥",

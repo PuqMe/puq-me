@@ -1,7 +1,7 @@
 import { generatePageMetadata } from "@/lib/seo-utils";
 
 export const metadata = generatePageMetadata({
-  title: "Calm Mode",
+  title: "Ruhemodus",
   description: "Achtsames Dating mit bewussten Grenzen",
   path: "/calm",
   icon: "🧘",

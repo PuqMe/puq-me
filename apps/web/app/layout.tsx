@@ -25,16 +25,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(env.appUrl),
   manifest: "/manifest.webmanifest",
   keywords: [
-    "dating", "dating app", "matches", "chat", "swipe", "city dating",
-    "nearby dating", "radar dating", "smart match", "local encounters",
-    "privacy dating", BRAND_NAME, "PuQ", "puq.me",
-    "Dating App", "Begegnungen", "Treffen", "Stadtdating"
+    "dating", "dating app", "Dating App Deutschland", "kostenlose Dating App",
+    "Begegnungen", "Treffen", "Stadtdating", "Leute kennenlernen",
+    "Menschen in der Nähe", "Radar Dating", "Smart Match",
+    "Datenschutz Dating", "DSGVO Dating", "sicheres Dating",
+    BRAND_NAME, "PuQ", "puq.me",
+    "Berlin Dating", "Wien Dating", "Zürich Dating", "Köln Dating"
   ],
   alternates: {
     canonical: env.appUrl,
     languages: {
-      "en": env.appUrl,
       "de": env.appUrl,
+      "x-default": env.appUrl,
     },
   },
   openGraph: {
@@ -105,11 +107,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://b.basemaps.cartocdn.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://a.basemaps.cartocdn.com" />
         <link rel="dns-prefetch" href="https://b.basemaps.cartocdn.com" />
-        <link rel="alternate" hrefLang="en" href={env.appUrl} />
         <link rel="alternate" hrefLang="de" href={env.appUrl} />
         <link rel="alternate" hrefLang="x-default" href={env.appUrl} />
-        {/* Plausible Analytics — DSGVO-konform, kein Cookie-Banner nötig */}
-        <script defer data-domain="puq.me" src="https://plausible.io/js/script.js" />
+        {/* Analytics: Cloudflare Web Analytics — kostenlos, DSGVO-konform, läuft automatisch über CF-Proxy */}
       </head>
       <body className="app-frame min-h-screen font-sans antialiased">
         <SkipNav />

@@ -1,7 +1,7 @@
 import { generatePageMetadata } from "@/lib/seo-utils";
 
 export const metadata = generatePageMetadata({
-  title: "Intent",
+  title: "Vorhaben",
   description: "Zeige was du gerade vorhast und finde Gleichgesinnte",
   path: "/intent",
   icon: "💡",
