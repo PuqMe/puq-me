@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 const LLMS_CONTENT = `# PuQ.me
 
 > PuQ.me ist ein soziales Netzwerk für stadtbasierte Begegnungen. Die App verbindet Menschen in Echtzeit über ein standortbasiertes Radar, intelligentes Matching und interaktive Features.
