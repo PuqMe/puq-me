@@ -496,7 +496,7 @@ function fallbackCircles(): CircleListResponse {
   return {
     items: [
       {
-        circleId: "demo-close", name: "Close Friends", emoji: "💜",
+        circleId: "demo-close", name: "Enge Freunde", emoji: "\ud83d\udc9c",
         members: [
           { userId: "m1", displayName: "Maya", primaryPhotoUrl: null, isOnline: true },
           { userId: "m2", displayName: "Emma", primaryPhotoUrl: null, isOnline: false },
@@ -506,7 +506,7 @@ function fallbackCircles(): CircleListResponse {
         settings: { locationSharing: true, presenceSharing: true, availabilitySharing: true },
       },
       {
-        circleId: "demo-work", name: "Colleagues", emoji: "💼",
+        circleId: "demo-work", name: "Arbeitskollegen", emoji: "\ud83d\udcbc",
         members: [
           { userId: "w1", displayName: "Jan", primaryPhotoUrl: null, isOnline: false },
           { userId: "w2", displayName: "Kim", primaryPhotoUrl: null, isOnline: true },
@@ -516,7 +516,7 @@ function fallbackCircles(): CircleListResponse {
         settings: { locationSharing: false, presenceSharing: true, availabilitySharing: false },
       },
       {
-        circleId: "demo-sport", name: "Sport Group", emoji: "⚽",
+        circleId: "demo-sport", name: "Sport-Gruppe", emoji: "\u26bd",
         members: [
           { userId: "s1", displayName: "Tim", primaryPhotoUrl: null, isOnline: true },
           { userId: "s2", displayName: "Max", primaryPhotoUrl: null, isOnline: false },

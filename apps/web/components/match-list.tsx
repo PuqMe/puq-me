@@ -51,8 +51,14 @@ export function MatchList() {
         {errorMessage ? <div className="glass-card rounded-[1.8rem] p-4 text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
 
         {!isLoading && !errorMessage && items.length === 0 ? (
-          <div className="glass-card rounded-[1.8rem] p-5 text-sm leading-6 text-white/72">
-            {t.matchesEmpty}
+          <div className="glass-card rounded-[1.8rem] p-8 text-center">
+            <div style={{ fontSize: "48px", marginBottom: "16px", opacity: 0.6 }}>💜</div>
+            <div className="text-base font-semibold text-white/80" style={{ marginBottom: "8px" }}>
+              {t.matchesTitle}
+            </div>
+            <div className="text-sm leading-6 text-white/56">
+              {t.matchesEmpty}
+            </div>
           </div>
         ) : null}
 

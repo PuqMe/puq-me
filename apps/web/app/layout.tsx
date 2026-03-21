@@ -76,7 +76,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: "cover",
   themeColor: BRAND_THEME_COLOR
 };
@@ -98,7 +97,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
           />
         ))}
-        <link rel="canonical" href={env.appUrl} />
         <link rel="preconnect" href="https://api.puq.me" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://api.puq.me" />
         <link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossOrigin="anonymous" />
