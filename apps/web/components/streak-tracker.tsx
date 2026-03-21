@@ -143,9 +143,9 @@ export function StreakTracker() {
       >
         <div style={{ fontSize: "32px" }}>🔥</div>
         <div>
-          <div style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.7)" }}>Current Streak</div>
+          <div style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.7)" }}>Aktuelle Serie</div>
           <div style={{ fontSize: "24px", fontWeight: "700", color: "white" }}>
-            {streakData.currentStreak} day{streakData.currentStreak !== 1 ? "s" : ""}
+            {streakData.currentStreak} {streakData.currentStreak === 1 ? "Tag" : "Tage"}
           </div>
         </div>
       </div>
@@ -153,7 +153,7 @@ export function StreakTracker() {
       {/* Last 7 Days Calendar */}
       <div>
         <div style={{ fontSize: "11px", fontWeight: "600", color: "rgba(255, 255, 255, 0.6)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-          Last 7 Days
+          Letzte 7 Tage
         </div>
         <div style={{ display: "flex", gap: "6px", justifyContent: "space-between" }}>
           {last7Days.map((active, idx) => (
@@ -190,9 +190,9 @@ export function StreakTracker() {
           backgroundColor: "rgba(255, 255, 255, 0.05)",
         }}
       >
-        <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.7)" }}>Longest Streak</span>
+        <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.7)" }}>Längste Serie</span>
         <span style={{ fontSize: "14px", fontWeight: "700", color: "#a855f7" }}>
-          {streakData.longestStreak} day{streakData.longestStreak !== 1 ? "s" : ""}
+          {streakData.longestStreak} {streakData.longestStreak === 1 ? "Tag" : "Tage"}
         </span>
       </div>
 
@@ -212,7 +212,7 @@ export function StreakTracker() {
           }}
         >
           <span style={{ fontSize: "14px" }}>⚠️</span>
-          <span>Your streak is at risk! Keep up your activity today.</span>
+          <span>Deine Serie ist gefährdet! Halte deine Aktivität heute aufrecht.</span>
         </div>
       )}
     </div>

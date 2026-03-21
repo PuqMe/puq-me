@@ -300,20 +300,38 @@ export function SettingsPanel() {
         <a href="/calm" style={linkRowStyle}>
           <div style={linkIconStyle("rgba(52,211,153,0.12)", "#34d399")}>🌿</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>Calm Mode</div>
-            <div style={{ fontSize: "clamp(0.7rem, 2vw, 0.8rem)", color: "rgba(255,255,255,0.35)", marginTop: 1 }}>Digital Wellbeing</div>
+            <div style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>Ruhemodus</div>
+            <div style={{ fontSize: "clamp(0.7rem, 2vw, 0.8rem)", color: "rgba(255,255,255,0.35)", marginTop: 1 }}>Digitales Wohlbefinden</div>
           </div>
           <div style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", color: "rgba(255,255,255,0.15)" }}>›</div>
         </a>
 
-        {/* ── DATENSCHUTZ ── */}
-        <div style={sectionHeader}>Datenschutz</div>
+        {/* ── DATENSCHUTZ & RECHTLICHES ── */}
+        <div style={sectionHeader}>Datenschutz & Rechtliches</div>
 
         <a href="/privacy" style={linkRowStyle}>
           <div style={linkIconStyle("rgba(168,85,247,0.12)", "#a855f7")}>🛡</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>Datenschutz & DSGVO</div>
             <div style={{ fontSize: "clamp(0.7rem, 2vw, 0.8rem)", color: "rgba(255,255,255,0.35)", marginTop: 1 }}>Datenexport, Cookies</div>
+          </div>
+          <div style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", color: "rgba(255,255,255,0.15)" }}>›</div>
+        </a>
+
+        <a href="/agb" style={linkRowStyle}>
+          <div style={linkIconStyle("rgba(168,85,247,0.12)", "#a855f7")}>📋</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>AGB</div>
+            <div style={{ fontSize: "clamp(0.7rem, 2vw, 0.8rem)", color: "rgba(255,255,255,0.35)", marginTop: 1 }}>Allgemeine Geschäftsbedingungen</div>
+          </div>
+          <div style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", color: "rgba(255,255,255,0.15)" }}>›</div>
+        </a>
+
+        <a href="/impressum" style={linkRowStyle}>
+          <div style={linkIconStyle("rgba(168,85,247,0.12)", "#a855f7")}>⚖️</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>Impressum</div>
+            <div style={{ fontSize: "clamp(0.7rem, 2vw, 0.8rem)", color: "rgba(255,255,255,0.35)", marginTop: 1 }}>Angaben gemäß § 5 TMG</div>
           </div>
           <div style={{ fontSize: "clamp(0.8rem, 2.5vw, 1rem)", color: "rgba(255,255,255,0.15)" }}>›</div>
         </a>

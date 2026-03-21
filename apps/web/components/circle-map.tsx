@@ -396,7 +396,7 @@ export function CircleMap() {
           <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "#07050f" }}>
             <div style={{ textAlign: "center" }}>
               <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-              <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Loading map…</p>
+              <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Karte wird geladen…</p>
             </div>
           </div>
         )}
@@ -407,9 +407,9 @@ export function CircleMap() {
             zIndex: 15, textAlign: "center", color: "#fff", fontFamily: "system-ui, sans-serif"
           }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>📍</div>
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Enable location</div>
-            <div style={{ fontSize: 14, color: "rgba(255,255,255,.6)", marginBottom: 16 }}>to see encounters</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", maxWidth: 240 }}>Check your browser settings to enable location access</div>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Standort aktivieren</div>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,.6)", marginBottom: 16 }}>um Begegnungen zu sehen</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", maxWidth: 240 }}>Überprüfe deine Browsereinstellungen, um Standortzugriff zu aktivieren</div>
           </div>
         )}
 
@@ -526,7 +526,7 @@ export function CircleMap() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-                  <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Loading encounters…</p>
+                  <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Begegnungen werden geladen…</p>
                 </div>
               </div>
             ) : encounters.length > 0 ? (
@@ -683,7 +683,7 @@ export function CircleMap() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-                    <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Loading circles…</p>
+                    <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Kreise werden geladen…</p>
                   </div>
                 </div>
               ) : (

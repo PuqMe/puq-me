@@ -10,21 +10,21 @@ export function NetworkStatus() {
   useEffect(() => {
     const handleOnline = () => {
       setStatus("online");
-      setMessage("✅ Back online");
+      setMessage("✅ Wieder online");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     };
 
     const handleOffline = () => {
       setStatus("offline");
-      setMessage("📡 You're offline — showing cached data");
+      setMessage("📡 Du bist offline — zeige zwischengespeicherte Daten");
       setShowToast(true);
     };
 
     // Set initial status
     setStatus(navigator.onLine ? "online" : "offline");
     if (!navigator.onLine) {
-      setMessage("📡 You're offline — showing cached data");
+      setMessage("📡 Du bist offline — zeige zwischengespeicherte Daten");
       setShowToast(true);
     }
 

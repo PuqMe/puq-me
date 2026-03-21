@@ -70,13 +70,13 @@ export function getSoftwareAppSchema(baseUrl: string) {
       worstRating: "1",
     },
     featureList: [
-      "City-based dating radar",
-      "Real-time nearby user discovery",
-      "Smart matching algorithm",
-      "Group activities and encounters",
-      "Privacy-first with auto-vanish mode",
-      "Watch-time personalized feed",
-      "Calm mode for mindful dating",
+      "Stadtbasiertes Dating-Radar",
+      "Echtzeit-Entdeckung von Personen in der Nähe",
+      "Intelligenter Matching-Algorithmus",
+      "Gruppenaktivitäten und Begegnungen",
+      "Datenschutz-First mit Auto-Vanish-Modus",
+      "Personalisierter Feed basierend auf Interaktion",
+      "Ruhemodus für achtsames Dating",
     ],
     screenshot: `${baseUrl}/opengraph-image.png`,
   };
@@ -201,12 +201,12 @@ export function getGeoSchema(baseUrl: string) {
   return {
     "@context": "https://schema.org",
     "@type": "Place",
-    name: "PuQ.me – City Dating Radar",
-    description: "Location-based dating and encounter platform active in cities across Europe",
+    name: "PuQ.me – Stadtbasiertes Dating-Radar",
+    description: "Standortbasierte Dating- und Begegnungsplattform in Städten in ganz Europa",
     url: baseUrl,
     geo: {
       "@type": "GeoShape",
-      description: "Available in major European cities",
+      description: "Verfügbar in großen europäischen Städten",
     },
     hasMap: `${baseUrl}/nearby`,
   };

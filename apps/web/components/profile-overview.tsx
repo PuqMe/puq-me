@@ -67,6 +67,7 @@ const pt = {
     settings: "Settings", settingsDesc: "Language, visibility, preferences",
     privacy: "Privacy", privacyDesc: "GDPR & data protection",
     deleteAccount: "Delete account", deleteAccountDesc: "Permanently delete all data",
+    impressum: "Impressum", agb: "Terms of Service",
     verified: "Verified", streak: "Streak",
     version: "PuQ.me v1.0 · Made in Berlin",
     linkCopied: "Link copied!",
@@ -93,6 +94,7 @@ const pt = {
     settings: "Einstellungen", settingsDesc: "Sprache, Sichtbarkeit, Präferenzen",
     privacy: "Datenschutz", privacyDesc: "DSGVO & Datenschutzerklärung",
     deleteAccount: "Konto löschen", deleteAccountDesc: "Alle Daten dauerhaft löschen",
+    impressum: "Impressum", agb: "AGB",
     verified: "Verifiziert", streak: "Streak",
     version: "PuQ.me v1.0 · Made in Berlin",
     linkCopied: "Link kopiert!",
@@ -691,8 +693,15 @@ export function ProfileOverview() {
         </div>
 
         {/* ━━━ FOOTER ━━━ */}
-        <div style={{ textAlign: "center", padding: "20px 0 4px", fontSize: 11, color: "rgba(255,255,255,0.15)" }}>
-          {tx.version}
+        <div style={{ textAlign: "center", padding: "20px 0 4px" }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 16, fontSize: 11, marginBottom: 8 }}>
+            <a href="/impressum" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{tx.impressum}</a>
+            <a href="/agb" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{tx.agb}</a>
+            <a href="/privacy" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>{tx.privacy}</a>
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.15)" }}>
+            {tx.version}
+          </div>
         </div>
       </div>
 
