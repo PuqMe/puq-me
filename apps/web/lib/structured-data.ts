@@ -16,7 +16,7 @@ export function getWebsiteSchema(baseUrl: string) {
     alternateName: "PuQ",
     url: baseUrl,
     description: BRAND_DESCRIPTION,
-    inLanguage: ["en", "de"],
+    inLanguage: "de",
     potentialAction: {
       "@type": "SearchAction",
       target: {
@@ -55,7 +55,8 @@ export function getSoftwareAppSchema(baseUrl: string) {
     description: BRAND_DESCRIPTION,
     url: baseUrl,
     applicationCategory: "SocialNetworkingApplication",
-    applicationSubCategory: "DatingApplication",
+    applicationSubCategory: "Dating & Begegnungen",
+    additionalType: "https://schema.org/MobileApplication",
     operatingSystem: "Web, iOS, Android",
     offers: {
       "@type": "Offer",

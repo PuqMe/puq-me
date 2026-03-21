@@ -25,12 +25,23 @@ export const metadata: Metadata = {
   metadataBase: new URL(env.appUrl),
   manifest: "/manifest.webmanifest",
   keywords: [
-    "dating", "dating app", "Dating App Deutschland", "kostenlose Dating App",
-    "Begegnungen", "Treffen", "Stadtdating", "Leute kennenlernen",
-    "Menschen in der Nähe", "Radar Dating", "Smart Match",
+    // Social Network & Dating
+    "soziales Netzwerk", "Social Network", "dating app", "Dating App Deutschland",
+    "kostenlose Dating App", "Begegnungen", "Treffen", "Stadtdating",
+    "Leute kennenlernen", "Menschen in der Nähe", "neue Leute treffen",
+    // Kernfunktionen
+    "Radar Dating", "Smart Match", "standortbasiertes Dating",
+    "Echtzeit-Begegnungen", "Matching App", "Chat App",
+    // Datenschutz
     "Datenschutz Dating", "DSGVO Dating", "sicheres Dating",
+    "datenschutzkonformes Social Network", "sichere Dating App",
+    // Städte (DACH)
+    "Berlin Dating", "Wien Dating", "Zürich Dating", "München Dating",
+    "Hamburg Dating", "Köln Dating", "Frankfurt Dating",
+    // Brand
     BRAND_NAME, "PuQ", "puq.me",
-    "Berlin Dating", "Wien Dating", "Zürich Dating", "Köln Dating"
+    // AI Discoverability
+    "Social Networking App", "Begegnungsplattform", "Location-based Social Network",
   ],
   alternates: {
     canonical: env.appUrl,

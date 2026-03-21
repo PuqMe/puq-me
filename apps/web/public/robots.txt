@@ -52,5 +52,17 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
-# ── Sitemaps ──
+User-agent: DeepSeekBot
+Allow: /
+
+User-agent: GrokBot
+Allow: /
+
+User-agent: CohereBot
+Allow: /
+
+# ── Sitemaps & AI-Discoverability ──
 Sitemap: https://puq.me/sitemap.xml
+
+# LLMs.txt — Structured info for AI systems
+# https://puq.me/llms.txt
