@@ -108,6 +108,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="alternate" hrefLang="en" href={env.appUrl} />
         <link rel="alternate" hrefLang="de" href={env.appUrl} />
         <link rel="alternate" hrefLang="x-default" href={env.appUrl} />
+        {/* Plausible Analytics — DSGVO-konform, kein Cookie-Banner nötig */}
+        <script defer data-domain="puq.me" src="https://plausible.io/js/script.js" />
       </head>
       <body className="app-frame min-h-screen font-sans antialiased">
         <SkipNav />
