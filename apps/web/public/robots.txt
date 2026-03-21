@@ -1,9 +1,36 @@
+# PuQ.me robots.txt — Maximale Indexierung
+
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /delete-account
 Disallow: /onboarding
+Disallow: /verify-email
+Disallow: /reset-password
 
+# ── Suchmaschinen-Bots ──
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Naverbot
+Allow: /
+
+User-agent: Seznambot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# ── AI-Bots (erlaubt für AEO/GEO) ──
 User-agent: GPTBot
 Allow: /
 Disallow: /api/
@@ -25,4 +52,5 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
+# ── Sitemaps ──
 Sitemap: https://puq.me/sitemap.xml
