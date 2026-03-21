@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint app components lib --ext .ts,.tsx",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "pages:build": "bash scripts/pages-build.sh"
   },
   "dependencies": {
     "@puqme/config": "workspace:*",
