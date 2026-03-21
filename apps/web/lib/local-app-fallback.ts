@@ -245,7 +245,8 @@ function readStoredSessionUser() {
 }
 
 function createDefaultProfile(user: SessionUser): FallbackProfileResponse {
-  const handle = user.email.split("@")[0]?.replace(/[^a-z0-9]+/gi, " ").trim() || "PuQ User";
+  const raw = user.email.split("@")[0]?.replace(/[^a-z0-9]+/gi, " ").trim() || "";
+  const handle = raw === "google user" || raw === "google-user" || !raw ? "PuQ Nutzer" : raw;
   const displayName = handle.charAt(0).toUpperCase() + handle.slice(1);
 
   return {

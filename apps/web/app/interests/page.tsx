@@ -375,7 +375,7 @@ export default function InterestsPage() {
           </div>
         )}
         <div style={styles.header}>
-          <h1 style={styles.heading}>Wenn suchst du?</h1>
+          <h1 style={styles.heading}>Wen suchst du?</h1>
           <p style={styles.subtitle}>Definiere deinen idealen Match</p>
         </div>
 

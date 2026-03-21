@@ -350,7 +350,7 @@ export default function FollowersPage() {
           </div>
           <div style={styles.statCard}>
             <div style={styles.statNumber}>{followers.filter(f => f.isFollowing).length}</div>
-            <div style={styles.statLabel}>Following</div>
+            <div style={styles.statLabel}>Folge ich</div>
           </div>
         </div>
 
@@ -367,7 +367,7 @@ export default function FollowersPage() {
             onClick={() => setActiveTab('following')}
             style={styles.tab(activeTab === 'following')}
           >
-            Following
+            Folge ich
             <span style={styles.badge}>{followers.filter(f => f.isFollowing).length}</span>
           </button>
         </div>

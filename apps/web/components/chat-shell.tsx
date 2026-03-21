@@ -63,7 +63,7 @@ export function ChatShell() {
             </div>
           </div>
           <div className="ml-auto soft-pill rounded-full px-3 py-1.5 text-[11px] font-semibold">
-            {selectedConversation?.status ?? "idle"}
+            {selectedConversation?.status === "active" ? t.sessionLive : selectedConversation?.status ?? t.noActiveChat}
           </div>
         </div>
 
