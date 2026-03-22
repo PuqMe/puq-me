@@ -252,11 +252,23 @@ export function HomeFeed() {
           animation: hf-sweep 4s linear infinite;
           pointer-events:none;
         }
+
+        /* ── Responsive: full-width on desktop ── */
+        .hf-outer-shell {
+          position: fixed; inset: 0;
+        }
+        @media (min-width: 1024px) {
+          .hf-outer-shell {
+            position: relative;
+            min-height: 100vh;
+            max-width: 100%;
+          }
+          .hf-bottom-nav { display: none !important; }
+        }
       `}</style>
 
       {/* ════ OUTER SHELL ════ */}
-      <div style={{
-        position: "fixed", inset: 0,
+      <div className="hf-outer-shell" style={{
         background: "#08070f",
         display: "flex", flexDirection: "column",
         overflow: "hidden",
@@ -340,10 +352,12 @@ export function HomeFeed() {
             paddingLeft: 14, paddingRight: 14, paddingBottom: 4,
             gap: 8,
           }}>
-            {/* Bell — transparent, no background */}
+            {/* Bell — transparent, with tooltip */}
             <button
               onClick={() => { setToast(true); setTimeout(() => setToast(false), 2500); }}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 }}
+              title="Benachrichtigungen"
+              aria-label="Benachrichtigungen"
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0, position: "relative" }}
             >
               <BellSvg />
             </button>
@@ -500,8 +514,8 @@ export function HomeFeed() {
 
         </div>
 
-        {/* ════ BOTTOM NAV — 5 icons, Circle raised in center ════ */}
-        <nav style={{
+        {/* ════ BOTTOM NAV — 5 icons, Circle raised in center (hidden on desktop) ════ */}
+        <nav className="hf-bottom-nav" style={{
           position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
           display: "flex", alignItems: "center", justifyContent: "space-around",
           background: "rgba(6,5,12,.93)",

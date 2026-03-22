@@ -109,7 +109,11 @@ export function ChatShell() {
             value={draft}
           />
           <button
-            className="glow-button rounded-[1rem] px-4 py-3 text-sm font-semibold text-white"
+            className={`rounded-[1rem] px-4 py-3 text-sm font-semibold ${
+              selectedConversationId && !isSending
+                ? "glow-button text-white"
+                : "bg-white/8 text-white/30 cursor-not-allowed"
+            }`}
             disabled={!selectedConversationId || isSending}
             onClick={() => void sendTextMessage()}
           >

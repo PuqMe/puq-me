@@ -1,15 +1,21 @@
-import type { Metadata } from "next";
-import { AuthGuard } from "@/components/auth-guard";
-import { RadarMap } from "@/components/radar-map";
+"use client";
 
-export const metadata: Metadata = {
-  title: "In der Nähe • Entdecke Menschen um dich herum"
-};
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+import Loading from "@/app/loading";
+
+const RadarMap = dynamic(
+  () => import("@/components/radar-map").then((m) => ({ default: m.RadarMap })),
+  {
+    ssr: false,
+    loading: () => <Loading />,
+  }
+);
 
 export default function NearbyPage() {
   return (
-    <AuthGuard>
+    <Suspense fallback={<Loading />}>
       <RadarMap />
-    </AuthGuard>
+    </Suspense>
   );
 }

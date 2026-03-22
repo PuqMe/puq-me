@@ -186,3 +186,23 @@ textarea {
   width: 0;
   height: 0;
 }
+
+/* ── Skeleton shimmer animation ── */
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-shimmer {
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Soft pulse for loading states ── */
+@keyframes animate-soft-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-soft-pulse {
+  animation: animate-soft-pulse 2s ease-in-out infinite;
+}

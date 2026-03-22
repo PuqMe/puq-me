@@ -2,7 +2,7 @@ import { LogoMark } from "@puqme/ui";
 
 export default function Loading() {
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
+    <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-label="Wird geladen">
       <div className="flex flex-col items-center gap-4">
         <div className="animate-soft-pulse">
           <LogoMark className="h-10 w-10 text-[#a855f7]" size={40} />

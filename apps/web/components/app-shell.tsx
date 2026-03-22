@@ -108,7 +108,12 @@ export function AppShell({
               <Link href="/nearby" aria-label="Nearby" className={headerBtnClass}><NavIcon type="radar" size={18} /></Link>
               <Link href="/circle" aria-label="Circle" className={headerBtnClass}><NavIcon type="circle" size={18} /></Link>
               <button aria-label="Search" className={headerBtnClass}><SearchIcon /></button>
-              <button aria-label="Notifications" onClick={() => { setShowNotifToast(true); setTimeout(() => setShowNotifToast(false), 2500); }} className={headerBtnClass}><BellIcon /></button>
+              <button
+                aria-label="Notifications"
+                title="Benachrichtigungen"
+                onClick={() => { setShowNotifToast(true); setTimeout(() => setShowNotifToast(false), 2500); }}
+                className={headerBtnClass}
+              ><BellIcon /></button>
               <button
                 type="button"
                 onClick={() => setIsMenuOpen((c) => !c)}
@@ -174,6 +179,7 @@ export function AppShell({
             )}
           >
             <NavIcon type={item.icon} size={20} />
+            <span className="text-[9px] font-medium leading-none mt-0.5">{item.label}</span>
           </Link>
         ))}
       </nav>

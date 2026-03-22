@@ -369,7 +369,7 @@ export function CircleExperience() {
                 }}
               >
                 {tiles.tiles.map((tile) => (
-                  <img alt="" className="h-64 w-64 object-cover" key={tile.id} src={tile.url} />
+                  <img alt="" className="h-64 w-64 object-cover" key={tile.id} src={tile.url} loading="lazy" decoding="async" />
                 ))}
               </div>
             </div>
@@ -451,7 +451,7 @@ export function CircleExperience() {
               encounters.map((encounter) => (
                 <article key={encounter.id} className="glass-card rounded-[1.8rem] p-4 text-white">
                   <div className="flex items-start gap-4">
-                    <img alt={encounter.name} className="h-16 w-16 rounded-[1.1rem] object-cover" src={encounter.avatar} />
+                    <img alt={encounter.name} className="h-16 w-16 rounded-[1.1rem] object-cover" src={encounter.avatar} loading="lazy" decoding="async" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div>

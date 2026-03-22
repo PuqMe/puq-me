@@ -18,12 +18,12 @@ interface LocationInfo {
 }
 
 const NAV_ITEMS = [
-  { href: "/nearby",  label: "In der Nähe" },
-  { href: "/circle",  label: "Kreis" },
-  { href: "/matches", label: "Matches" },
-  { href: "/chat",    label: "Chat" },
-  { href: "/profile", label: "Profil" },
-  { href: "/settings",label: "Einstellungen" },
+  { href: "/nearby",  label: "In der Nähe", icon: "nearby" },
+  { href: "/circle",  label: "Kreis", icon: "circle" },
+  { href: "/matches", label: "Matches", icon: "matches" },
+  { href: "/chat",    label: "Chat", icon: "chat" },
+  { href: "/profile", label: "Profil", icon: "profile" },
+  { href: "/settings",label: "Einstellungen", icon: "settings" },
 ];
 
 /* ── Tile layer configs ── */
@@ -543,6 +543,10 @@ export function RadarMap() {
           animation: radarPulse 2s infinite;
         }
 
+        @media (min-width: 1024px) {
+          .radar-bottom-nav { display: none !important; }
+        }
+
         .leaflet-popup-content-wrapper {
           background: transparent!important;
           box-shadow: none!important;
@@ -732,8 +736,8 @@ export function RadarMap() {
           )}
         </div>
 
-        {/* ── BOTTOM NAV ── */}
-        <nav style={{
+        {/* ── BOTTOM NAV (hidden on desktop via media query class) ── */}
+        <nav className="radar-bottom-nav" style={{
           position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 30,
           display: "flex", alignItems: "center", justifyContent: "space-around",
           background: "transparent", borderTop: "none",
@@ -745,7 +749,7 @@ export function RadarMap() {
               gap: 2, padding: "4px 8px", textDecoration: "none",
               color: item.href === "/nearby" ? "#a855f7" : "rgba(255,255,255,.70)",
             }}>
-              <NavIcon type={item.label} />
+              <NavIcon type={item.icon} />
             </Link>
           ))}
         </nav>
@@ -774,8 +778,8 @@ export function RadarMap() {
                   background: item.href === "/nearby" ? "rgba(168,85,247,.12)" : "transparent",
                   fontSize: 14, fontWeight: 600,
                 }}>
-                  <NavIcon type={item.label} />
-                  <span style={{ textTransform: "capitalize" }}>{item.label}</span>
+                  <NavIcon type={item.icon} />
+                  <span>{item.label}</span>
                 </Link>
               ))}
               {/* Settings already in NAV_ITEMS above */}

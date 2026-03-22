@@ -521,23 +521,37 @@ export function ProfileOverview() {
               <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5 }}>{tx.gallery}</div>
               <button onClick={() => galleryInputRef.current?.click()} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>{tx.addPhoto}</button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(90px, 1fr))", gap: 6 }}>
-              {/* Main photo (slot 1) */}
-              <button onClick={() => galleryInputRef.current?.click()} disabled={uploading} style={{ aspectRatio: "1", borderRadius: 14, overflow: "hidden", border: "none", padding: 0, cursor: uploading ? "wait" : "pointer", background: "rgba(255,255,255,0.03)", opacity: uploading ? 0.5 : 1, transition: "opacity 0.2s" }}>
-                {data.profile.photoUrl ? (
-                  <img src={data.profile.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.15)", fontSize: 28 }}>+</div>
-                )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {/* Show existing photo(s) in a row */}
+              {data.profile.photoUrl && (
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => galleryInputRef.current?.click()} disabled={uploading} style={{ width: 96, height: 96, borderRadius: 14, overflow: "hidden", border: "none", padding: 0, cursor: uploading ? "wait" : "pointer", background: "rgba(255,255,255,0.03)", opacity: uploading ? 0.5 : 1, transition: "opacity 0.2s", flexShrink: 0 }}>
+                    <img src={data.profile.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </button>
+                </div>
+              )}
+              {/* Single "Add photo" button with hint text */}
+              <button
+                onClick={() => galleryInputRef.current?.click()}
+                disabled={uploading}
+                style={{
+                  display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
+                  borderRadius: 14, background: "rgba(168,85,247,0.06)",
+                  border: "1px dashed rgba(168,85,247,0.25)", cursor: uploading ? "wait" : "pointer",
+                  transition: "background 0.15s", opacity: uploading ? 0.5 : 1,
+                  width: "100%",
+                }}
+                onMouseEnter={e => !uploading && (e.currentTarget.style.background = "rgba(168,85,247,0.12)")}
+                onMouseLeave={e => !uploading && (e.currentTarget.style.background = "rgba(168,85,247,0.06)")}
+              >
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(168,85,247,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#a855f7", fontSize: 20, flexShrink: 0 }}>+</div>
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#c084fc" }}>{tx.addPhoto}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>
+                    {locale === "de" ? "Fotos machen dein Profil attraktiver" : "Photos make your profile more attractive"}
+                  </div>
+                </div>
               </button>
-              {/* Slots 2-6: empty placeholders */}
-              {[1, 2, 3, 4, 5].map((i) => (
-                <button key={i} onClick={() => galleryInputRef.current?.click()} disabled={uploading} style={{ aspectRatio: "1", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.08)", cursor: uploading ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.15)", fontSize: 24, transition: "background 0.15s", opacity: uploading ? 0.5 : 1 }}
-                  onMouseEnter={e => !uploading && (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
-                  onMouseLeave={e => !uploading && (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}>
-                  +
-                </button>
-              ))}
             </div>
           </div>
         )}
