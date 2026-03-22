@@ -143,7 +143,7 @@ export function RadarMap() {
     }
 
     return () => {
-      trackerRef.current?.destroy();
+      trackerRef.current?.disconnect();
       trackerRef.current = null;
     };
   }, []);
