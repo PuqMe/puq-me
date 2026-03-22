@@ -11,12 +11,12 @@ CDN_BASE_URL = "https://cdn.puq.me"
 [[d1_databases]]
 binding = "DB"
 database_name = "puqme-db"
-database_id = ""  # Will be filled after `wrangler d1 create puqme-db`
+database_id = "b46f1d6e-f091-49dc-8ea0-926f62ff6e22"
 
 # KV Namespaces
 [[kv_namespaces]]
 binding = "KV"
-id = ""  # Will be filled after `wrangler kv namespace create KV`
+id = "1ec2710bcadf478fb974f49ff971720e"
 
 # Durable Objects
 [durable_objects]
@@ -28,7 +28,7 @@ bindings = [
 tag = "v1"
 new_classes = ["ChatRoom"]
 
-# Secrets (set via `wrangler secret put`):
+# Secrets (set via \`wrangler secret put\`):
 # JWT_SECRET
 # JWT_REFRESH_SECRET
 # S3_ENDPOINT
