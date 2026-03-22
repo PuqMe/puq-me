@@ -31,7 +31,7 @@ const TILE_LAYERS: Record<string, { url: string; label: string }> = {
   dunkel:   { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",  label: "Dunkel" },
   standard: { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", label: "Standard" },
   gebaeude: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", label: "Hell" },
-  oepnv:    { url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=6170aad10dfd42a38d4d8c709a536f38", label: "ÖPNV" },
+  oepnv:    { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png", label: "ÖPNV" },
 };
 
 /* ── SVG Icons ── */
@@ -137,13 +137,13 @@ export function RadarMap() {
     try {
       const behaviorProfile = loadBehaviorProfile();
       const recommendation = getTimeBasedRecommendation(behaviorProfile);
-      setTimeRecommendation(recommendation.message);
+      setTimeRecommendation(recommendation);
     } catch (err) {
       console.warn("Failed to load behavior profile:", err);
     }
 
     return () => {
-      trackerRef.current?.disconnect();
+      trackerRef.current?.destroy();
       trackerRef.current = null;
     };
   }, []);
