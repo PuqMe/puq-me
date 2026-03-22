@@ -137,7 +137,7 @@ export function RadarMap() {
     try {
       const behaviorProfile = loadBehaviorProfile();
       const recommendation = getTimeBasedRecommendation(behaviorProfile);
-      setTimeRecommendation(recommendation);
+      setTimeRecommendation(recommendation.message);
     } catch (err) {
       console.warn("Failed to load behavior profile:", err);
     }
