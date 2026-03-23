@@ -85,7 +85,6 @@ wellness.put("/calm", async (c) => {
   }
 
   updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
-  values.push(userId);
 
   await c.env.DB.prepare(`
     INSERT INTO calm_mode_settings (user_id, updated_at)
@@ -210,7 +209,6 @@ wellness.put("/auto-vanish", async (c) => {
   }
 
   updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
-  values.push(userId);
 
   await c.env.DB.prepare(`
     INSERT INTO auto_vanish_settings (user_id, updated_at)

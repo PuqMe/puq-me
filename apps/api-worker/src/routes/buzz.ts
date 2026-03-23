@@ -63,7 +63,6 @@ buzz.put("/settings", async (c) => {
   }
 
   updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
-  values.push(userId);
 
   await c.env.DB.prepare(`
     INSERT INTO buzz_settings (user_id, vibration_enabled, buzz_radius_meters, updated_at)

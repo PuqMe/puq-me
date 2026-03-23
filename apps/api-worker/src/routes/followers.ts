@@ -135,13 +135,13 @@ followers.get("/stats", async (c) => {
   const userId = c.get("userId");
 
   const followerCount = await c.env.DB.prepare(`
-    SELECT COUNT(*) as count FROM follows
+    SELECT COUNT(*) as count FROM followers
     WHERE following_user_id = ?  `)
     .bind(userId)
     .first();
 
   const followingCount = await c.env.DB.prepare(`
-    SELECT COUNT(*) as count FROM follows
+    SELECT COUNT(*) as count FROM followers
     WHERE follower_user_id = ?  `)
     .bind(userId)
     .first();

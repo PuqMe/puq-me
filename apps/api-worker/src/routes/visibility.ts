@@ -86,7 +86,6 @@ visibility.put("/", async (c) => {
   }
 
   updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
-  values.push(userId);
 
   await c.env.DB.prepare(`
     INSERT INTO visibility_settings (user_id, mode, scan_radius_km, updated_at)
