@@ -81,7 +81,40 @@ In Cloudflare Dashboard:
 Für WebSocket:
 - `ws.puq.me` → gleicher Worker (WebSocket-Upgrade wird intern geroutet)
 
-## 7. Alte Infrastruktur (nach Verifizierung)
+## 7. CI/CD mit GitHub Actions
+
+Das Repository enthält einen GitHub Actions Workflow unter `.github/workflows/deploy-worker.yml`.
+Bei jedem Push auf `main` (wenn sich Dateien in `apps/api-worker/` ändern) wird automatisch deployed.
+
+### GitHub Secrets einrichten
+
+Im GitHub Repository unter **Settings → Secrets and variables → Actions** diese Secrets anlegen:
+
+| Secret | Wert |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | API Token mit "Edit Cloudflare Workers" Permission (erstellen unter https://dash.cloudflare.com/profile/api-tokens) |
+| `CLOUDFLARE_ACCOUNT_ID` | `b7730525ee304e08cce2716ca8519c06` |
+
+### API Token erstellen
+
+1. https://dash.cloudflare.com/profile/api-tokens → "Create Token"
+2. Template: **"Edit Cloudflare Workers"** auswählen
+3. Account Resources: Dein Account
+4. Zone Resources: All Zones (oder nur puq.me)
+5. Token erstellen und als `CLOUDFLARE_API_TOKEN` Secret in GitHub speichern
+
+### Manuell deployen
+
+Der Workflow kann auch manuell ausgelöst werden:
+- GitHub → Actions → "Deploy API Worker" → "Run workflow"
+
+### Wichtig: Erster Deploy
+
+Der erste Deploy über GitHub Actions wendet auch die Durable Objects Migration an
+(Tag "v2" mit `new_sqlite_classes: ["ChatRoom"]`), was für WebSocket/Chat erforderlich ist.
+Ein manueller `wrangler deploy` aus dem Projektverzeichnis funktioniert genauso.
+
+## 8. Alte Infrastruktur (nach Verifizierung)
 
 Sobald der Worker stabil läuft:
 - Docker/Kubernetes-Deployment stoppen

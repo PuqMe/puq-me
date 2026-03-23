@@ -3,6 +3,7 @@ dist
 .env
 .env.local
 .env.*.local
+.env.production.api
 .DS_Store
 coverage
 .next
@@ -17,3 +18,12 @@ apps/web/.open-next
 .pnpm-store
 *.tsbuildinfo
 _tmp_*
+
+# Build artifacts
+_bundled_worker.js
+package-lock.json
+
+# Generated reports & docs (keep in local workspace only)
+*.docx
+*.xlsx
+*.pdf
