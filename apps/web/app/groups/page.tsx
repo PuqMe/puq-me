@@ -57,6 +57,19 @@ export default function GroupsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
+  const featuredGroup = groups[0] ?? {
+    id: 'featured',
+    emoji: '🏐',
+    title: 'Volleyball im Park',
+    location: 'Tiergarten',
+    time: 'Heute 16:00',
+    timer: 45,
+    members: 3,
+    spots: 2,
+    memberInitials: ['M', 'T', 'A'],
+  };
+  const nearbyGroups = groups.slice(1);
+
   useEffect(() => {
     async function loadCircles() {
       setIsLoading(true);
@@ -88,9 +101,6 @@ export default function GroupsPage() {
 
     loadCircles();
   }, []);
-
-  const featuredGroup = groups[0];
-  const nearbyGroups = groups.slice(1);
 
   const styles = {
     container: {
@@ -302,7 +312,7 @@ export default function GroupsPage() {
   const memberColors = ['#ff69b4', '#00d4ff', '#22c55e', '#a855f7', '#fbbf24', '#ef4444'];
 
   return (
-    <AppShell>
+    <AppShell title="Zusammen aktiv">
       <div style={styles.container}>
         {/* Header */}
         <div style={styles.header}>
@@ -382,7 +392,7 @@ export default function GroupsPage() {
             {featuredGroup.memberInitials.map((initial, idx) => (
               <div
                 key={idx}
-                style={styles.memberAvatar(memberColors[idx % memberColors.length])}
+                style={styles.memberAvatar(memberColors[idx % memberColors.length] || '#a855f7')}
               >
                 {initial}
               </div>

@@ -19,6 +19,7 @@ const DEMO_CARDS = [
     emoji: "☕",
     action: "Kaffee trinken",
     isLive: true,
+    userId: "demo-user-1",
   },
   {
     id: 2,
@@ -31,6 +32,7 @@ const DEMO_CARDS = [
     emoji: "🏃",
     action: "Joggen gehen",
     isLive: true,
+    userId: "demo-user-2",
   },
   {
     id: 3,
@@ -43,6 +45,7 @@ const DEMO_CARDS = [
     emoji: "💼",
     action: "Coworking Space",
     isLive: false,
+    userId: "demo-user-3",
   },
 ];
 
@@ -67,10 +70,8 @@ export default function CardsPage() {
             async (position) => {
               try {
                 // Fetch nearby users with current location
-                const nearbyUsers = await fetchNearbyUsers({
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                });
+                const response = await fetchNearbyUsers(position.coords.latitude, position.coords.longitude, 20);
+                const nearbyUsers = response.items;
 
                 // Map NearbyUser items to card format
                 let mappedCards = nearbyUsers.map(
@@ -85,6 +86,7 @@ export default function CardsPage() {
                     emoji: "🎯",
                     action: user.bio || "Aktiv jetzt",
                     isLive: user.isOnline,
+                    userId: user.userId,
                   })
                 );
 
@@ -343,7 +345,7 @@ export default function CardsPage() {
                   }}
                 >
                   <button
-                    onClick={() => handleCardAction(card.id, "join", `user_${card.id}`)}
+                    onClick={() => handleCardAction(card.id, "join", card.userId)}
                     disabled={sending === card.id}
                     style={{
                       padding: "12px",

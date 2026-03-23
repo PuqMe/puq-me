@@ -5,9 +5,9 @@ import { AppShell } from '@/components/app-shell';
 import { updateMyVisibility } from '@/lib/profile';
 
 interface VanishSettings {
-  profileTimer: { enabled: boolean; duration: number; activatedAt?: number };
-  intentTimer: { enabled: boolean; duration: number; activatedAt?: number };
-  cardTimer: { enabled: boolean; duration: number; activatedAt?: number };
+  profileTimer: { enabled: boolean; duration: number; activatedAt?: number | undefined };
+  intentTimer: { enabled: boolean; duration: number; activatedAt?: number | undefined };
+  cardTimer: { enabled: boolean; duration: number; activatedAt?: number | undefined };
 }
 
 const defaultSettings: VanishSettings = {
@@ -314,7 +314,7 @@ export default function AutoVanishPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell title="Auto-Verschwinden">
       {toast && (
         <div
           style={{

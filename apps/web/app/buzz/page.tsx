@@ -279,21 +279,18 @@ export default function BuzzPage() {
           navigator.geolocation.getCurrentPosition(
             async (position) => {
               try {
-                let users = await fetchNearbyUsers({
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                  radius: buzzSettings.radius,
-                });
+                const response = await fetchNearbyUsers(position.coords.latitude, position.coords.longitude, 20);
+                let users = response.items;
 
                 // Apply smart ranking to nearby users
-                const itemsToRank = users.map((u: any) => ({ id: String(u.id), score: 75 }));
+                const itemsToRank = users.map((u: any) => ({ id: String(u.userId), score: 75 }));
                 const rankedItems = applySmartRanking(itemsToRank, behavior, metrics);
 
                 // Sort by ranked score
                 const rankedMap = new Map(rankedItems.map(item => [String(item.id), item.score]));
                 users = users.sort((a: any, b: any) => {
-                  const scoreA = rankedMap.get(String(a.id)) || 75;
-                  const scoreB = rankedMap.get(String(b.id)) || 75;
+                  const scoreA = rankedMap.get(String(a.userId)) || 75;
+                  const scoreB = rankedMap.get(String(b.userId)) || 75;
                   return scoreB - scoreA;
                 });
 
@@ -369,7 +366,7 @@ export default function BuzzPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell title="Buzz">
       <div style={containerStyle}>
         <div style={mapBackgroundStyle} />
         <div style={bottomPanelStyle} />

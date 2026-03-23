@@ -21,6 +21,14 @@ import swipe from "./routes/swipe.js";
 import matchRoutes from "./routes/match.js";
 import chat from "./routes/chat.js";
 import notifications from "./routes/notifications.js";
+import circle from "./routes/circle.js";
+import intents from "./routes/intents.js";
+import microCards from "./routes/micro-cards.js";
+import followersRoutes from "./routes/followers.js";
+import groupsRoutes from "./routes/groups.js";
+import visibilityRoutes from "./routes/visibility.js";
+import buzzRoutes from "./routes/buzz.js";
+import wellnessRoutes from "./routes/wellness.js";
 
 // Durable Objects
 export { ChatRoom } from "./durable/chat-room.js";
@@ -32,17 +40,7 @@ const app = new Hono<AppContext>();
 app.use("*", createCors());
 app.use("*", secureHeaders());
 
-// Mount routes with the same prefixes as the Fastify backend
-app.route("/health", health);
-app.route("/v1/auth", authRoutes);
-app.route("/v1/profiles", profiles);
-app.route("/", media); // Media routes have empty prefix, paths include /upload/* and /v1/media/*
-app.route("/v1/swipe", swipe);
-app.route("/v1/matches", matchRoutes);
-app.route("/v1/chat", chat);
-app.route("/v1/notifications", notifications);
-
-// WebSocket upgrade handler
+// WebSocket upgrade handler (MUST be before route mounts to avoid auth middleware)
 app.get("/v1/ws", async (c) => {
   const upgradeHeader = c.req.header("Upgrade");
   if (upgradeHeader !== "websocket") {
@@ -69,6 +67,25 @@ app.get("/v1/ws", async (c) => {
     headers: c.req.raw.headers,
   }));
 });
+
+// Mount routes with the same prefixes as the Fastify backend
+app.route("/health", health);
+app.route("/v1/auth", authRoutes);
+app.route("/v1/profiles", profiles);
+app.route("/v1/swipe", swipe);
+app.route("/v1/matches", matchRoutes);
+app.route("/v1/chat", chat);
+app.route("/v1/notifications", notifications);
+app.route("/v1/circle", circle);
+app.route("/v1/intents", intents);
+app.route("/v1/micro-cards", microCards);
+app.route("/v1/followers", followersRoutes);
+app.route("/v1/following", followersRoutes);
+app.route("/v1/groups", groupsRoutes);
+app.route("/v1/visibility", visibilityRoutes);
+app.route("/v1/buzz", buzzRoutes);
+app.route("/v1/wellness", wellnessRoutes);
+app.route("/", media); // Media routes have empty prefix — mount LAST to avoid catching other routes
 
 // Global error handler
 app.onError((err, c) => {

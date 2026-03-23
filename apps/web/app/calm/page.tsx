@@ -317,7 +317,7 @@ export default function CalmPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell title="Gut gemacht heute!">
       <div style={containerStyle}>
         <div style={headerStyle}>
           <div style={headerTitleStyle}>Gut gemacht heute!</div>
