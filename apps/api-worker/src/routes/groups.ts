@@ -20,11 +20,11 @@ groups.get("/", async (c) => {
 
   const items = await c.env.DB.prepare(`
     SELECT
-      id, user_id, name, emoji, location_name, max_participants, scheduled_at,
-      created_at, deleted_at,
-      (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND left_at IS NULL) as member_count
+      id, creator_user_id, name, emoji, location_name, max_participants, scheduled_at,
+      created_at,
+      (SELECT COUNT(*) FROM group_members WHERE group_id = g.id) as member_count
     FROM groups g
-    WHERE deleted_at IS NULL
+    WHERE is_active = 1
       AND (
         6371 * acos(
           cos(radians(?)) * cos(radians(latitude)) *
@@ -46,7 +46,7 @@ groups.get("/", async (c) => {
   return c.json({
     items: (items.results ?? []).map((item: any) => ({
       id: String(item.id),
-      userId: String(item.user_id),
+      creatorUserId: String(item.creator_user_id),
       name: item.name,
       emoji: item.emoji,
       locationName: item.location_name,
@@ -75,8 +75,8 @@ groups.post("/", async (c) => {
   const scheduledAt = body.scheduled_at ?? new Date().toISOString();
 
   const result = await c.env.DB.prepare(`
-    INSERT INTO groups (user_id, name, emoji, location_name, max_participants, scheduled_at, latitude, longitude, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    INSERT INTO groups (creator_user_id, name, emoji, location_name, max_participants, scheduled_at, latitude, longitude, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     RETURNING id
   `)
     .bind(userId, body.name, body.emoji, body.location_name, maxParticipants, scheduledAt, body.latitude, body.longitude)
@@ -113,12 +113,12 @@ groups.get("/mine", async (c) => {
 
   const items = await c.env.DB.prepare(`
     SELECT
-      g.id, g.user_id, g.name, g.emoji, g.location_name, g.max_participants, g.scheduled_at,
+      g.id, g.creator_user_id, g.name, g.emoji, g.location_name, g.max_participants, g.scheduled_at,
       g.created_at,
-      (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND left_at IS NULL) as member_count
+      (SELECT COUNT(*) FROM group_members WHERE group_id = g.id) as member_count
     FROM groups g
     JOIN group_members gm ON gm.group_id = g.id
-    WHERE gm.user_id = ? AND gm.left_at IS NULL AND g.deleted_at IS NULL
+    WHERE gm.user_id = ? AND g.is_active = 1
     ORDER BY g.created_at DESC
   `)
     .bind(userId)
@@ -127,7 +127,7 @@ groups.get("/mine", async (c) => {
   return c.json({
     items: (items.results ?? []).map((item: any) => ({
       id: String(item.id),
-      userId: String(item.user_id),
+      creatorUserId: String(item.creator_user_id),
       name: item.name,
       emoji: item.emoji,
       locationName: item.location_name,
@@ -146,7 +146,7 @@ groups.post("/:id/join", async (c) => {
   const groupId = c.req.param("id");
 
   const group = await c.env.DB.prepare(`
-    SELECT id, max_participants FROM groups WHERE id = ? AND deleted_at IS NULL
+    SELECT id, max_participants FROM groups WHERE id = ? AND is_active = 1
   `)
     .bind(groupId)
     .first();
@@ -156,7 +156,7 @@ groups.post("/:id/join", async (c) => {
   }
 
   const existing = await c.env.DB.prepare(`
-    SELECT id FROM group_members WHERE group_id = ? AND user_id = ? AND left_at IS NULL
+    SELECT id FROM group_members WHERE group_id = ? AND user_id = ?
   `)
     .bind(groupId, userId)
     .first();
@@ -166,7 +166,7 @@ groups.post("/:id/join", async (c) => {
   }
 
   const memberCount = await c.env.DB.prepare(`
-    SELECT COUNT(*) as count FROM group_members WHERE group_id = ? AND left_at IS NULL
+    SELECT COUNT(*) as count FROM group_members WHERE group_id = ?
   `)
     .bind(groupId)
     .first();
@@ -199,7 +199,7 @@ groups.delete("/:id/leave", async (c) => {
   const groupId = c.req.param("id");
 
   const membership = await c.env.DB.prepare(`
-    SELECT id FROM group_members WHERE group_id = ? AND user_id = ? AND left_at IS NULL
+    SELECT id FROM group_members WHERE group_id = ? AND user_id = ?
   `)
     .bind(groupId, userId)
     .first();
@@ -209,7 +209,7 @@ groups.delete("/:id/leave", async (c) => {
   }
 
   await c.env.DB.prepare(`
-    UPDATE group_members SET left_at = datetime('now') WHERE group_id = ? AND user_id = ?
+    DELETE FROM group_members WHERE group_id = ? AND user_id = ?
   `)
     .bind(groupId, userId)
     .run();

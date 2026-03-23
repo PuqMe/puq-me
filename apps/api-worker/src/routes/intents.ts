@@ -23,7 +23,7 @@ intents.get("/", async (c) => {
       id, user_id, category, note, duration_hours, latitude, longitude,
       created_at, expires_at
     FROM intents
-    WHERE deleted_at IS NULL
+    WHERE is_active = 1
       AND expires_at > datetime('now')
       AND (
         6371 * acos(
@@ -67,8 +67,12 @@ intents.post("/", async (c) => {
   const userId = c.get("userId");
   const body = await c.req.json();
 
+  const validCategories = ['kaffee', 'sport', 'coworking', 'netzwerken', 'essen', 'chillen', 'events', 'sonstiges'];
   if (!body.category || !body.latitude || !body.longitude) {
     throw new BadRequestError("category_latitude_longitude_required");
+  }
+  if (!validCategories.includes(body.category)) {
+    throw new BadRequestError("invalid_category");
   }
 
   const durationHours = body.duration_hours ?? 24;
@@ -106,7 +110,7 @@ intents.get("/mine", async (c) => {
       id, user_id, category, note, duration_hours, latitude, longitude,
       created_at, expires_at
     FROM intents
-    WHERE user_id = ? AND deleted_at IS NULL AND expires_at > datetime('now')
+    WHERE user_id = ? AND is_active = 1 AND expires_at > datetime('now')
     ORDER BY created_at DESC
   `)
     .bind(userId)
@@ -144,7 +148,7 @@ intents.delete("/:id", async (c) => {
   }
 
   await c.env.DB.prepare(`
-    UPDATE intents SET deleted_at = datetime('now') WHERE id = ?
+    UPDATE intents SET is_active = 0, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?
   `)
     .bind(intentId)
     .run();

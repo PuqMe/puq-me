@@ -12,7 +12,7 @@ visibility.get("/", async (c) => {
   const userId = c.get("userId");
 
   let settings = await c.env.DB.prepare(`
-    SELECT id, user_id, mode, radius_meters, is_anonymous, hidden_from_ids, created_at, updated_at
+    SELECT user_id, mode, region_type, selected_friends, selected_group_id, scan_radius_km, updated_at
     FROM visibility_settings
     WHERE user_id = ?
     LIMIT 1
@@ -23,26 +23,26 @@ visibility.get("/", async (c) => {
   if (!settings) {
     // Create default settings if they don't exist
     const result = await c.env.DB.prepare(`
-      INSERT INTO visibility_settings (user_id, mode, radius_meters, is_anonymous, created_at, updated_at)
-      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
-      RETURNING id, user_id, mode, radius_meters, is_anonymous, hidden_from_ids, created_at, updated_at
+      INSERT INTO visibility_settings (user_id, mode, scan_radius_km, updated_at)
+      VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+      RETURNING user_id, mode, region_type, selected_friends, selected_group_id, scan_radius_km, updated_at
     `)
-      .bind(userId, "visible", 500, 0)
+      .bind(userId, "global", 5)
       .first();
     settings = result;
   }
 
-  const hiddenFromIds = settings && (settings as any).hidden_from_ids
-    ? JSON.parse((settings as any).hidden_from_ids)
+  const selectedFriends = settings && (settings as any).selected_friends
+    ? JSON.parse((settings as any).selected_friends)
     : [];
 
   return c.json({
     userId: String(userId),
     mode: (settings as any).mode,
-    radiusMeters: Number((settings as any).radius_meters),
-    isAnonymous: Boolean((settings as any).is_anonymous),
-    hiddenFromIds,
-    createdAt: (settings as any).created_at,
+    regionType: (settings as any).region_type ?? null,
+    selectedFriends,
+    selectedGroupId: (settings as any).selected_group_id ?? null,
+    scanRadiusKm: Number((settings as any).scan_radius_km),
     updatedAt: (settings as any).updated_at
   });
 });
@@ -52,7 +52,7 @@ visibility.put("/", async (c) => {
   const userId = c.get("userId");
   const body = await c.req.json();
 
-  const validModes = ["visible", "friends_only", "anonymous", "hidden"];
+  const validModes = ["global", "region", "phantom", "zero", "freunde", "nur_diese_freunde", "ausser_freunde", "gruppe"];
   if (body.mode && !validModes.includes(body.mode)) {
     throw new BadRequestError("invalid_visibility_mode");
   }
@@ -64,37 +64,40 @@ visibility.put("/", async (c) => {
     updates.push("mode = ?");
     values.push(body.mode);
   }
-  if (body.radiusMeters !== undefined) {
-    updates.push("radius_meters = ?");
-    values.push(Math.max(100, Math.min(5000, body.radiusMeters)));
+  if (body.scanRadiusKm !== undefined) {
+    updates.push("scan_radius_km = ?");
+    values.push(Math.max(1, Math.min(50, body.scanRadiusKm)));
   }
-  if (body.isAnonymous !== undefined) {
-    updates.push("is_anonymous = ?");
-    values.push(body.isAnonymous ? 1 : 0);
+  if (body.regionType !== undefined) {
+    updates.push("region_type = ?");
+    values.push(body.regionType);
   }
-  if (body.hiddenFromIds !== undefined) {
-    updates.push("hidden_from_ids = ?");
-    values.push(JSON.stringify(Array.isArray(body.hiddenFromIds) ? body.hiddenFromIds : []));
+  if (body.selectedFriends !== undefined) {
+    updates.push("selected_friends = ?");
+    values.push(JSON.stringify(Array.isArray(body.selectedFriends) ? body.selectedFriends : []));
+  }
+  if (body.selectedGroupId !== undefined) {
+    updates.push("selected_group_id = ?");
+    values.push(body.selectedGroupId);
   }
 
   if (updates.length === 0) {
     throw new BadRequestError("no_updates_provided");
   }
 
-  updates.push("updated_at = datetime('now')");
+  updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
   values.push(userId);
 
   await c.env.DB.prepare(`
-    INSERT INTO visibility_settings (user_id, mode, radius_meters, is_anonymous, created_at, updated_at)
-    VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
+    INSERT INTO visibility_settings (user_id, mode, scan_radius_km, updated_at)
+    VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     ON CONFLICT (user_id) DO UPDATE SET
       ${updates.join(", ")}
   `)
     .bind(
       userId,
-      body.mode ?? "visible",
-      body.radiusMeters ?? 500,
-      body.isAnonymous ? 1 : 0,
+      body.mode ?? "global",
+      body.scanRadiusKm ?? 5,
       ...values
     )
     .run();

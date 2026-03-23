@@ -12,8 +12,10 @@ wellness.get("/calm", async (c) => {
   const userId = c.get("userId");
 
   let settings = await c.env.DB.prepare(`
-    SELECT id, user_id, calm_mode_enabled, do_not_disturb_until, created_at, updated_at
-    FROM wellness_settings
+    SELECT user_id, daily_limit_enabled, daily_limit_encounters,
+           night_mode_enabled, night_mode_start, night_mode_end,
+           weekly_report_enabled, updated_at
+    FROM calm_mode_settings
     WHERE user_id = ?
     LIMIT 1
   `)
@@ -21,22 +23,26 @@ wellness.get("/calm", async (c) => {
     .first();
 
   if (!settings) {
-    // Create default settings if they don't exist
     const result = await c.env.DB.prepare(`
-      INSERT INTO wellness_settings (user_id, calm_mode_enabled, created_at, updated_at)
-      VALUES (?, ?, datetime('now'), datetime('now'))
-      RETURNING id, user_id, calm_mode_enabled, do_not_disturb_until, created_at, updated_at
+      INSERT INTO calm_mode_settings (user_id, updated_at)
+      VALUES (?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+      RETURNING user_id, daily_limit_enabled, daily_limit_encounters,
+                night_mode_enabled, night_mode_start, night_mode_end,
+                weekly_report_enabled, updated_at
     `)
-      .bind(userId, 0)
+      .bind(userId)
       .first();
     settings = result;
   }
 
   return c.json({
     userId: String(userId),
-    calmModeEnabled: Boolean((settings as any).calm_mode_enabled),
-    doNotDisturbUntil: (settings as any).do_not_disturb_until ?? null,
-    createdAt: (settings as any).created_at,
+    dailyLimitEnabled: Boolean((settings as any).daily_limit_enabled),
+    dailyLimitEncounters: Number((settings as any).daily_limit_encounters),
+    nightModeEnabled: Boolean((settings as any).night_mode_enabled),
+    nightModeStart: (settings as any).night_mode_start,
+    nightModeEnd: (settings as any).night_mode_end,
+    weeklyReportEnabled: Boolean((settings as any).weekly_report_enabled),
     updatedAt: (settings as any).updated_at
   });
 });
@@ -49,34 +55,45 @@ wellness.put("/calm", async (c) => {
   const updates: string[] = [];
   const values: any[] = [];
 
-  if (body.calmModeEnabled !== undefined) {
-    updates.push("calm_mode_enabled = ?");
-    values.push(body.calmModeEnabled ? 1 : 0);
+  if (body.dailyLimitEnabled !== undefined) {
+    updates.push("daily_limit_enabled = ?");
+    values.push(body.dailyLimitEnabled ? 1 : 0);
   }
-  if (body.doNotDisturbUntil !== undefined) {
-    updates.push("do_not_disturb_until = ?");
-    values.push(body.doNotDisturbUntil);
+  if (body.dailyLimitEncounters !== undefined) {
+    updates.push("daily_limit_encounters = ?");
+    values.push(Math.max(1, Math.min(100, body.dailyLimitEncounters)));
+  }
+  if (body.nightModeEnabled !== undefined) {
+    updates.push("night_mode_enabled = ?");
+    values.push(body.nightModeEnabled ? 1 : 0);
+  }
+  if (body.nightModeStart !== undefined) {
+    updates.push("night_mode_start = ?");
+    values.push(body.nightModeStart);
+  }
+  if (body.nightModeEnd !== undefined) {
+    updates.push("night_mode_end = ?");
+    values.push(body.nightModeEnd);
+  }
+  if (body.weeklyReportEnabled !== undefined) {
+    updates.push("weekly_report_enabled = ?");
+    values.push(body.weeklyReportEnabled ? 1 : 0);
   }
 
   if (updates.length === 0) {
     throw new BadRequestError("no_updates_provided");
   }
 
-  updates.push("updated_at = datetime('now')");
+  updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
   values.push(userId);
 
   await c.env.DB.prepare(`
-    INSERT INTO wellness_settings (user_id, calm_mode_enabled, do_not_disturb_until, created_at, updated_at)
-    VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    INSERT INTO calm_mode_settings (user_id, updated_at)
+    VALUES (?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     ON CONFLICT (user_id) DO UPDATE SET
       ${updates.join(", ")}
   `)
-    .bind(
-      userId,
-      body.calmModeEnabled !== undefined ? (body.calmModeEnabled ? 1 : 0) : 0,
-      body.doNotDisturbUntil ?? null,
-      ...values
-    )
+    .bind(userId, ...values)
     .run();
 
   return c.json({ message: "calm_settings_updated" });
@@ -91,31 +108,21 @@ wellness.get("/stats", async (c) => {
   let label: string;
 
   if (timeframe === "weekly") {
-    dateFilter = "datetime('now', '-7 days')";
+    dateFilter = "date('now', '-7 days')";
     label = "weekly";
   } else {
-    dateFilter = "datetime('now', '-1 day')";
+    dateFilter = "date('now', '-1 day')";
     label = "daily";
   }
 
   const stats = await c.env.DB.prepare(`
     SELECT
-      COUNT(DISTINCT DATE(created_at)) as active_days,
-      COUNT(*) as total_interactions,
-      AVG(CAST(duration_minutes AS FLOAT)) as avg_session_duration,
-      MAX(created_at) as last_active
-    FROM wellness_stats
-    WHERE user_id = ? AND created_at > ${dateFilter}
-  `)
-    .bind(userId)
-    .first();
-
-  const focusScore = await c.env.DB.prepare(`
-    SELECT
-      SUM(focus_score) as total_focus_score,
-      COUNT(*) as focus_events
-    FROM wellness_events
-    WHERE user_id = ? AND created_at > ${dateFilter}
+      SUM(encounters_count) as total_encounters,
+      SUM(conversations_count) as total_conversations,
+      SUM(minutes_active) as total_minutes_active,
+      COUNT(*) as active_days
+    FROM calm_mode_stats
+    WHERE user_id = ? AND date >= ${dateFilter}
   `)
     .bind(userId)
     .first();
@@ -125,13 +132,9 @@ wellness.get("/stats", async (c) => {
     timeframe: label,
     stats: {
       activeDays: Number((stats as any).active_days) || 0,
-      totalInteractions: Number((stats as any).total_interactions) || 0,
-      avgSessionDuration: (stats as any).avg_session_duration
-        ? Math.round((stats as any).avg_session_duration)
-        : 0,
-      lastActive: (stats as any).last_active ?? null,
-      focusScore: Number((focusScore as any).total_focus_score) || 0,
-      focusEvents: Number((focusScore as any).focus_events) || 0
+      totalEncounters: Number((stats as any).total_encounters) || 0,
+      totalConversations: Number((stats as any).total_conversations) || 0,
+      totalMinutesActive: Number((stats as any).total_minutes_active) || 0
     }
   });
 });
@@ -141,7 +144,8 @@ wellness.get("/auto-vanish", async (c) => {
   const userId = c.get("userId");
 
   let settings = await c.env.DB.prepare(`
-    SELECT id, user_id, auto_vanish_enabled, vanish_after_minutes, created_at, updated_at
+    SELECT user_id, profile_visible, profile_expires_at, intent_expires_at,
+           card_expires_at, next_activation_at, updated_at
     FROM auto_vanish_settings
     WHERE user_id = ?
     LIMIT 1
@@ -150,22 +154,24 @@ wellness.get("/auto-vanish", async (c) => {
     .first();
 
   if (!settings) {
-    // Create default settings if they don't exist
     const result = await c.env.DB.prepare(`
-      INSERT INTO auto_vanish_settings (user_id, auto_vanish_enabled, vanish_after_minutes, created_at, updated_at)
-      VALUES (?, ?, ?, datetime('now'), datetime('now'))
-      RETURNING id, user_id, auto_vanish_enabled, vanish_after_minutes, created_at, updated_at
+      INSERT INTO auto_vanish_settings (user_id, updated_at)
+      VALUES (?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+      RETURNING user_id, profile_visible, profile_expires_at, intent_expires_at,
+                card_expires_at, next_activation_at, updated_at
     `)
-      .bind(userId, 1, 60)
+      .bind(userId)
       .first();
     settings = result;
   }
 
   return c.json({
     userId: String(userId),
-    autoVanishEnabled: Boolean((settings as any).auto_vanish_enabled),
-    vanishAfterMinutes: Number((settings as any).vanish_after_minutes),
-    createdAt: (settings as any).created_at,
+    profileVisible: Boolean((settings as any).profile_visible),
+    profileExpiresAt: (settings as any).profile_expires_at ?? null,
+    intentExpiresAt: (settings as any).intent_expires_at ?? null,
+    cardExpiresAt: (settings as any).card_expires_at ?? null,
+    nextActivationAt: (settings as any).next_activation_at ?? null,
     updatedAt: (settings as any).updated_at
   });
 });
@@ -178,34 +184,41 @@ wellness.put("/auto-vanish", async (c) => {
   const updates: string[] = [];
   const values: any[] = [];
 
-  if (body.autoVanishEnabled !== undefined) {
-    updates.push("auto_vanish_enabled = ?");
-    values.push(body.autoVanishEnabled ? 1 : 0);
+  if (body.profileVisible !== undefined) {
+    updates.push("profile_visible = ?");
+    values.push(body.profileVisible ? 1 : 0);
   }
-  if (body.vanishAfterMinutes !== undefined) {
-    updates.push("vanish_after_minutes = ?");
-    values.push(Math.max(5, Math.min(1440, body.vanishAfterMinutes)));
+  if (body.profileExpiresAt !== undefined) {
+    updates.push("profile_expires_at = ?");
+    values.push(body.profileExpiresAt);
+  }
+  if (body.intentExpiresAt !== undefined) {
+    updates.push("intent_expires_at = ?");
+    values.push(body.intentExpiresAt);
+  }
+  if (body.cardExpiresAt !== undefined) {
+    updates.push("card_expires_at = ?");
+    values.push(body.cardExpiresAt);
+  }
+  if (body.nextActivationAt !== undefined) {
+    updates.push("next_activation_at = ?");
+    values.push(body.nextActivationAt);
   }
 
   if (updates.length === 0) {
     throw new BadRequestError("no_updates_provided");
   }
 
-  updates.push("updated_at = datetime('now')");
+  updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
   values.push(userId);
 
   await c.env.DB.prepare(`
-    INSERT INTO auto_vanish_settings (user_id, auto_vanish_enabled, vanish_after_minutes, created_at, updated_at)
-    VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    INSERT INTO auto_vanish_settings (user_id, updated_at)
+    VALUES (?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     ON CONFLICT (user_id) DO UPDATE SET
       ${updates.join(", ")}
   `)
-    .bind(
-      userId,
-      body.autoVanishEnabled !== undefined ? (body.autoVanishEnabled ? 1 : 0) : 1,
-      body.vanishAfterMinutes ?? 60,
-      ...values
-    )
+    .bind(userId, ...values)
     .run();
 
   return c.json({ message: "auto_vanish_settings_updated" });

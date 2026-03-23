@@ -15,10 +15,9 @@ followers.get("/", async (c) => {
     SELECT
       f.id, f.follower_user_id, f.following_user_id, f.created_at,
       p.display_name
-    FROM follows f
+    FROM followers f
     LEFT JOIN profiles p ON p.user_id = f.follower_user_id
-    WHERE f.following_user_id = ? AND f.deleted_at IS NULL
-    ORDER BY f.created_at DESC
+    WHERE f.following_user_id = ?    ORDER BY f.created_at DESC
   `)
     .bind(userId)
     .all();
@@ -43,10 +42,9 @@ followers.get("/following", async (c) => {
     SELECT
       f.id, f.follower_user_id, f.following_user_id, f.created_at,
       p.display_name
-    FROM follows f
+    FROM followers f
     LEFT JOIN profiles p ON p.user_id = f.following_user_id
-    WHERE f.follower_user_id = ? AND f.deleted_at IS NULL
-    ORDER BY f.created_at DESC
+    WHERE f.follower_user_id = ?    ORDER BY f.created_at DESC
   `)
     .bind(userId)
     .all();
@@ -73,8 +71,7 @@ followers.post("/:targetUserId/follow", async (c) => {
   }
 
   const targetUser = await c.env.DB.prepare(`
-    SELECT id FROM users WHERE id = ? AND deleted_at IS NULL
-  `)
+    SELECT id FROM users WHERE id = ?  `)
     .bind(targetUserId)
     .first();
 
@@ -83,8 +80,7 @@ followers.post("/:targetUserId/follow", async (c) => {
   }
 
   const existing = await c.env.DB.prepare(`
-    SELECT id FROM follows WHERE follower_user_id = ? AND following_user_id = ? AND deleted_at IS NULL
-  `)
+    SELECT id FROM followers WHERE follower_user_id = ? AND following_user_id = ?  `)
     .bind(userId, targetUserId)
     .first();
 
@@ -93,7 +89,7 @@ followers.post("/:targetUserId/follow", async (c) => {
   }
 
   const result = await c.env.DB.prepare(`
-    INSERT INTO follows (follower_user_id, following_user_id, created_at)
+    INSERT INTO followers (follower_user_id, following_user_id, created_at)
     VALUES (?, ?, datetime('now'))
     RETURNING id
   `)
@@ -116,7 +112,7 @@ followers.delete("/:targetUserId/unfollow", async (c) => {
   const targetUserId = c.req.param("targetUserId");
 
   const follow = await c.env.DB.prepare(`
-    SELECT id FROM follows WHERE follower_user_id = ? AND following_user_id = ? AND deleted_at IS NULL
+    SELECT id FROM followers WHERE follower_user_id = ? AND following_user_id = ?
   `)
     .bind(userId, targetUserId)
     .first();
@@ -126,7 +122,7 @@ followers.delete("/:targetUserId/unfollow", async (c) => {
   }
 
   await c.env.DB.prepare(`
-    UPDATE follows SET deleted_at = datetime('now') WHERE follower_user_id = ? AND following_user_id = ?
+    DELETE FROM followers WHERE follower_user_id = ? AND following_user_id = ?
   `)
     .bind(userId, targetUserId)
     .run();
@@ -140,15 +136,13 @@ followers.get("/stats", async (c) => {
 
   const followerCount = await c.env.DB.prepare(`
     SELECT COUNT(*) as count FROM follows
-    WHERE following_user_id = ? AND deleted_at IS NULL
-  `)
+    WHERE following_user_id = ?  `)
     .bind(userId)
     .first();
 
   const followingCount = await c.env.DB.prepare(`
     SELECT COUNT(*) as count FROM follows
-    WHERE follower_user_id = ? AND deleted_at IS NULL
-  `)
+    WHERE follower_user_id = ?  `)
     .bind(userId)
     .first();
 

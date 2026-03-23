@@ -12,7 +12,7 @@ buzz.get("/settings", async (c) => {
   const userId = c.get("userId");
 
   let settings = await c.env.DB.prepare(`
-    SELECT id, user_id, vibration_enabled, buzz_radius_meters, created_at, updated_at
+    SELECT user_id, vibration_enabled, buzz_radius_meters, only_matching_intents, updated_at
     FROM buzz_settings
     WHERE user_id = ?
     LIMIT 1
@@ -23,11 +23,11 @@ buzz.get("/settings", async (c) => {
   if (!settings) {
     // Create default settings if they don't exist
     const result = await c.env.DB.prepare(`
-      INSERT INTO buzz_settings (user_id, vibration_enabled, buzz_radius_meters, created_at, updated_at)
-      VALUES (?, ?, ?, datetime('now'), datetime('now'))
-      RETURNING id, user_id, vibration_enabled, buzz_radius_meters, created_at, updated_at
+      INSERT INTO buzz_settings (user_id, vibration_enabled, buzz_radius_meters, updated_at)
+      VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+      RETURNING user_id, vibration_enabled, buzz_radius_meters, only_matching_intents, updated_at
     `)
-      .bind(userId, 1, 100)
+      .bind(userId, 1, 200)
       .first();
     settings = result;
   }
@@ -36,7 +36,7 @@ buzz.get("/settings", async (c) => {
     userId: String(userId),
     vibrationEnabled: Boolean((settings as any).vibration_enabled),
     buzzRadiusMeters: Number((settings as any).buzz_radius_meters),
-    createdAt: (settings as any).created_at,
+    onlyMatchingIntents: Boolean((settings as any).only_matching_intents),
     updatedAt: (settings as any).updated_at
   });
 });
@@ -62,19 +62,19 @@ buzz.put("/settings", async (c) => {
     throw new BadRequestError("no_updates_provided");
   }
 
-  updates.push("updated_at = datetime('now')");
+  updates.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')");
   values.push(userId);
 
   await c.env.DB.prepare(`
-    INSERT INTO buzz_settings (user_id, vibration_enabled, buzz_radius_meters, created_at, updated_at)
-    VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    INSERT INTO buzz_settings (user_id, vibration_enabled, buzz_radius_meters, updated_at)
+    VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     ON CONFLICT (user_id) DO UPDATE SET
       ${updates.join(", ")}
   `)
     .bind(
       userId,
       body.vibrationEnabled !== undefined ? (body.vibrationEnabled ? 1 : 0) : 1,
-      body.buzzRadiusMeters ?? 100,
+      body.buzzRadiusMeters ?? 200,
       ...values
     )
     .run();
@@ -89,10 +89,9 @@ buzz.get("/events", async (c) => {
 
   const events = await c.env.DB.prepare(`
     SELECT
-      id, triggered_by_user_id, triggered_for_user_id, event_type, latitude, longitude,
-      created_at
+      id, user_id, triggered_by_user_id, action, distance_meters, created_at
     FROM buzz_events
-    WHERE triggered_for_user_id = ?
+    WHERE user_id = ?
     ORDER BY created_at DESC
     LIMIT ?
   `)
@@ -102,11 +101,10 @@ buzz.get("/events", async (c) => {
   return c.json({
     items: (events.results ?? []).map((item: any) => ({
       id: String(item.id),
+      userId: String(item.user_id),
       triggeredByUserId: String(item.triggered_by_user_id),
-      triggeredForUserId: String(item.triggered_for_user_id),
-      eventType: item.event_type,
-      latitude: Number(item.latitude),
-      longitude: Number(item.longitude),
+      action: item.action,
+      distanceMeters: item.distance_meters ? Number(item.distance_meters) : null,
       createdAt: item.created_at
     })),
     meta: { totalCount: (events.results ?? []).length }
