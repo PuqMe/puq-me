@@ -219,10 +219,12 @@ auth.post("/google", async (c) => {
       ).bind(payload.sub, existing.id).run();
       user = existing;
     } else {
-      // Create new user
+      // Create new user — password_hash is set to empty string because
+      // some D1 schemas enforce NOT NULL on that column; Google-only
+      // accounts will never use password-based login.
       const publicId = crypto.randomUUID();
       const result = await c.env.DB.prepare(
-        `INSERT INTO users (public_id, email, google_sub, status) VALUES (?, ?, ?, 'active') RETURNING id, email, status`
+        `INSERT INTO users (public_id, email, password_hash, google_sub, email_verified_at, status) VALUES (?, ?, '', ?, datetime('now'), 'active') RETURNING id, email, status`
       ).bind(publicId, payload.email, payload.sub).first<{ id: number; email: string; status: string }>();
 
       if (!result) throw new Error("Failed to create Google user");
