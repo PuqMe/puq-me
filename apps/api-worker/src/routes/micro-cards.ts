@@ -21,10 +21,10 @@ microCards.get("/", async (c) => {
   const items = await c.env.DB.prepare(`
     SELECT
       id, user_id, emoji, action, description, latitude, longitude,
-      created_at, expires_at
+      max_participants, created_at, expires_at
     FROM micro_cards
-    WHERE deleted_at IS NULL
-      AND expires_at > datetime('now')
+    WHERE is_active = 1
+      AND expires_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
       AND (
         6371 * acos(
           cos(radians(?)) * cos(radians(latitude)) *
@@ -52,6 +52,7 @@ microCards.get("/", async (c) => {
       description: item.description,
       latitude: Number(item.latitude),
       longitude: Number(item.longitude),
+      maxParticipants: Number(item.max_participants),
       createdAt: item.created_at,
       expiresAt: item.expires_at
     })),
@@ -74,11 +75,11 @@ microCards.post("/", async (c) => {
   const expiresAt = body.expires_at ?? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
   const result = await c.env.DB.prepare(`
-    INSERT INTO micro_cards (user_id, emoji, action, description, latitude, longitude, expires_at, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    INSERT INTO micro_cards (user_id, emoji, action, description, latitude, longitude, max_participants, expires_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING id
   `)
-    .bind(userId, body.emoji, body.action, body.description ?? null, body.latitude, body.longitude, expiresAt)
+    .bind(userId, body.emoji, body.action, body.description ?? null, body.latitude, body.longitude, body.maxParticipants ?? 0, expiresAt)
     .first();
 
   return c.json(
@@ -90,6 +91,7 @@ microCards.post("/", async (c) => {
       description: body.description ?? null,
       latitude: body.latitude,
       longitude: body.longitude,
+      maxParticipants: body.maxParticipants ?? 0,
       expiresAt
     },
     { status: 201 }
@@ -103,9 +105,9 @@ microCards.get("/mine", async (c) => {
   const items = await c.env.DB.prepare(`
     SELECT
       id, user_id, emoji, action, description, latitude, longitude,
-      created_at, expires_at
+      max_participants, is_active, created_at, expires_at
     FROM micro_cards
-    WHERE user_id = ? AND deleted_at IS NULL
+    WHERE user_id = ?
     ORDER BY created_at DESC
   `)
     .bind(userId)
@@ -120,6 +122,8 @@ microCards.get("/mine", async (c) => {
       description: item.description,
       latitude: Number(item.latitude),
       longitude: Number(item.longitude),
+      maxParticipants: Number(item.max_participants),
+      isActive: Boolean(item.is_active),
       createdAt: item.created_at,
       expiresAt: item.expires_at
     })),
@@ -139,7 +143,7 @@ microCards.post("/:id/react", async (c) => {
   }
 
   const card = await c.env.DB.prepare(`
-    SELECT id FROM micro_cards WHERE id = ? AND deleted_at IS NULL
+    SELECT id FROM micro_cards WHERE id = ? AND is_active = 1
   `)
     .bind(cardId)
     .first();
@@ -149,8 +153,8 @@ microCards.post("/:id/react", async (c) => {
   }
 
   const result = await c.env.DB.prepare(`
-    INSERT INTO card_reactions (card_id, user_id, reaction_type, created_at)
-    VALUES (?, ?, ?, datetime('now'))
+    INSERT INTO micro_card_reactions (card_id, user_id, reaction_type)
+    VALUES (?, ?, ?)
     RETURNING id
   `)
     .bind(cardId, userId, reactionType)
@@ -183,7 +187,7 @@ microCards.delete("/:id", async (c) => {
   }
 
   await c.env.DB.prepare(`
-    UPDATE micro_cards SET deleted_at = datetime('now') WHERE id = ?
+    UPDATE micro_cards SET is_active = 0, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?
   `)
     .bind(cardId)
     .run();
