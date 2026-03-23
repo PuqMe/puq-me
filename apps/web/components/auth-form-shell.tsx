@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BRAND_NAME } from "@puqme/config";
 import { Button, Card } from "@puqme/ui";
@@ -44,6 +44,16 @@ export function AuthFormShell({
   const { t } = useLanguage();
   const [googleErrorMessage, setGoogleErrorMessage] = useState<string | null>(null);
   const isHandlingGoogleRef = useRef(false);
+
+  // Check for a Google OAuth token in sessionStorage (redirect fallback)
+  useEffect(() => {
+    const storedToken = sessionStorage.getItem("google_oauth_id_token");
+    if (storedToken) {
+      sessionStorage.removeItem("google_oauth_id_token");
+      handleGoogleSuccess(storedToken);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleGoogleSuccess = async (credential: string) => {
     if (isHandlingGoogleRef.current) {
