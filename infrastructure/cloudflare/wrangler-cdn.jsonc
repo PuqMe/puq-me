@@ -10,7 +10,7 @@
   },
 
   "vars": {
-    "E2_ORIGIN": "https://puq-images.storage.idrivee2-7.com"
+    "E2_ORIGIN": "https://assets.s3.us-west-1.idrivee2.com"
   },
 
   "env": {
@@ -20,7 +20,7 @@
         { "pattern": "cdn.puq.me", "custom_domain": true }
       ],
       "vars": {
-        "E2_ORIGIN": "https://puq-images.storage.idrivee2-7.com"
+        "E2_ORIGIN": "https://assets.s3.us-west-1.idrivee2.com"
       }
     },
     "staging": {
