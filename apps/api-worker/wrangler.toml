@@ -28,7 +28,7 @@ bindings = [
 
 [[migrations]]
 tag = "v1"
-new_classes = ["ChatRoom"]
+new_sqlite_classes = ["ChatRoom"]
 
 # Secrets (set via `wrangler secret put`):
 # JWT_SECRET
