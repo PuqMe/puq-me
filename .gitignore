@@ -17,3 +17,4 @@ apps/web/.open-next
 .pnpm-store
 *.tsbuildinfo
 _tmp_*
+.github/

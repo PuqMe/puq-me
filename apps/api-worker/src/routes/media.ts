@@ -6,7 +6,8 @@ import { BadRequestError, NotFoundError } from "../lib/errors.js";
 
 const media = new Hono<AppContext>();
 
-media.use("/*", auth);
+media.use("/upload/*", auth);
+media.use("/v1/media/*", auth);
 
 // POST /upload/avatar
 media.post("/upload/avatar", async (c) => {

@@ -6,7 +6,7 @@
  * Format: $pbkdf2-sha256$iterations$salt$hash
  */
 
-const ITERATIONS = 600_000; // OWASP 2024 recommendation for PBKDF2-SHA256
+const ITERATIONS = 100_000; // Reduced for Cloudflare Workers free-tier CPU limits (600k exceeds NotSupportedError threshold)
 const SALT_LENGTH = 32;
 const HASH_LENGTH = 32;
 

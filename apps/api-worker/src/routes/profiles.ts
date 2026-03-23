@@ -17,6 +17,7 @@ profiles.get("/me", async (c) => {
       u.id, u.public_id, u.email, u.status, u.created_at as user_created_at,
       p.display_name, p.birth_date, p.bio, p.gender, p.interested_in,
       p.city, p.country_code, p.is_visible, p.moderation_status, p.profile_quality_score,
+      p.occupation, p.dating_intent,
       ul.latitude, ul.longitude,
       up.min_age, up.max_age, up.max_distance_km,
       up.interested_in as preference_interested_in, up.only_verified_profiles
@@ -40,38 +41,55 @@ profiles.get("/me", async (c) => {
     ORDER BY sort_order ASC
   `).bind(userId).all();
 
+  const primaryPhoto = (photos.results ?? []).find((p: any) => p.is_primary);
+
+  // Parse interests from JSON string
+  const rawInterests = profile.interested_in;
+  let interests: string[] = [];
+  if (rawInterests) {
+    try {
+      const parsed = JSON.parse(rawInterests as string);
+      interests = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      interests = typeof rawInterests === "string" ? [rawInterests] : [];
+    }
+  }
+
+  // Response format matching frontend ProfileResponse type
   return c.json({
-    user: {
-      id: String(profile.id),
-      publicId: profile.public_id,
-      email: profile.email,
-      status: profile.status,
-      createdAt: profile.user_created_at
-    },
+    userId: String(profile.id),
     profile: {
-      displayName: profile.display_name,
-      birthDate: profile.birth_date,
-      bio: profile.bio,
-      gender: profile.gender,
-      interestedIn: profile.interested_in,
-      city: profile.city,
-      countryCode: profile.country_code,
+      displayName: profile.display_name ?? "",
+      birthDate: profile.birth_date ?? "2000-01-01",
+      bio: profile.bio ?? null,
+      gender: profile.gender ?? null,
+      datingIntent: profile.dating_intent ?? null,
+      occupation: (profile as any).occupation ?? null,
+      city: profile.city ?? null,
+      countryCode: profile.country_code ?? null,
       isVisible: Boolean(profile.is_visible),
-      moderationStatus: profile.moderation_status,
-      profileQualityScore: Number(profile.profile_quality_score ?? 0)
+      photoUrl: primaryPhoto ? (primaryPhoto as any).cdn_url : null,
+      videoUrl: null
     },
-    location: profile.latitude
-      ? { latitude: Number(profile.latitude), longitude: Number(profile.longitude) }
-      : null,
+    interests,
     preferences: {
-      minAge: Number(profile.min_age ?? 18),
-      maxAge: Number(profile.max_age ?? 99),
-      maxDistanceKm: Number(profile.max_distance_km ?? 50),
       interestedIn: profile.preference_interested_in
         ? JSON.parse(profile.preference_interested_in as string)
         : ["everyone"],
+      minAge: Number(profile.min_age ?? 18),
+      maxAge: Number(profile.max_age ?? 99),
+      maxDistanceKm: Number(profile.max_distance_km ?? 50),
+      showMeGlobally: true,
       onlyVerifiedProfiles: Boolean(profile.only_verified_profiles ?? 0)
     },
+    location: profile.latitude
+      ? {
+          latitude: Number(profile.latitude),
+          longitude: Number(profile.longitude),
+          city: profile.city ?? null,
+          countryCode: profile.country_code ?? null
+        }
+      : null,
     photos: (photos.results ?? []).map((p: any) => ({
       id: String(p.id),
       storageKey: p.storage_key,
@@ -120,6 +138,14 @@ profiles.patch("/me", async (c) => {
     updates.push("country_code = ?");
     values.push(body.countryCode);
   }
+  if (body.occupation !== undefined) {
+    updates.push("occupation = ?");
+    values.push(body.occupation);
+  }
+  if (body.datingIntent !== undefined) {
+    updates.push("dating_intent = ?");
+    values.push(body.datingIntent);
+  }
 
   if (updates.length > 0) {
     updates.push("updated_at = datetime('now')");
@@ -149,9 +175,13 @@ profiles.put("/me/interests", async (c) => {
   const userId = c.get("userId");
   const body = await c.req.json();
 
+  // Accept both { interests: [...] } and { interestedIn: "..." } formats
+  const interests = body.interests ?? body.interestedIn;
+  const value = Array.isArray(interests) ? JSON.stringify(interests) : interests;
+
   await c.env.DB.prepare(
     `UPDATE profiles SET interested_in = ?, updated_at = datetime('now') WHERE user_id = ?`
-  ).bind(body.interestedIn, userId).run();
+  ).bind(value, userId).run();
 
   return c.json({ message: "interests_updated" });
 });
