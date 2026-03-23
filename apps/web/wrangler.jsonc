@@ -14,6 +14,7 @@
     "NEXT_PUBLIC_APP_ENV": "production",
     "NEXT_PUBLIC_APP_URL": "https://puq.me",
     "NEXT_PUBLIC_API_BASE_URL": "https://api.puq.me",
-    "NEXT_PUBLIC_WS_BASE_URL": "wss://ws.puq.me"
+    "NEXT_PUBLIC_WS_BASE_URL": "wss://ws.puq.me",
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID": "816336980313-053klkrfv3o8qtuum0uj3rski2hnl8q7.apps.googleusercontent.com"
   }
 }
