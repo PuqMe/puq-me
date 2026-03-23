@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { fetchMatches, fetchRadarFeed, MatchItem, RadarFeedItem } from "@/lib/social";
-import { loadRadarMetrics, updateRadarMetrics } from '@/lib/radar-ranking';
+import { loadRadarMetrics, updateRadarMetrics, saveRadarMetrics } from '@/lib/radar-ranking';
 import { applySmartRanking, loadBehaviorProfile } from '@/lib/ai-features';
 
 const FILTER_OPTIONS = [
@@ -279,7 +279,15 @@ export default function SmartMatchPage() {
                 key={match.id}
                 href={`/profile/${match.id}`}
                 style={{ textDecoration: "none" }}
-                onClick={() => updateRadarMetrics(String(match.id), 'open')}
+                onClick={() => {
+                  try {
+                    const metrics = loadRadarMetrics();
+                    const updated = updateRadarMetrics(metrics, String(match.id), { opened: true });
+                    saveRadarMetrics(updated);
+                  } catch (err) {
+                    console.warn('Failed to update radar metrics:', err);
+                  }
+                }}
               >
                 <div
                   style={{

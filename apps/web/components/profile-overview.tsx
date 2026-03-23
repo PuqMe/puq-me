@@ -158,6 +158,8 @@ export function ProfileOverview() {
   const [totalEncounters, setTotalEncounters] = useState(0);
   const [todayEncounters, setTodayEncounters] = useState(0);
   const [matchCount, setMatchCount] = useState(0);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -206,6 +208,10 @@ export function ProfileOverview() {
         const todayEnc = await fetchCircleEncounters("24h");
         if (!cancelled) {
           setTodayEncounters(todayEnc.meta?.totalEncounters ?? todayEnc.items?.length ?? 0);
+          // Calculate follower/following counts from encounters
+          const allItems = allEnc.items ?? [];
+          setFollowerCount(allItems.length);
+          setFollowingCount(allItems.filter((e: CircleEncounter) => e.mutual).length);
         }
       } catch {
         // Silently fail — show 0
@@ -330,30 +336,31 @@ export function ProfileOverview() {
       if (data) {
         setData({ ...data, profile: { ...data.profile, bio: bioText } });
       }
-      showToast(tx.photoUpdated); // Reuse success message
+      showToast(locale === "de" ? "Bio gespeichert!" : "Bio saved!");
     } catch {
-      showToast(tx.photoError);
+      showToast(locale === "de" ? "Speichern fehlgeschlagen" : "Save failed");
       // Revert to original
       setBioText(data?.profile.bio || "");
     } finally {
       setBioSaving(false);
     }
-  }, [bioText, data, showToast, tx.photoUpdated, tx.photoError]);
+  }, [bioText, data, showToast, locale]);
 
   /* ── Add hobby handler ── */
-  const handleAddHobby = useCallback(async () => {
-    if (!interestInput.trim() || !data) return;
+  const handleAddHobby = useCallback(async (hobbyOverride?: string) => {
+    const hobby = (hobbyOverride ?? interestInput).trim();
+    if (!hobby || !data) return;
 
-    const newInterests = [...data.interests, interestInput.trim()];
+    const newInterests = [...data.interests, hobby];
     try {
       await updateMyInterests(newInterests);
       setData({ ...data, interests: newInterests });
       setInterestInput("");
-      showToast(tx.photoUpdated); // Reuse success message
+      showToast(locale === "de" ? "Hobby hinzugefügt!" : "Hobby added!");
     } catch {
       showToast(tx.photoError);
     }
-  }, [interestInput, data, showToast, tx.photoUpdated, tx.photoError]);
+  }, [interestInput, data, showToast, locale, tx.photoError]);
 
   /* ── Remove hobby handler ── */
   const handleRemoveHobby = useCallback(async (hobby: string) => {
@@ -363,11 +370,11 @@ export function ProfileOverview() {
     try {
       await updateMyInterests(newInterests);
       setData({ ...data, interests: newInterests });
-      showToast(tx.photoUpdated); // Reuse success message
+      showToast(locale === "de" ? "Hobby entfernt!" : "Hobby removed!");
     } catch {
       showToast(tx.photoError);
     }
-  }, [data, showToast, tx.photoUpdated, tx.photoError]);
+  }, [data, showToast, locale, tx.photoError]);
 
   return (
     <AppShell active="/profile" title={t.profileTitle} subtitle={t.profileSubtitle}>
@@ -466,14 +473,14 @@ export function ProfileOverview() {
                 <Link href="/followers" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>128</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{followerCount}</div>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.followers}</div>
                 </Link>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
                 <Link href="/followers" style={{ flex: 1, display: "block", textAlign: "center", textDecoration: "none", padding: "4px 0", borderRadius: 8, transition: "background 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>43</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{followingCount}</div>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{tx.following}</div>
                 </Link>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
@@ -575,7 +582,7 @@ export function ProfileOverview() {
                 onChange={(e) => setBioText(e.target.value.slice(0, 1000))}
                 onBlur={handleBioSave}
                 placeholder={locale === "de" ? "Erzähl etwas über dich…" : "Tell something about yourself…"}
-                style={{ width: "100%", minHeight: "4rem", background: "transparent", border: "none", fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, outline: "none", resize: "none", fontFamily: "inherit", color: bioText ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.2)" }}
+                style={{ width: "100%", minHeight: "4rem", background: "transparent", border: "none", fontSize: 13, lineHeight: 1.7, outline: "none", resize: "none", fontFamily: "inherit", color: bioText ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.35)" }}
               />
               {/* Progress bar for bio length */}
               <div style={{ marginTop: 10, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.05)" }}>
@@ -594,8 +601,7 @@ export function ProfileOverview() {
                 onClick={() => {
                   const newHobby = prompt(locale === "de" ? "Neues Hobby hinzufügen:" : "Add new hobby:");
                   if (newHobby?.trim()) {
-                    void handleAddHobby();
-                    setInterestInput(newHobby);
+                    void handleAddHobby(newHobby);
                   }
                 }}
                 style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>

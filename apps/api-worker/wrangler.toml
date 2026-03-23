@@ -6,6 +6,8 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 APP_ORIGIN = "https://puq.me"
 CDN_BASE_URL = "https://cdn.puq.me"
+# Frontend Google Client ID (must match NEXT_PUBLIC_GOOGLE_CLIENT_ID in web app)
+GOOGLE_CLIENT_ID_WEB = "816336980313-053klkrfv3o8qtuum0uj3rski2hnl8q7.apps.googleusercontent.com"
 
 # D1 Database
 [[d1_databases]]
@@ -28,7 +30,7 @@ bindings = [
 tag = "v1"
 new_classes = ["ChatRoom"]
 
-# Secrets (set via \`wrangler secret put\`):
+# Secrets (set via `wrangler secret put`):
 # JWT_SECRET
 # JWT_REFRESH_SECRET
 # S3_ENDPOINT

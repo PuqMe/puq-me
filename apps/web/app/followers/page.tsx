@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
+import { AuthGuard } from '@/components/auth-guard';
 import { fetchCircleEncounters } from '@/lib/social';
 import { fetchMyProfile } from '@/lib/profile';
-import { loadRadarMetrics, updateRadarMetrics } from '@/lib/radar-ranking';
+import { loadRadarMetrics, updateRadarMetrics, saveRadarMetrics } from '@/lib/radar-ranking';
 import { applySmartRanking, loadBehaviorProfile } from '@/lib/ai-features';
 
 interface Follower {
@@ -163,12 +164,14 @@ export default function FollowersPage() {
     const isFollowing = follower?.isFollowing ?? false;
 
     // Update metrics based on follow/unfollow action
-    if (!isFollowing) {
-      // User is following - record as 'like'
-      updateRadarMetrics(id, 'like');
-    } else {
-      // User is unfollowing - record as 'skip'
-      updateRadarMetrics(id, 'skip');
+    try {
+      const metrics = loadRadarMetrics();
+      const updated = !isFollowing
+        ? updateRadarMetrics(metrics, id, { liked: true })
+        : updateRadarMetrics(metrics, id, { skipped: true });
+      saveRadarMetrics(updated);
+    } catch (err) {
+      console.warn('Failed to update radar metrics:', err);
     }
 
     setFollowers(prev =>
@@ -322,6 +325,7 @@ export default function FollowersPage() {
   };
 
   return (
+    <AuthGuard>
     <AppShell>
       {toast && (
         <div
@@ -450,11 +454,15 @@ export default function FollowersPage() {
           </div>
         )}
 
-        {/* Show More Button */}
-        <button
+        {/* Show More Button — links to circle/discover for more users */}
+        <a
+          href="/circle"
           style={{
             ...styles.showMoreButton,
             marginBottom: '2rem',
+            display: 'block',
+            textAlign: 'center',
+            textDecoration: 'none',
           }}
           onMouseEnter={e => {
             e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.1)';
@@ -464,8 +472,9 @@ export default function FollowersPage() {
           }}
         >
           Alle anzeigen
-        </button>
+        </a>
       </div>
     </AppShell>
+    </AuthGuard>
   );
 }

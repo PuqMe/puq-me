@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { fetchNearbyUsers, sendWave } from "@/lib/social";
-import { loadRadarMetrics, updateRadarMetrics } from '@/lib/radar-ranking';
+import { loadRadarMetrics, updateRadarMetrics, saveRadarMetrics } from '@/lib/radar-ranking';
 import { applySmartRanking, loadBehaviorProfile } from '@/lib/ai-features';
 import { WatchTimeTracker } from '@/lib/watch-time';
 
@@ -137,7 +137,13 @@ export default function CardsPage() {
       setSending(cardId);
       try {
         // Update metrics for like/engagement
-        updateRadarMetrics(String(cardId), 'like');
+        try {
+          const metrics = loadRadarMetrics();
+          const updated = updateRadarMetrics(metrics, String(cardId), { liked: true });
+          saveRadarMetrics(updated);
+        } catch (err) {
+          console.warn('Failed to update radar metrics:', err);
+        }
         // Call sendWave API
         await sendWave(userId);
         // Remove card on successful join

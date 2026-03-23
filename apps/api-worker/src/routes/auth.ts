@@ -6,6 +6,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
 import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.js";
 import { rateLimit } from "../middleware/rate-limit.js";
+import { verifyGoogleIdToken } from "../lib/google-auth.js";
 
 const registerBody = z.object({
   email: z.string().email().max(255),
@@ -189,23 +190,15 @@ auth.post("/login", rateLimit({ max: 10, windowSeconds: 900, keyPrefix: "auth_lo
 auth.post("/google", async (c) => {
   const body = googleLoginBody.parse(await c.req.json());
 
-  // Verify Google ID token
-  const verifyUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${body.credential}`;
-  const response = await fetch(verifyUrl);
-
-  if (!response.ok) {
-    throw new UnauthorizedError("invalid_google_credential");
-  }
-
-  const payload = await response.json() as {
-    sub: string;
-    email: string;
-    email_verified: string;
-    aud: string;
-  };
-
-  if (payload.aud !== c.env.GOOGLE_CLIENT_ID) {
-    throw new UnauthorizedError("invalid_google_audience");
+  // Verify Google ID token using JWKS public keys (RS256)
+  // Accept both the backend secret client ID and the frontend web client ID
+  const acceptedClientIds = [c.env.GOOGLE_CLIENT_ID, c.env.GOOGLE_CLIENT_ID_WEB].filter(Boolean);
+  let payload;
+  try {
+    payload = await verifyGoogleIdToken(body.credential, acceptedClientIds, c.env.KV);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "unknown_error";
+    throw new UnauthorizedError(`google_verification_failed: ${message}`);
   }
 
   // Check if user exists by google_sub

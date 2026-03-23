@@ -16,17 +16,17 @@ declare global {
 }
 
 /**
- * Google Sign-In button with dual strategy:
- * 1. First tries GSI renderButton (works when FedCM is available)
- * 2. Falls back to manual OAuth popup if GSI button click doesn't work
+ * Google Sign-In button using OAuth popup.
+ * Loads the GSI library in the background so that if FedCM/One-Tap
+ * is available the credential callback fires automatically.
+ * The visible button always opens a manual OAuth popup for reliability.
  */
 export function GoogleSignInButton({ onSuccess, text = "signin_with", width }: GoogleSignInButtonProps) {
-  const gsiBtnRef = useRef<HTMLDivElement>(null);
   const onSuccessRef = useRef(onSuccess);
   const initializedRef = useRef(false);
   onSuccessRef.current = onSuccess;
 
-  // Manual OAuth popup as a reliable fallback
+  // Manual OAuth popup — the primary sign-in path
   const openOAuthPopup = useCallback(() => {
     const clientId = env.googleClientId;
     if (!clientId) return;
@@ -79,7 +79,7 @@ export function GoogleSignInButton({ onSuccess, text = "signin_with", width }: G
   }, []);
 
   useEffect(() => {
-    // Try to load and initialize GSI for the native button experience
+    // Still load GSI library in the background for One-Tap / FedCM auto-sign-in
     const loadScript = () => {
       if (document.getElementById("google-gsi-client")) return;
       const script = document.createElement("script");
@@ -103,17 +103,7 @@ export function GoogleSignInButton({ onSuccess, text = "signin_with", width }: G
         use_fedcm_for_prompt: false,
       });
 
-      if (gsiBtnRef.current) {
-        window.google.accounts.id.renderButton(gsiBtnRef.current, {
-          type: "standard",
-          theme: "outline",
-          size: "large",
-          text: text,
-          shape: "rectangular",
-          logo_alignment: "left",
-          width: width,
-        });
-      }
+      // No renderButton — we only use our own custom button
     };
 
     loadScript();
@@ -126,14 +116,10 @@ export function GoogleSignInButton({ onSuccess, text = "signin_with", width }: G
     }, 100);
 
     return () => clearInterval(checkInterval);
-  }, [text, width]);
+  }, []);
 
   return (
     <div className="w-full flex flex-col items-center gap-2">
-      {/* GSI rendered button (may use FedCM) */}
-      <div ref={gsiBtnRef} className="w-full h-[40px] flex justify-center" />
-
-      {/* Fallback: manual OAuth popup button */}
       <button
         type="button"
         onClick={openOAuthPopup}

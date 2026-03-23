@@ -106,7 +106,7 @@ export function readStoredTokens() {
 async function readAuthError(response: Response) {
   try {
     const payload = (await response.json()) as {
-      error?: string;
+      error?: string | { code?: string; message?: string };
       message?: string;
       details?: {
         formErrors?: string[];
@@ -127,7 +127,12 @@ async function readAuthError(response: Response) {
       return payload.message;
     }
 
-    if (payload.error) {
+    // Handle nested error object: {"error":{"code":"...","message":"..."}}
+    if (typeof payload.error === "object" && payload.error?.message) {
+      return payload.error.message.replaceAll("_", " ");
+    }
+
+    if (typeof payload.error === "string") {
       return payload.error.replaceAll("_", " ");
     }
   } catch {

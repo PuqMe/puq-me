@@ -9,6 +9,7 @@ export type Env = {
   // Environment variables
   APP_ORIGIN: string;
   CDN_BASE_URL: string;
+  GOOGLE_CLIENT_ID_WEB: string;
 
   // Secrets
   JWT_SECRET: string;

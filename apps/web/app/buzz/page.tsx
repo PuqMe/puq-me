@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/app-shell';
 import { fetchNearbyUsers, sendWave } from '@/lib/social';
-import { loadRadarMetrics, updateRadarMetrics } from '@/lib/radar-ranking';
+import { loadRadarMetrics, updateRadarMetrics, saveRadarMetrics } from '@/lib/radar-ranking';
 import { applySmartRanking, loadBehaviorProfile } from '@/lib/ai-features';
 
 interface BuzzSettings {
@@ -332,7 +332,13 @@ export default function BuzzPage() {
     setSending(true);
     try {
       // Update metrics for like/engagement
-      updateRadarMetrics(String(nearbyUsers[0].id), 'like');
+      try {
+        const metrics = loadRadarMetrics();
+        const updated = updateRadarMetrics(metrics, String(nearbyUsers[0].id), { liked: true });
+        saveRadarMetrics(updated);
+      } catch (err) {
+        console.warn('Failed to update radar metrics:', err);
+      }
       // Send wave to the first nearby user
       await sendWave(nearbyUsers[0].id);
       // Trigger vibration if enabled
