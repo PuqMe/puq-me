@@ -88,20 +88,8 @@ export function HomeFeed() {
 
   const [ready,  setReady]  = useState(false);
   const [loc,    setLoc]    = useState({ lat: 48.1351, lng: 11.582 });
-  const [clock,  setClock]  = useState("9:41");
   const [toast,  setToast]  = useState(false);
   const vis = useVisibility();
-
-  // Live clock
-  useEffect(() => {
-    const tick = () => {
-      const n = new Date();
-      setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2, "0")}`);
-    };
-    tick();
-    const id = setInterval(tick, 30_000);
-    return () => clearInterval(id);
-  }, []);
 
   // Load Leaflet CSS + JS
   useEffect(() => {
@@ -344,7 +332,7 @@ export function HomeFeed() {
             </button>
           </div>
 
-          {/* ── HEADER OVERLAY — ONE ROW: Bell | Logo + PuQ.me | Time | Battery ── */}
+          {/* ── HEADER OVERLAY — Logo left, bell right ── */}
           <div style={{
             position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
             display: "flex", alignItems: "center",
@@ -352,16 +340,6 @@ export function HomeFeed() {
             paddingLeft: 14, paddingRight: 14, paddingBottom: 4,
             gap: 8,
           }}>
-            {/* Bell — transparent, with tooltip */}
-            <button
-              onClick={() => { setToast(true); setTimeout(() => setToast(false), 2500); }}
-              title="Benachrichtigungen"
-              aria-label="Benachrichtigungen"
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0, position: "relative" }}
-            >
-              <BellSvg />
-            </button>
-
             {/* Logo + brand name */}
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: 7, textDecoration: "none", flex: 1 }}>
               <LogoMark className="shrink-0 text-[#a855f7]" size={22} />
@@ -370,25 +348,15 @@ export function HomeFeed() {
               </span>
             </Link>
 
-            {/* Time */}
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: "0 1px 8px rgba(0,0,0,.85)", flexShrink: 0 }}>
-              {clock}
-            </span>
-
-            {/* Signal bars */}
-            <svg width="13" height="11" viewBox="0 0 16 12" fill="white" style={{ flexShrink: 0 }}>
-              <rect x="0"    y="4"   width="3" height="8"   rx="1" opacity=".4"/>
-              <rect x="4.5"  y="2.5" width="3" height="9.5" rx="1" opacity=".65"/>
-              <rect x="9"    y="0"   width="3" height="12"  rx="1" opacity=".85"/>
-              <rect x="13"   y="0"   width="3" height="12"  rx="1"/>
-            </svg>
-
-            {/* Battery */}
-            <svg width="21" height="11" viewBox="0 0 26 12" fill="none" style={{ flexShrink: 0 }}>
-              <rect x=".5" y=".5" width="22" height="11" rx="3" stroke="white" strokeOpacity=".3"/>
-              <rect x="23.5" y="3.5" width="2" height="5" rx="1" fill="white" fillOpacity=".3"/>
-              <rect x="2" y="2" width="16" height="8" rx="1.5" fill="#22c55e"/>
-            </svg>
+            {/* Bell — right aligned */}
+            <button
+              onClick={() => { setToast(true); setTimeout(() => setToast(false), 2500); }}
+              title="Benachrichtigungen"
+              aria-label="Benachrichtigungen"
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0, position: "relative" }}
+            >
+              <BellSvg />
+            </button>
           </div>
         </div>
 

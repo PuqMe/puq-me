@@ -334,10 +334,11 @@ export function CircleMap() {
     if (!searchQuery.trim()) return;
     try {
       const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1&accept-language=de`);
-      const d = await r.json();
-      if (d[0]) {
-        const lat = parseFloat(d[0].lat);
-        const lng = parseFloat(d[0].lon);
+      const d = (await r.json()) as Array<{ lat?: string; lon?: string }> | undefined;
+      const firstResult = Array.isArray(d) ? d[0] : undefined;
+      if (firstResult?.lat && firstResult?.lon) {
+        const lat = parseFloat(firstResult.lat);
+        const lng = parseFloat(firstResult.lon);
         setLocation({ lat, lng });
         mapObjRef.current?.setView([lat, lng], 13);
       }
@@ -532,7 +533,7 @@ export function CircleMap() {
             ) : encounters.length > 0 ? (
               <div style={{ padding: "0 16px" }}>
                 {encounters.map((enc, idx) => (
-                  <Link key={enc.userId} href={`/encounter/${enc.userId}`} style={{ textDecoration: "none" }}>
+                  <Link key={`${enc.userId}-${enc.timestamp}-${idx}`} href={`/encounter/${enc.userId}`} style={{ textDecoration: "none" }}>
                     <div style={{
                       display: "flex", gap: 12, marginBottom: 16, position: "relative",
                       padding: "12px",
@@ -560,7 +561,7 @@ export function CircleMap() {
                         display: "flex", alignItems: "center", justifyContent: "center",
                         color: "#fff", fontSize: 14, fontWeight: 700, flexShrink: 0, position: "relative", zIndex: 2,
                       }}>
-                        {enc.displayName[0]}
+                        {(enc.displayName?.trim().charAt(0) || "?").toUpperCase()}
                       </div>
 
                       {/* Content */}
@@ -688,8 +689,8 @@ export function CircleMap() {
                 </div>
               ) : (
                 <>
-                  {circles.map(circle => (
-                    <div key={circle.circleId} style={{
+                  {circles.map((circle, circleIndex) => (
+                    <div key={`${circle.circleId}-${circleIndex}`} style={{
                       background: "rgba(255,255,255,.06)", borderRadius: 12, padding: 16, marginBottom: 12,
                       border: "1px solid rgba(255,255,255,.08)",
                     }}>
@@ -714,12 +715,12 @@ export function CircleMap() {
                       {/* Member avatars */}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                         {circle.members.slice(0, 4).map((member, i) => (
-                          <div key={i} style={{
+                          <div key={`${member.userId}-${i}`} style={{
                             width: 32, height: 32, borderRadius: "50%", background: "rgba(168,85,247,.2)",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             color: "#c084fc", fontSize: 12, fontWeight: 700,
                           }}>
-                            {member.displayName[0]}
+                            {(member.displayName?.trim().charAt(0) || "?").toUpperCase()}
                           </div>
                         ))}
                         {circle.members.length > 4 && (

@@ -614,7 +614,7 @@ export function ProfileOverview() {
                 const c = colors[i % colors.length];
                 return (
                   <button
-                    key={hobby}
+                    key={`${hobby}-${i}`}
                     onClick={() => {
                       if (confirm(locale === "de" ? `"${hobby}" entfernen?` : `Remove "${hobby}"?`)) {
                         void handleRemoveHobby(hobby);
@@ -660,8 +660,8 @@ export function ProfileOverview() {
             </div>
             {encounters.length > 0 ? (
               <div style={{ display: "flex", gap: 12, overflowX: "auto", padding: "4px 4px 8px", scrollbarWidth: "none" }}>
-                {encounters.map(enc => (
-                  <Link key={enc.userId} href={`/profile/${enc.userId}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textDecoration: "none", flexShrink: 0 }}>
+                {encounters.map((enc, index) => (
+                  <Link key={`${enc.userId}-${enc.timestamp}-${index}`} href={`/profile/${enc.userId}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textDecoration: "none", flexShrink: 0 }}>
                     {enc.primaryPhotoUrl ? (
                       <img src={enc.primaryPhotoUrl} alt="" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(168,85,247,0.3)", transition: "transform 0.15s" }}
                         onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
