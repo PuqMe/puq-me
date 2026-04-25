@@ -410,8 +410,14 @@ export default function DeleteAccountPage() {
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div style={styles.buttonGroup as React.CSSProperties}>
+        {/* Action buttons. Hidden while the confirm dialog is open to avoid
+            two visually competing "Keep Account / Cancel" buttons (audit fix). */}
+        <div
+          style={{
+            ...(styles.buttonGroup as React.CSSProperties),
+            display: showConfirm ? "none" : "flex",
+          }}
+        >
           <Link href="/" style={{ textDecoration: "none", flex: 1 }}>
             <button
               style={{

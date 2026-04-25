@@ -134,18 +134,29 @@ export function ProfileBuilder() {
         <div className="grid gap-3">
           <input
             className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
+            name="displayName"
+            id="profile-displayName"
+            autoComplete="nickname"
+            aria-label={t.displayNameLabel || t.displayNamePlaceholder}
             onChange={(event) => updateField("displayName", event.target.value)}
             placeholder={t.displayNamePlaceholder}
             value={form.displayName}
           />
           <input
             className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
+            name="birthDate"
+            id="profile-birthDate"
+            autoComplete="bday"
+            aria-label={t.birthDateLabel || "Birth date"}
             onChange={(event) => updateField("birthDate", event.target.value)}
             type="date"
             value={form.birthDate}
           />
           <textarea
             className="min-h-28 rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
+            name="bio"
+            id="profile-bio"
+            aria-label={t.bioLabel || "Bio"}
             maxLength={500}
             onChange={(event) => updateField("bio", event.target.value)}
             placeholder={t.bioLongPlaceholder}
@@ -154,12 +165,20 @@ export function ProfileBuilder() {
           <div className="grid grid-cols-2 gap-3">
             <input
               className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
+              name="occupation"
+              id="profile-occupation"
+              autoComplete="organization-title"
+              aria-label={t.occupationLabel || t.occupationPlaceholder}
               onChange={(event) => updateField("occupation", event.target.value)}
               placeholder={t.occupationPlaceholder}
               value={form.occupation}
             />
             <input
               className="rounded-[1.2rem] border border-white/12 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-white/35"
+              name="city"
+              id="profile-city"
+              autoComplete="address-level2"
+              aria-label={t.cityLabel || t.cityPlaceholder}
               onChange={(event) => updateField("city", event.target.value)}
               placeholder={t.cityPlaceholder}
               value={form.city}
