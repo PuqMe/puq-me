@@ -433,7 +433,7 @@ export function RadarMap() {
         </div>`
       : `<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,${color}66,${color}33);border:2px solid #a855f7;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:18px;flex-shrink:0;">${initials}</div>`;
 
-    return `<div style="width:240px;background:rgba(12,8,28,.95);border:1px solid rgba(168,85,247,.3);border-radius:16px;padding:16px;font-family:system-ui,sans-serif;backdrop-filter:blur(12px);">
+    return `<div style="width:240px;background:rgba(12,8,28,.95);border:1px solid rgba(168,85,247,.3);border-radius:16px;padding:16px;font-family:system-ui,sans-serif;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);">
       <div style="display:flex;gap:12px;margin-bottom:12px;">
         ${avatarSection}
         <div style="flex:1;">
