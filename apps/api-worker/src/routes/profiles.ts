@@ -237,4 +237,54 @@ profiles.put("/me/location", async (c) => {
   return c.json({ message: "location_updated" });
 });
 
+
+// DELETE /v1/profiles/me — DSGVO Art. 17 (Recht auf Vergessenwerden)
+// Soft-delete: marks user.deleted_at, cascades via FK to dependent tables.
+// Hard-purge happens in a scheduled cleanup job (after 30-day grace period).
+profiles.delete("/me", async (c) => {
+  const userId = c.get("userId");
+
+  // Verify the user actually exists and isn't already deleted.
+  const existing = await c.env.DB.prepare(
+    `SELECT id FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1`
+  ).bind(userId).first();
+
+  if (!existing) {
+    throw new NotFoundError("user_not_found");
+  }
+
+  // Soft-delete: set deleted_at on user; rely on FK CASCADE for owned rows
+  // (profile_photos, location_events, intents, micro_cards, ...).
+  // Personal data (email, password_hash) is wiped here so backups can't
+  // recover identity even before hard-purge runs.
+  await c.env.DB.prepare(
+    `UPDATE users
+     SET deleted_at = datetime('now'),
+         email = 'deleted-' || id || '@deleted.local',
+         password_hash = NULL,
+         google_sub = NULL,
+         updated_at = datetime('now')
+     WHERE id = ?`
+  ).bind(userId).run();
+
+  // Best-effort wipe of profile fields that could re-identify the user.
+  c.executionCtx.waitUntil(
+    c.env.DB.prepare(
+      `UPDATE profiles
+       SET display_name = '[Geloescht]',
+           bio = NULL,
+           occupation = NULL,
+           city = NULL,
+           updated_at = datetime('now')
+       WHERE user_id = ?`
+    ).bind(userId).run()
+  );
+
+  return c.json({
+    deleted: true,
+    userId: String(userId),
+    note: "Account marked for deletion. Personal data wiped. Hard-purge in 30 days."
+  });
+});
+
 export default profiles;

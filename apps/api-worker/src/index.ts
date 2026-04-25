@@ -30,6 +30,7 @@ import groupsRoutes from "./routes/groups.js";
 import visibilityRoutes from "./routes/visibility.js";
 import buzzRoutes from "./routes/buzz.js";
 import wellnessRoutes from "./routes/wellness.js";
+import gdpr from "./routes/gdpr.js";
 
 // Durable Objects
 export { ChatRoom } from "./durable/chat-room.js";
@@ -73,6 +74,7 @@ app.get("/v1/ws", async (c) => {
 app.route("/health", health);
 app.route("/v1/auth", authRoutes);
 app.route("/v1/profiles", profiles);
+app.route("/v1/users", profiles); // legacy alias
 app.route("/v1/swipe", swipe);
 app.route("/v1/matches", matchRoutes);
 app.route("/v1/chat", chat);
@@ -86,6 +88,7 @@ app.route("/v1/groups", groupsRoutes);
 app.route("/v1/visibility", visibilityRoutes);
 app.route("/v1/buzz", buzzRoutes);
 app.route("/v1/wellness", wellnessRoutes);
+app.route("/v1/gdpr", gdpr);
 app.route("/", media); // Media routes have empty prefix — mount LAST to avoid catching other routes
 
 // Global error handler

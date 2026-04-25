@@ -196,7 +196,9 @@ export default function DeleteAccountPage() {
     setError(null);
 
     try {
-      const response = await fetch("/v1/users/me", {
+      const { env } = await import("@/lib/env");
+      const { fetchWithSession } = await import("@/lib/auth");
+      const response = await fetchWithSession(`${env.apiBaseUrl}/v1/users/me`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -291,10 +293,23 @@ export default function DeleteAccountPage() {
                   setIsExporting(true);
                   try {
                     const { env } = await import("@/lib/env");
-                    await fetch(`${env.apiBaseUrl}/v1/gdpr/export`, {
-                      method: "POST",
+                    const { fetchWithSession } = await import("@/lib/auth");
+                    const res = await fetchWithSession(`${env.apiBaseUrl}/v1/gdpr/export`, {
+                      method: "GET",
                       headers: { "Content-Type": "application/json" },
                     });
+                    if (res.ok) {
+                      // Force download of the JSON payload
+                      const blob = await res.blob();
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `puqme-export-${new Date().toISOString().slice(0,10)}.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      a.remove();
+                      URL.revokeObjectURL(url);
+                    }
                     setExportRequested(true);
                   } catch {
                     // silent
