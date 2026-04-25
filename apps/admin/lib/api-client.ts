@@ -26,14 +26,17 @@ export class AdminApiClient {
   }
 
   get<T>(path: string, options: RequestOptions = {}) {
-    return this.request<T>(path, { ...options, method: "GET" });
+    return this.request<T>(path, {
+      ...options,
+      method: "GET"
+    });
   }
 
   post<T>(path: string, body?: unknown, options: RequestOptions = {}) {
     return this.request<T>(path, {
       ...options,
       method: "POST",
-      body: body ? JSON.stringify(body) : undefined
+      ...(body === undefined ? {} : { body: JSON.stringify(body) })
     });
   }
 
@@ -41,7 +44,7 @@ export class AdminApiClient {
     return this.request<T>(path, {
       ...options,
       method: "PATCH",
-      body: body ? JSON.stringify(body) : undefined
+      ...(body === undefined ? {} : { body: JSON.stringify(body) })
     });
   }
 }

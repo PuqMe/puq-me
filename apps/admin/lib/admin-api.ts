@@ -23,23 +23,27 @@ export type AdminUser = {
   city: string | null;
 };
 
+function withToken(token?: string | null) {
+  return token === undefined ? {} : { token };
+}
+
 export const adminApi = {
   getOverview(token?: string | null) {
-    return adminApiClient.get<AdminOverviewResponse>("/v1/admin/stats/overview", { token });
+    return adminApiClient.get<AdminOverviewResponse>("/v1/admin/stats/overview", withToken(token));
   },
   listReports(token?: string | null) {
-    return adminApiClient.get<{ items: AdminReport[] }>("/v1/admin/reports", { token });
+    return adminApiClient.get<{ items: AdminReport[] }>("/v1/admin/reports", withToken(token));
   },
   listUsers(token?: string | null) {
-    return adminApiClient.get<{ items: AdminUser[] }>("/v1/admin/users", { token });
+    return adminApiClient.get<{ items: AdminUser[] }>("/v1/admin/users", withToken(token));
   },
   suspendUser(userId: string, token?: string | null) {
-    return adminApiClient.post(`/v1/admin/users/${userId}/suspend`, undefined, { token });
+    return adminApiClient.post(`/v1/admin/users/${userId}/suspend`, undefined, withToken(token));
   },
   unsuspendUser(userId: string, token?: string | null) {
-    return adminApiClient.post(`/v1/admin/users/${userId}/unban`, undefined, { token });
+    return adminApiClient.post(`/v1/admin/users/${userId}/unban`, undefined, withToken(token));
   },
   disableProfile(userId: string, token?: string | null) {
-    return adminApiClient.post(`/v1/admin/users/${userId}/disable-profile`, undefined, { token });
+    return adminApiClient.post(`/v1/admin/users/${userId}/disable-profile`, undefined, withToken(token));
   }
 };
