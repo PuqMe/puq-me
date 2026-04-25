@@ -59,7 +59,7 @@ export function AppShell({
     { href: "/matches",  label: t.matches,  icon: "heart"  },
     { href: "/chat",     label: t.chat,     icon: "chat"   },
     { href: "/profile",  label: t.profile,  icon: "user"   },
-    { href: "/settings", label: t.more || "Mehr", icon: "grid"   },
+    { href: "/more",     label: t.more || "Mehr", icon: "grid"   },
   ];
 
   const navContent = navItems.map((item) => (
