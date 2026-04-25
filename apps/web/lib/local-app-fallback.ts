@@ -193,7 +193,7 @@ const seededPeople: FallbackRadarFeedItem[] = [
     userId: "fall-enzo",
     displayName: "Enzo",
     age: 31,
-    bio: "Chef, Nachteule, lebt fuer gute Gespraeche und noch bessere Pasta.",
+    bio: "Chef, Nachteule, lebt für gute Gespräche und noch bessere Pasta.",
     city: "Milan",
     countryCode: "IT",
     primaryPhotoUrl: null,
@@ -339,7 +339,7 @@ function buildConversationFromMatch(match: FallbackMatchItem): FallbackConversat
       messageId: `${match.matchId}-hello`,
       senderUserId: match.peer.userId,
       messageType: "text",
-      body: `Hey, ich bin ${match.peer.displayName}. Lust auf ein echtes erstes Gespraech?`,
+      body: `Hey, ich bin ${match.peer.displayName}. Lust auf ein echtes erstes Gespräch?`,
       mediaStorageKey: null,
       createdAt: match.matchedAt
     }

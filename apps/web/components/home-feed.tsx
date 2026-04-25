@@ -388,10 +388,10 @@ export function HomeFeed() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,.45)" }}>
-                    Heute fuer dich
+                    Heute für dich
                   </div>
                   <div style={{ marginTop: 6, fontSize: 20, fontWeight: 800, lineHeight: 1.15, color: "#fff" }}>
-                    Dein Radar ist aktiv und priorisiert echte Naehe.
+                    Dein Radar ist aktiv und priorisiert echte Nähe.
                   </div>
                 </div>
                 <Link href="/nearby" style={{
@@ -401,7 +401,7 @@ export function HomeFeed() {
                   background: "linear-gradient(135deg,#c084fc,#7c3aed)",
                   whiteSpace: "nowrap",
                 }}>
-                  Radar oeffnen
+                  Radar öffnen
                 </Link>
               </div>
 
