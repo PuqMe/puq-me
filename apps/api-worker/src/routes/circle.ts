@@ -91,8 +91,9 @@ circle.get("/groups", async (c) => {
 
 // POST /v1/circle/location-events
 // The web client posts the user's coarse location periodically.
-// We accept + validate the payload and acknowledge with 201.
-// TODO: persist to a `location_events` D1 table once the migration lands.
+// Persists into the `location_events` D1 table (migration 0004).
+// Privacy: coarse-only (binned at >= 100m by clients, validated <= 25km),
+// retained ≤ 30 days (cleanup job purges older rows).
 circle.post("/location-events", async (c) => {
   const userId = c.get("userId");
 
@@ -130,12 +131,53 @@ circle.post("/location-events", async (c) => {
     );
   }
 
+  // Optional client-supplied capture time. Accept ISO-8601 strings only.
+  const capturedAtRaw = payload.capturedAt;
+  let capturedAt: string | null = null;
+  if (typeof capturedAtRaw === "string" && capturedAtRaw.length > 0) {
+    const parsed = Date.parse(capturedAtRaw);
+    if (Number.isFinite(parsed)) {
+      capturedAt = new Date(parsed).toISOString();
+    }
+  }
+
+  const serverNow = new Date().toISOString();
+
+  // Round to ~100m grid before persisting (extra defense; client should already coarsen).
+  // 1 degree latitude ≈ 111_320m. 100m -> 0.0009 deg.
+  const COARSE_DEG = 0.001;
+  const latCoarse = Math.round(lat / COARSE_DEG) * COARSE_DEG;
+  const lonCoarse = Math.round(lon / COARSE_DEG) * COARSE_DEG;
+
+  try {
+    await c.env.DB.prepare(
+      `INSERT INTO location_events
+         (user_id, lat, lon, accuracy_meters, captured_at, server_received_at)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    )
+      .bind(userId, latCoarse, lonCoarse, accuracyMeters, capturedAt, serverNow)
+      .run();
+  } catch (err) {
+    // Don't fail the client request if the DB blip — coarse location pings
+    // are best-effort. But log so Sentry/Wrangler picks it up.
+    console.error("location_events insert failed", err);
+    return c.json(
+      {
+        stored: false,
+        zoneLabel: "Grobe Begegnungszone empfangen",
+        capturedAt: serverNow,
+        meta: { userId: String(userId), persisted: false }
+      },
+      201
+    );
+  }
+
   return c.json(
     {
       stored: true,
       zoneLabel: "Grobe Begegnungszone gespeichert",
-      capturedAt: new Date().toISOString(),
-      meta: { userId: String(userId) }
+      capturedAt: serverNow,
+      meta: { userId: String(userId), persisted: true }
     },
     201
   );
