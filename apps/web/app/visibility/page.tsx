@@ -503,7 +503,12 @@ export default function VisibilityPage() {
 
         {/* Toast Notification */}
         {toastMessage && (
-          <div style={styles.toast}>
+          <div
+            role={toastType === 'error' ? 'alert' : 'status'}
+            aria-live={toastType === 'error' ? 'assertive' : 'polite'}
+            aria-atomic="true"
+            style={styles.toast}
+          >
             {toastMessage}
           </div>
         )}

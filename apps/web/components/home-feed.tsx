@@ -617,12 +617,17 @@ export function HomeFeed() {
 
         {/* Notification toast */}
         {toast && (
-          <div style={{
-            position: "fixed", top: 64, left: "50%", transform: "translateX(-50%)", zIndex: 9999,
-            background: "rgba(12,8,28,.95)", border: "1px solid rgba(255,255,255,.12)",
-            borderRadius: 16, padding: "11px 20px", fontSize: 13, color: "rgba(255,255,255,.8)",
-            backdropFilter: "blur(12px)", whiteSpace: "nowrap",
-          }}>
+          <div
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            style={{
+              position: "fixed", top: 64, left: "50%", transform: "translateX(-50%)", zIndex: 9999,
+              background: "rgba(12,8,28,.95)", border: "1px solid rgba(255,255,255,.12)",
+              borderRadius: 16, padding: "11px 20px", fontSize: 13, color: "rgba(255,255,255,.8)",
+              WebkitBackdropFilter: "blur(12px)", backdropFilter: "blur(12px)", whiteSpace: "nowrap",
+            }}
+          >
             Keine neuen Benachrichtigungen
           </div>
         )}

@@ -329,6 +329,9 @@ export default function FollowersPage() {
     <AppShell>
       {toast && (
         <div
+          role={toast.type === 'error' ? 'alert' : 'status'}
+          aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
+          aria-atomic="true"
           style={{
             position: 'fixed',
             top: 'calc(env(safe-area-inset-top, 0px) + 1rem)',

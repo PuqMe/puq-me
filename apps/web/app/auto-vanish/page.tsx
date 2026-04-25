@@ -317,6 +317,9 @@ export default function AutoVanishPage() {
     <AppShell title="Auto-Verschwinden">
       {toast && (
         <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
           style={{
             position: 'fixed',
             top: 'calc(env(safe-area-inset-top, 0px) + 1rem)',

@@ -135,14 +135,20 @@ function ProfileRow({ href, icon, label, value, accent, danger }: {
 /* ── Toast Component ── */
 function Toast({ message, visible }: { message: string; visible: boolean }) {
   return (
-    <div style={{
-      position: "fixed", bottom: "calc(env(safe-area-inset-bottom, 0px) + 6rem)", left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 20}px)`,
-      background: "rgba(168,85,247,0.95)", color: "white", padding: "10px 20px", borderRadius: 12,
-      fontSize: 13, fontWeight: 600, opacity: visible ? 1 : 0, transition: "all 0.3s ease",
-      pointerEvents: "none", zIndex: 9999, backdropFilter: "blur(10px)",
-      boxShadow: "0 4px 20px rgba(168,85,247,0.3)",
-    }}>
-      {message}
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      // When hidden, also remove from a11y tree so screen readers don't pick up stale text
+      aria-hidden={!visible}
+      style={{
+        position: "fixed", bottom: "calc(env(safe-area-inset-bottom, 0px) + 6rem)", left: "50%", transform: `translateX(-50%) translateY(${visible ? 0 : 20}px)`,
+        background: "rgba(168,85,247,0.95)", color: "white", padding: "10px 20px", borderRadius: 12,
+        fontSize: 13, fontWeight: 600, opacity: visible ? 1 : 0, transition: "all 0.3s ease",
+        pointerEvents: "none", zIndex: 9999, WebkitBackdropFilter: "blur(10px)", backdropFilter: "blur(10px)",
+        boxShadow: "0 4px 20px rgba(168,85,247,0.3)",
+      }}>
+      {visible ? message : ""}
     </div>
   );
 }
