@@ -17,6 +17,11 @@ export function AuthCard() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const trustHighlights = [
+    "Datenschutz-first Radar",
+    "Unscharfer Standort statt exakter Position",
+    "Chat, Matches und Begegnungen nach Login",
+  ];
 
   async function handleSubmit() {
     setErrorMessage(null);
@@ -36,7 +41,7 @@ export function AuthCard() {
     <AuthFormShell
       eyebrow={t.login}
       title={t.loginTitle}
-      description=""
+      description="Logge dich ein und lande direkt wieder bei deinen Begegnungen, Matches und dem Radar in deiner Nähe."
       submitLabel={t.continueBtn}
       pendingLabel={t.loggingIn}
       altLabel={t.createAccountLink}
@@ -60,6 +65,17 @@ export function AuthCard() {
         <Link href="/forgot-password" className="text-[12px] font-medium text-[#a855f7]/80 hover:text-[#a855f7]">
           {t.forgotPassword}
         </Link>
+      </div>
+      <div className="mt-1 rounded-[1.1rem] border border-white/10 bg-white/5 p-3">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Warum PuQ</div>
+        <div className="mt-2 grid gap-1.5">
+          {trustHighlights.map((item) => (
+            <div key={item} className="flex items-center gap-2 text-[12px] text-white/65">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#a855f7]" />
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </AuthFormShell>
   );

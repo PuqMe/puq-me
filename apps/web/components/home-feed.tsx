@@ -90,6 +90,16 @@ export function HomeFeed() {
   const [loc,    setLoc]    = useState({ lat: 48.1351, lng: 11.582 });
   const [toast,  setToast]  = useState(false);
   const vis = useVisibility();
+  const quickStats = [
+    { label: "Aktiv in deiner Nähe", value: NEARBY_PEOPLE.length.toString() },
+    { label: "Begegnungen heute", value: ENCOUNTERS.length.toString() },
+    { label: "Schutz", value: "Unscharf" },
+  ];
+  const trustSignals = [
+    "Standorte werden absichtlich nur ungenau dargestellt.",
+    "Online-Status und Nähe helfen dir bei echten Entscheidungen.",
+    "Je mehr du ansiehst, desto besser wird dein Feed.",
+  ];
 
   // Load Leaflet CSS + JS
   useEffect(() => {
@@ -366,8 +376,73 @@ export function HomeFeed() {
           paddingBottom: 78,
         }}>
 
+          <div style={{ padding: "10px 14px 0" }}>
+            <div style={{
+              borderRadius: 18,
+              padding: "16px 16px 14px",
+              background: "linear-gradient(135deg, rgba(168,85,247,.20), rgba(79,70,229,.08))",
+              border: "1px solid rgba(168,85,247,.18)",
+              boxShadow: "0 20px 40px rgba(4,3,10,.18)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,.45)" }}>
+                    Heute fuer dich
+                  </div>
+                  <div style={{ marginTop: 6, fontSize: 20, fontWeight: 800, lineHeight: 1.15, color: "#fff" }}>
+                    Dein Radar ist aktiv und priorisiert echte Naehe.
+                  </div>
+                </div>
+                <Link href="/nearby" style={{
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  height: 40, padding: "0 14px", borderRadius: 999,
+                  textDecoration: "none", color: "#fff", fontSize: 12, fontWeight: 700,
+                  background: "linear-gradient(135deg,#c084fc,#7c3aed)",
+                  whiteSpace: "nowrap",
+                }}>
+                  Radar oeffnen
+                </Link>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 14 }}>
+                {quickStats.map((item) => (
+                  <div key={item.label} style={{
+                    borderRadius: 14,
+                    padding: "10px 10px 9px",
+                    background: "rgba(255,255,255,.05)",
+                    border: "1px solid rgba(255,255,255,.06)",
+                  }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>{item.value}</div>
+                    <div style={{ marginTop: 2, fontSize: 10, lineHeight: 1.35, color: "rgba(255,255,255,.46)" }}>{item.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* ── Visibility Prompt ── */}
           <VisibilityPrompt locale="de" onRequestLocation={requestLocation} />
+
+          <div style={{ padding: "2px 14px 0", marginBottom: 10 }}>
+            <div style={{
+              borderRadius: 16,
+              padding: "13px 14px",
+              background: "rgba(255,255,255,.03)",
+              border: "1px solid rgba(255,255,255,.05)",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,.42)" }}>
+                Warum diese Personen?
+              </div>
+              <div style={{ marginTop: 8, display: "grid", gap: 7 }}>
+                {trustSignals.map((item) => (
+                  <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,.66)" }}>
+                    <span style={{ marginTop: 6, width: 6, height: 6, borderRadius: "50%", background: "#a855f7", flexShrink: 0 }} />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* ── In der Nähe ── */}
           <div style={{ padding: "10px 14px 0", marginBottom: 10 }}>

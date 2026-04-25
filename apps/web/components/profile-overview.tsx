@@ -238,6 +238,56 @@ export function ProfileOverview() {
   const age = data?.profile.birthDate ? calculateAge(data.profile.birthDate) : null;
   const xp = typeof window !== "undefined" ? (() => { try { return localStorage.getItem("puqme.xp"); } catch { return null; } })() : null;
   const level = xp ? (JSON.parse(xp).level || 1) : 1;
+  const profileFocusCards = useMemo(() => {
+    if (!data) return [];
+    const cards = [];
+    if (!data.profile.photoUrl) {
+      cards.push({
+        title: locale === "de" ? "Foto hochladen" : "Add a photo",
+        desc: locale === "de" ? "Profile mit Gesicht werden schneller geöffnet." : "Profiles with a face get opened faster.",
+        href: "/profile/create",
+      });
+    }
+    if (!data.profile.bio || data.profile.bio.trim().length < 20) {
+      cards.push({
+        title: locale === "de" ? "Bio schärfen" : "Sharpen your bio",
+        desc: locale === "de" ? "2 klare Sätze machen deinen ersten Eindruck stärker." : "Two clear sentences improve your first impression.",
+        href: "/profile/create",
+      });
+    }
+    if (data.interests.length < 3) {
+      cards.push({
+        title: locale === "de" ? "Interessen ergänzen" : "Add interests",
+        desc: locale === "de" ? "Mehr Interessen verbessern Nearby und Matches." : "More interests improve Nearby and Matches.",
+        href: "/profile/create",
+      });
+    }
+    if (!data.location) {
+      cards.push({
+        title: locale === "de" ? "Standort aktivieren" : "Enable location",
+        desc: locale === "de" ? "Ohne Standort wirst du im Radar schwächer eingeordnet." : "Without location your Radar relevance stays lower.",
+        href: "/settings",
+      });
+    }
+    return cards.slice(0, 3);
+  }, [data, locale]);
+  const profileHealthDetails = useMemo(() => {
+    if (!data) return [];
+    return [
+      {
+        label: locale === "de" ? "Profilqualität" : "Profile quality",
+        value: `${score}%`,
+      },
+      {
+        label: locale === "de" ? "Sichtbarkeit" : "Visibility",
+        value: data.profile.isVisible ? t.visible : t.paused,
+      },
+      {
+        label: locale === "de" ? "Standort" : "Location",
+        value: data.location ? t.locationActive : t.locationMissing,
+      },
+    ];
+  }, [data, locale, score, t.locationActive, t.locationMissing, t.paused, t.visible]);
 
   /* ── Share handler ── */
   const handleShare = useCallback(async () => {
@@ -454,11 +504,23 @@ export function ProfileOverview() {
                 </div>
 
                 {/* Bio */}
-                {data.profile.bio && (
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", marginTop: 8, lineHeight: 1.6, textAlign: "center", maxWidth: 300 }}>
-                    {data.profile.bio}
-                  </div>
-                )}
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", marginTop: 8, lineHeight: 1.6, textAlign: "center", maxWidth: 300 }}>
+                  {data.profile.bio || tx.completeDesc}
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, width: "100%", marginTop: 16 }}>
+                  {profileHealthDetails.map((item) => (
+                    <div key={item.label} style={{
+                      borderRadius: 12,
+                      padding: "10px 10px 9px",
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.05)",
+                    }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{item.value}</div>
+                      <div style={{ marginTop: 2, fontSize: 10.5, lineHeight: 1.4, color: "rgba(255,255,255,0.38)" }}>{item.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* ━━━ STATS ROW (live data from API) ━━━ */}
@@ -510,6 +572,39 @@ export function ProfileOverview() {
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}>
               <icons.share /> {tx.shareProfile}
             </button>
+          </div>
+        )}
+
+        {data && profileFocusCards.length > 0 && (
+          <div style={{ display: "grid", gap: 8, padding: "0 2px" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1.5, paddingLeft: 4 }}>
+              {locale === "de" ? "Nächste beste Schritte" : "Best next steps"}
+            </div>
+            {profileFocusCards.map((card) => (
+              <Link
+                key={card.title}
+                href={card.href}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "14px 14px",
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  textDecoration: "none",
+                }}
+              >
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(168,85,247,0.14)", display: "flex", alignItems: "center", justifyContent: "center", color: "#c084fc", flexShrink: 0 }}>
+                  <icons.zap />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{card.title}</div>
+                  <div style={{ marginTop: 2, fontSize: 11.5, lineHeight: 1.5, color: "rgba(255,255,255,0.42)" }}>{card.desc}</div>
+                </div>
+                <icons.chevron />
+              </Link>
+            ))}
           </div>
         )}
 

@@ -81,6 +81,7 @@ export function AuthFormShell({
         {BRAND_NAME}
       </div>
       <h1 className="text-[1.6rem] font-semibold leading-none text-white">{title}</h1>
+      {description ? <p className="mt-2 text-sm leading-6 text-white/60">{description}</p> : null}
 
       <form
         className="mt-4 grid gap-2.5"

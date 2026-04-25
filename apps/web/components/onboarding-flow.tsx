@@ -55,6 +55,29 @@ export function OnboardingFlow() {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const locale = typeof t.back === "string" && t.back === "Zurück" ? "de" : "en";
+  const trustNotes = locale === "de"
+    ? [
+        "Dein Standort wird für Begegnungen bewusst nur unscharf genutzt.",
+        "Mit Foto und Interessen wirst du schneller relevant eingeordnet.",
+        "Video ist optional und verbessert nur den ersten Eindruck.",
+      ]
+    : [
+        "Your location is deliberately blurred for encounters.",
+        "Photo and interests help people understand you faster.",
+        "Video is optional and only adds a stronger first impression.",
+      ];
+  const profileChecklist = [
+    { label: locale === "de" ? "Foto" : "Photo", done: Boolean(photoPreview) },
+    { label: locale === "de" ? "Name" : "Name", done: displayName.trim().length >= 2 },
+    { label: locale === "de" ? "Bio" : "Bio", done: bio.trim().length >= 20 },
+    { label: locale === "de" ? "Interessen" : "Interests", done: selectedInterests.length >= 3 },
+  ];
+  const completedChecklistItems = profileChecklist.filter((item) => item.done).length;
+  const completionPercent = Math.round((completedChecklistItems / profileChecklist.length) * 100);
+  const primaryBenefit = locale === "de"
+    ? "In 2 kurzen Schritten wird dein Profil sichtbarer und vertrauenswürdiger."
+    : "In 2 short steps your profile becomes more visible and more trustworthy.";
 
   // Derive greeting name from user email or profile
   const greetingName = profile?.profile.displayName
@@ -244,6 +267,21 @@ export function OnboardingFlow() {
           </p>
         </div>
 
+        <div className="glass-card w-full max-w-xs rounded-[1.7rem] p-4 text-left">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            {locale === "de" ? "Was du bekommst" : "What you unlock"}
+          </div>
+          <div className="mt-2 text-sm leading-6 text-white/72">{primaryBenefit}</div>
+          <div className="mt-3 grid gap-2">
+            {trustNotes.map((note) => (
+              <div key={note} className="flex items-start gap-2 text-[12px] leading-5 text-white/62">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#a855f7]" />
+                <span>{note}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <button
           className="glow-button mt-4 w-full max-w-xs rounded-[1.3rem] px-6 py-4 text-base font-semibold text-white"
           onClick={() => setStep(1)}
@@ -270,6 +308,14 @@ export function OnboardingFlow() {
             <div className="warm-pill inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
               {t.step1of2}
             </div>
+            <div className="text-[11px] text-white/35">{completionPercent}%</div>
+          </div>
+
+          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/8">
+            <div
+              style={{ width: `${Math.max(25, completionPercent)}%` }}
+              className="h-full rounded-full bg-gradient-to-r from-[#c084fc] to-[#7c3aed]"
+            />
           </div>
 
           <h1 className="mt-6 text-3xl font-semibold leading-tight text-white">
@@ -329,6 +375,20 @@ export function OnboardingFlow() {
             <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={handleVideoSelect} />
           </div>
 
+          <div className="mt-5 rounded-[1.3rem] border border-white/10 bg-white/5 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              {locale === "de" ? "Warum das hilft" : "Why this helps"}
+            </div>
+            <div className="mt-2 grid gap-2">
+              {trustNotes.slice(0, 2).map((note) => (
+                <div key={note} className="flex items-start gap-2 text-[12px] leading-5 text-white/62">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#34d399]" />
+                  <span>{note}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {errorMessage ? <div className="mt-4 text-sm text-[#ffb4c7]">{errorMessage}</div> : null}
         </div>
 
@@ -356,8 +416,18 @@ export function OnboardingFlow() {
     return (
       <section className="flex min-h-[calc(100vh-3rem)] flex-col justify-between gap-4">
         <div className="glass-card rounded-[2rem] p-6 text-white">
-          <div className="warm-pill inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
-            {t.step2of2}
+          <div className="flex items-center justify-between gap-3">
+            <div className="warm-pill inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
+              {t.step2of2}
+            </div>
+            <div className="text-[11px] text-white/35">{completionPercent}%</div>
+          </div>
+
+          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/8">
+            <div
+              style={{ width: `${Math.max(50, completionPercent)}%` }}
+              className="h-full rounded-full bg-gradient-to-r from-[#c084fc] to-[#7c3aed]"
+            />
           </div>
 
           <h1 className="mt-6 text-3xl font-semibold leading-tight text-white">
@@ -414,6 +484,25 @@ export function OnboardingFlow() {
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-[1.3rem] border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                {locale === "de" ? "Profil-Check" : "Profile check"}
+              </div>
+              <div className="text-[12px] font-semibold text-[#c084fc]">{completedChecklistItems}/{profileChecklist.length}</div>
+            </div>
+            <div className="mt-3 grid gap-2">
+              {profileChecklist.map((item) => (
+                <div key={item.label} className="flex items-center justify-between gap-3 text-[12px] text-white/68">
+                  <span>{item.label}</span>
+                  <span className={item.done ? "text-[#34d399]" : "text-white/28"}>
+                    {item.done ? (locale === "de" ? "Erledigt" : "Done") : (locale === "de" ? "Offen" : "Open")}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -493,6 +582,11 @@ export function OnboardingFlow() {
         >
           {t.goToRadar}
         </button>
+        <div className="rounded-[1.3rem] border border-white/10 bg-white/5 px-4 py-3 text-left text-[12px] leading-5 text-white/62">
+          {locale === "de"
+            ? "Nächster bester Schritt: Standort freigeben und 3 bis 5 Profile ansehen. So wird dein Feed schneller besser."
+            : "Best next step: share your location and open 3 to 5 profiles. Your feed gets better faster that way."}
+        </div>
         <Link
           className="rounded-[1.3rem] px-4 py-3 text-center text-sm text-white/50 underline underline-offset-4"
           href="/profile"
