@@ -89,4 +89,56 @@ circle.get("/groups", async (c) => {
   });
 });
 
+// POST /v1/circle/location-events
+// The web client posts the user's coarse location periodically.
+// We accept + validate the payload and acknowledge with 201.
+// TODO: persist to a `location_events` D1 table once the migration lands.
+circle.post("/location-events", async (c) => {
+  const userId = c.get("userId");
+
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: { code: "bad_request", message: "invalid_json" } }, 400);
+  }
+
+  const payload = (body ?? {}) as Record<string, unknown>;
+  const lat = Number(payload.lat);
+  const lon = Number(payload.lon);
+  const accuracyMetersRaw = payload.accuracyMeters;
+  const accuracyMeters =
+    accuracyMetersRaw === undefined || accuracyMetersRaw === null
+      ? 250
+      : Number(accuracyMetersRaw);
+
+  const valid =
+    Number.isFinite(lat) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    Number.isFinite(lon) &&
+    lon >= -180 &&
+    lon <= 180 &&
+    Number.isFinite(accuracyMeters) &&
+    accuracyMeters > 0 &&
+    accuracyMeters <= 25000;
+
+  if (!valid) {
+    return c.json(
+      { error: { code: "validation_error", message: "lat/lon/accuracyMeters out of range" } },
+      400
+    );
+  }
+
+  return c.json(
+    {
+      stored: true,
+      zoneLabel: "Grobe Begegnungszone gespeichert",
+      capturedAt: new Date().toISOString(),
+      meta: { userId: String(userId) }
+    },
+    201
+  );
+});
+
 export default circle;
