@@ -40,7 +40,7 @@ export default function MorePage() {
   const isDe = locale === "de";
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 pb-24 pt-6">
+    <main className="relative z-10 mx-auto w-full max-w-2xl px-4 pb-24 pt-6" style={{ background: "rgba(7,5,15,0.78)", backdropFilter: "blur(8px)", borderRadius: 20, marginTop: 12, minHeight: "calc(100vh - 24px)" }}>
       <header style={{ marginBottom: 18 }}>
         <h1 className="text-xl font-semibold text-white">
           {isDe ? "Mehr" : "More"}

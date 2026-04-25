@@ -34,7 +34,8 @@ const cityTiles = [
 export function CityBackdrop() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden" style={{ zIndex: 0, contentVisibility: "auto" }}>
-      <div className="mosaic-wall absolute inset-0 grid grid-cols-3 gap-3 p-3 opacity-90 md:grid-cols-4">
+      <div className="mosaic-wall absolute inset-0 grid grid-cols-3 gap-3 p-3 opacity-90 md:grid-cols-4"
+      style={{ contentVisibility: "auto" as any, containIntrinsicSize: "100vh 100vw" } as any}>
         {cityTiles.map((tile, index) => (
           <div
             key={tile.city}

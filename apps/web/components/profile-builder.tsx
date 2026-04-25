@@ -185,6 +185,9 @@ export function ProfileBuilder() {
             />
           </div>
         </div>
+        <p className="-mt-1 text-[12px] leading-[1.4] text-white/55">
+          {t.photoUploadHint || "📸 Profilbild kannst du nach dem Speichern in den Einstellungen hochladen."}
+        </p>
       </Card>
 
       <Card className="glass-card rounded-[2rem] p-5 text-white">
