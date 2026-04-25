@@ -11,6 +11,7 @@ import { secureHeaders } from "hono/secure-headers";
 import type { AppContext } from "./env.js";
 import { createCors } from "./middleware/cors.js";
 import { AppError } from "./lib/errors.js";
+import { captureException } from "./lib/sentry.js";
 
 // Route modules
 import health from "./routes/health.js";
@@ -105,10 +106,27 @@ app.onError((err, c) => {
   }
 
   console.error("Unhandled error:", err);
+
+  // Forward to Sentry (best-effort, never blocks response)
+  const eventId = captureException(
+    err,
+    c.env.SENTRY_DSN,
+    {
+      userId: c.get("userId"),
+      userEmail: c.get("userEmail"),
+      method: c.req.method,
+      path: new URL(c.req.url).pathname,
+      environment: c.env.SENTRY_ENVIRONMENT ?? "production",
+      release: c.env.SENTRY_RELEASE
+    },
+    (p) => c.executionCtx?.waitUntil?.(p)
+  );
+
   return c.json({
     error: {
       code: "internal_error",
-      message: "An unexpected error occurred"
+      message: "An unexpected error occurred",
+      ...(eventId ? { incidentId: eventId } : {})
     }
   }, 500);
 });

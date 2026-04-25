@@ -31,7 +31,7 @@ const SECURITY_HEADERS = [
       "font-src 'self' data: https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "media-src 'self' blob: https:",
-      "connect-src 'self' https://api.puq.me wss://api.puq.me wss://ws.puq.me https://*.basemaps.cartocdn.com https://images.unsplash.com https://nominatim.openstreetmap.org https://accounts.google.com https://oauth2.googleapis.com https://cloudflareinsights.com",
+      "connect-src 'self' https://api.puq.me wss://api.puq.me wss://ws.puq.me https://*.basemaps.cartocdn.com https://images.unsplash.com https://nominatim.openstreetmap.org https://accounts.google.com https://oauth2.googleapis.com https://cloudflareinsights.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io",
       "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com",
       "worker-src 'self' blob:",
       "object-src 'none'",

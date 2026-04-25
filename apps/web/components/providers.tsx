@@ -8,6 +8,7 @@ import { ConsentBanner } from "@/components/consent-banner";
 import { analyzeBehavior, loadBehaviorProfile } from "@/lib/ai-features";
 import { loadRadarMetrics, loadContentAffinity } from "@/lib/radar-ranking";
 import { initWebVitals } from "@/lib/web-vitals";
+import { initSentry } from "@/lib/sentry-client";
 
 export function Providers({ children }: PropsWithChildren) {
   useEffect(() => {
@@ -25,6 +26,9 @@ export function Providers({ children }: PropsWithChildren) {
 
     // Initialize Web Vitals monitoring
     initWebVitals();
+
+    // Initialize Sentry error reporting (only if NEXT_PUBLIC_SENTRY_DSN is set)
+    initSentry();
   }, []);
 
   return (

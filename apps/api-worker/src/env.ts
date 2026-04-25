@@ -20,6 +20,11 @@ export type Env = {
   S3_ACCESS_KEY: string;
   S3_SECRET_KEY: string;
   GOOGLE_CLIENT_ID: string;
+
+  // Optional secrets (set via wrangler secret put if used)
+  SENTRY_DSN?: string;
+  SENTRY_ENVIRONMENT?: string;
+  SENTRY_RELEASE?: string;
 };
 
 export type AppContext = {
