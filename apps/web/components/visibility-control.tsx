@@ -346,6 +346,9 @@ export function VisibilitySettingsCard({ locale = "de" }: { locale?: "en" | "de"
             <button
               key={mode}
               onClick={() => vis.setMode(mode)}
+              aria-pressed={isActive}
+              aria-label={text.label}
+              data-active={isActive ? "true" : "false"}
               style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "10px 12px",
@@ -356,6 +359,8 @@ export function VisibilitySettingsCard({ locale = "de" }: { locale?: "en" | "de"
                 transition: "all .2s",
                 textAlign: "left",
                 width: "100%",
+                outline: isActive ? `2px solid ${cfg.color}33` : "none",
+                outlineOffset: 2,
               }}
             >
               <div style={{
@@ -654,6 +659,9 @@ export function VisibilityPrompt({
               key={mode}
               onClick={() => vis.setMode(mode)}
               title={m[lang].label}
+              aria-pressed={isActive}
+              aria-label={m[lang].label}
+              data-active={isActive ? "true" : "false"}
               style={{
                 width: 30, height: 30, borderRadius: "50%",
                 border: isActive ? `1.5px solid ${m.color}66` : "1.5px solid rgba(255,255,255,.08)",
@@ -662,6 +670,7 @@ export function VisibilityPrompt({
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: "pointer", padding: 0,
                 transition: "all .2s",
+                boxShadow: isActive ? `0 0 0 2px ${m.color}33` : "none",
               }}
             >
               <Icon />

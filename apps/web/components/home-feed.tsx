@@ -228,6 +228,7 @@ export function HomeFeed() {
 
   return (
     <>
+      <h1 className="sr-only">PuQ.me — Echte Begegnungen in deiner Stadt</h1>
       <style>{`
         .leaflet-tile-pane { filter: brightness(0.68) saturate(0.82) contrast(1.08); }
         .leaflet-attribution-flag { display:none !important; }

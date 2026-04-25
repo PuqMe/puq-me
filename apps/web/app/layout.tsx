@@ -124,14 +124,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="app-frame min-h-screen font-sans antialiased">
         <SkipNav />
-        <div id="main-content" />
         <script dangerouslySetInnerHTML={{ __html: installPromptScript }} />
         <CityBackdrop />
         <Providers>
           <PwaRegistrar />
           <OfflineBanner />
           <InstallNowFab />
-          {children}
+          <main id="main-content" role="main" tabIndex={-1}>
+            {children}
+          </main>
         </Providers>
       </body>
     </html>

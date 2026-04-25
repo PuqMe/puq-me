@@ -838,14 +838,27 @@ export function LanguageProvider({ children }: PropsWithChildren) {
   const [locale, setLocaleState] = useState<Locale>("en");
 
   useEffect(() => {
-    setLocaleState(resolveInitialLocale());
+    const initial = resolveInitialLocale();
+    setLocaleState(initial);
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = initial;
+    }
   }, []);
+
+  // Keep <html lang="..."> in sync with current locale on every change
+  // (covers both DE→EN and EN→DE round-trip; fixes a11y/SEO bug found in audit).
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = locale;
+    }
+  }, [locale]);
 
   function setLocale(next: Locale) {
     setLocaleState(next);
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, next);
       document.cookie = `puqme.lang=${next};path=/;max-age=31536000;SameSite=Lax`;
+      document.documentElement.lang = next;
     }
   }
 
