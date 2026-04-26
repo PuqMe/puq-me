@@ -9,6 +9,11 @@ CDN_BASE_URL = "https://cdn.puq.me"
 # Frontend Google Client ID (must match NEXT_PUBLIC_GOOGLE_CLIENT_ID in web app)
 GOOGLE_CLIENT_ID_WEB = "816336980313-053klkrfv3o8qtuum0uj3rski2hnl8q7.apps.googleusercontent.com"
 
+# Mail (MailChannels via Cloudflare Workers)
+MAIL_FROM = "noreply@puq.me"
+MAIL_FROM_NAME = "PuQ.me"
+MAIL_REPLY_TO = "support@puq.me"
+
 # D1 Database
 [[d1_databases]]
 binding = "DB"
@@ -38,4 +43,7 @@ new_sqlite_classes = ["ChatRoom"]
 # S3_BUCKET
 # S3_ACCESS_KEY
 # S3_SECRET_KEY
+# SENTRY_DSN
+# SENTRY_ENVIRONMENT
+# MAILCHANNELS_API_KEY  (optional — only if your Cloudflare zone requires API-key auth for MailChannels)
 # GOOGLE_CLIENT_ID

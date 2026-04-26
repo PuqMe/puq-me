@@ -7,6 +7,7 @@ import { hashPassword, verifyPassword } from "../lib/password.js";
 import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 import { verifyGoogleIdToken } from "../lib/google-auth.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../lib/mail.js";
 
 const registerBody = z.object({
   email: z.string().email().max(255),
@@ -32,6 +33,14 @@ const logoutBody = z.object({
 
 const forgotPasswordBody = z.object({
   email: z.string().email()
+});
+
+const verifyEmailRequestBody = z.object({
+  email: z.string().email().max(255)
+});
+
+const verifyEmailConfirmBody = z.object({
+  token: z.string().uuid()
 });
 
 const resetPasswordBody = z.object({
@@ -144,6 +153,11 @@ auth.post("/register", async (c) => {
   await c.env.DB.prepare(
     `INSERT INTO verification_requests (user_id, verification_type, status, request_payload) VALUES (?, 'email', 'pending', ?)`
   ).bind(result.id, JSON.stringify({ email: body.email, token: verificationToken, purpose: "email_verification" })).run();
+
+  // Send verification email — failure is logged via Sentry but doesn't break signup
+  c.executionCtx.waitUntil(
+    sendVerificationEmail(c.env, { to: body.email, token: verificationToken }, c.executionCtx).then(() => undefined)
+  );
 
   const tokens = await issueTokens(
     c.env,
@@ -316,9 +330,62 @@ auth.post("/forgot-password", async (c) => {
     await c.env.DB.prepare(
       `INSERT INTO verification_requests (user_id, verification_type, status, request_payload) VALUES (?, 'manual', 'pending', ?)`
     ).bind(user.id, JSON.stringify({ email: body.email, token, purpose: "password_reset" })).run();
+
+    // Fire-and-forget mail send; never reveal whether the email exists
+    c.executionCtx.waitUntil(
+      sendPasswordResetEmail(c.env, { to: body.email, token }, c.executionCtx).then(() => undefined)
+    );
   }
 
   return c.json({ message: "password_reset_prepared" });
+});
+
+// POST /v1/auth/email-verification/request — resend verification mail
+auth.post("/email-verification/request", rateLimit({ max: 5, windowSeconds: 600, keyPrefix: "auth_resend" }), async (c) => {
+  const body = verifyEmailRequestBody.parse(await c.req.json());
+
+  const user = await c.env.DB.prepare(
+    `SELECT id, email, status FROM users WHERE email = ? COLLATE NOCASE AND deleted_at IS NULL LIMIT 1`
+  ).bind(body.email).first<{ id: number; email: string; status: string }>();
+
+  // Don't leak existence; always return same shape.
+  if (user && user.status === "pending") {
+    const verificationToken = crypto.randomUUID();
+    await c.env.DB.prepare(
+      `INSERT INTO verification_requests (user_id, verification_type, status, request_payload) VALUES (?, 'email', 'pending', ?)`
+    ).bind(user.id, JSON.stringify({ email: user.email, token: verificationToken, purpose: "email_verification" })).run();
+
+    c.executionCtx.waitUntil(
+      sendVerificationEmail(c.env, { to: user.email, token: verificationToken }, c.executionCtx).then(() => undefined)
+    );
+  }
+
+  return c.json({ message: "verification_email_sent" });
+});
+
+// POST /v1/auth/email-verification/confirm — consume token, activate user
+auth.post("/email-verification/confirm", async (c) => {
+  const body = verifyEmailConfirmBody.parse(await c.req.json());
+
+  const verificationRequest = await c.env.DB.prepare(
+    `SELECT id, user_id FROM verification_requests
+     WHERE json_extract(request_payload, '$.token') = ?
+       AND verification_type = 'email'
+       AND status = 'pending'
+       AND created_at > datetime('now', '-24 hour')
+     LIMIT 1`
+  ).bind(body.token).first<{ id: number; user_id: number }>();
+
+  if (!verificationRequest) {
+    return c.json({ error: "invalid_or_expired_token", code: "TOKEN_EXPIRED" }, 400);
+  }
+
+  await c.env.DB.batch([
+    c.env.DB.prepare(`UPDATE users SET status = 'active', email_verified_at = datetime('now'), updated_at = datetime('now') WHERE id = ? AND deleted_at IS NULL`).bind(verificationRequest.user_id),
+    c.env.DB.prepare(`UPDATE verification_requests SET status = 'consumed', updated_at = datetime('now') WHERE id = ?`).bind(verificationRequest.id),
+  ]);
+
+  return c.json({ message: "email_verified", verified: true });
 });
 
 // POST /v1/auth/reset-password

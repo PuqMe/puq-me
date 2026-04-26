@@ -25,6 +25,12 @@ export type Env = {
   SENTRY_DSN?: string;
   SENTRY_ENVIRONMENT?: string;
   SENTRY_RELEASE?: string;
+
+  // Mail (MailChannels via Cloudflare Workers)
+  MAIL_FROM?: string;
+  MAIL_FROM_NAME?: string;
+  MAIL_REPLY_TO?: string;
+  MAILCHANNELS_API_KEY?: string;
 };
 
 export type AppContext = {
