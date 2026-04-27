@@ -1,5 +1,4 @@
 import { cors } from "hono/cors";
-import type { AppContext } from "../env.js";
 
 export function createCors() {
   return cors({
@@ -15,6 +14,9 @@ export function createCors() {
       }
       return "";
     },
+    // `Cookie` is automatically sent on cross-origin requests when the client
+    // uses `credentials: "include"`; it does not need to be in allowHeaders.
+    // We list the headers our clients actually send.
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
