@@ -238,7 +238,7 @@ export function buildPersonalizedFeed<T extends FeedItem>(
   });
 
   // Sort by feed score
-  scored.sort((a, b) => (b as any)._feedScore - (a as any)._feedScore);
+  scored.sort((a, b) => b._feedScore - a._feedScore);
 
   // Apply diversity: inject variety by shuffling nearby scores
   if (cfg.diversityFactor > 0) {
