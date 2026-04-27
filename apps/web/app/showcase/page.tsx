@@ -9,7 +9,8 @@ export const metadata = {
 
 export default function ShowcaseIndexPage() {
   return (
-    <main className="min-h-screen bg-puq-aurora text-puq-text">
+    <main className="relative z-30 min-h-screen bg-puq-deep text-puq-text">
+      <style>{`.mosaic-wall, .install-now-fab, .offline-banner { display: none !important; } body { background: #02060F; }`}</style>
       <div className="mx-auto max-w-[1400px] px-6 py-10">
         <header className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>

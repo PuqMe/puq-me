@@ -27,7 +27,8 @@ export default function ShowcaseScreenPage({ params }: { params: Params }) {
   const next = SCREENS[idx + 1];
 
   return (
-    <main className="min-h-screen bg-puq-aurora text-puq-text">
+    <main className="relative z-30 min-h-screen bg-puq-deep text-puq-text">
+      <style>{`.mosaic-wall, .install-now-fab, .offline-banner { display: none !important; } body { background: #02060F; }`}</style>
       <div className="mx-auto max-w-[1100px] px-6 py-8">
         <Link href="/showcase" className="inline-flex items-center gap-2 text-sm text-puq-pink hover:text-puq-pink-2">
           ← Zurück zur Galerie

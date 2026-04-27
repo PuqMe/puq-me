@@ -52,6 +52,14 @@ textarea {
   box-sizing: border-box;
 }
 
+/* PuQ.me — verbirgt CityBackdrop / Install-FAB / OfflineBanner auf neuen App-Routes */
+html.puq-app .mosaic-wall,
+html.puq-app .install-now-fab,
+html.puq-app .offline-banner {
+  display: none !important;
+}
+html.puq-app body { background: #02060F; }
+
 /* PuQ.me — Mobile-App-Feeling: kein Pinch-Zoom, kein Bounce, kein Pull-to-Refresh */
 html.puq-app, html.puq-app body {
   overscroll-behavior: none;
