@@ -30,13 +30,13 @@ export default function ValuesPage() {
   return (
     <PuqAppRoot>
       <main className="relative z-30 min-h-[100dvh] bg-puq-deep text-puq-text">
-        {/* Verbirgt eingebaute Continue-Buttons der Showcase-Komponenten,
-            damit nur unser eigener Button (mit Click-Handler) sichtbar bleibt. */}
-        <style>{`.puq-onboarding-shell button[class*="bg-puq-pink"]:not(.puq-real-cta) { display:none !important; }
-                  .puq-onboarding-shell .absolute.inset-x-0.bottom-0 { display:none !important; }`}</style>
+        {/* Verbirgt eingebaute Continue-Buttons der Showcase-Komponenten
+            (FootBar = .absolute.inset-x-0.bottom-0.z-30),
+            damit nur unser eigener Button (z-50) mit Click-Handler sichtbar bleibt. */}
+        <style>{`.puq-onboarding-shell .z-30.absolute.inset-x-0.bottom-0 { display:none !important; }`}</style>
         <div className="puq-onboarding-shell relative h-[100dvh]">
           <Step />
-          <div className="absolute inset-x-0 bottom-0 z-50 flex justify-center pb-10">
+          <div className="puq-real-cta-wrapper absolute inset-x-0 bottom-0 z-50 flex justify-center pb-10">
             <button
               onClick={next}
               className="puq-real-cta rounded-full bg-puq-pink px-12 py-4 text-[15px] font-semibold text-white shadow-puq-glow active:scale-[0.98]"
