@@ -63,7 +63,7 @@ export function AppShell({
   ];
 
   const navContent = navItems.map((item) => (
-    <Link
+    <Link prefetch={false}
       key={item.href}
       href={item.href}
       onClick={() => setIsMenuOpen(false)}
@@ -93,7 +93,7 @@ export function AppShell({
         <div className="flex flex-col">
           {/* Header matching Nearby/Circle layout */}
           <header className="mb-3 flex items-center gap-2" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
-            <Link href="/" className="flex items-center gap-2 flex-1 no-underline lg:hidden">
+            <Link prefetch={false} href="/" className="flex items-center gap-2 flex-1 no-underline lg:hidden">
               <LogoMark className="h-5 w-5 shrink-0 text-[#a855f7]" size={20} />
               <div style={{ lineHeight: 1 }}>
                 <div className="text-sm font-bold text-white" style={{ letterSpacing: "-0.01em" }}>{BRAND_NAME}</div>
@@ -105,8 +105,8 @@ export function AppShell({
 
             {/* Right header icons – matching Nearby/Circle */}
             <div className="flex gap-0.5 lg:hidden">
-              <Link href="/nearby" aria-label="Nearby" className={headerBtnClass}><NavIcon type="radar" size={18} /></Link>
-              <Link href="/circle" aria-label="Circle" className={headerBtnClass}><NavIcon type="circle" size={18} /></Link>
+              <Link prefetch={false} href="/nearby" aria-label="Nearby" className={headerBtnClass}><NavIcon type="radar" size={18} /></Link>
+              <Link prefetch={false} href="/circle" aria-label="Circle" className={headerBtnClass}><NavIcon type="circle" size={18} /></Link>
               <button aria-label="Search" className={headerBtnClass}><SearchIcon /></button>
               <button
                 aria-label="Notifications"
@@ -149,7 +149,7 @@ export function AppShell({
             onClick={(e) => e.stopPropagation()}
           >
             {navItems.map((item) => (
-              <Link
+              <Link prefetch={false}
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsMenuOpen(false)}
@@ -170,7 +170,7 @@ export function AppShell({
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-white/8 bg-[#08070f]/80 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl lg:hidden">
         {navItems.map((item) => (
-          <Link
+          <Link prefetch={false}
             key={item.href}
             href={item.href}
             className={clsx(
