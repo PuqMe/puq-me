@@ -106,13 +106,13 @@ export function HomeFeed() {
     if (!document.getElementById("lf-css")) {
       const l = document.createElement("link");
       l.id = "lf-css"; l.rel = "stylesheet";
-      l.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+      l.href = "/vendor/leaflet/leaflet.min.css";
       document.head.appendChild(l);
     }
     if (document.getElementById("lf-js")) { setReady(true); return; }
     const s = document.createElement("script");
     s.id = "lf-js";
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    s.src = "/vendor/leaflet/leaflet.min.js";
     s.onload = () => setReady(true);
     document.head.appendChild(s);
   }, []);
@@ -452,7 +452,7 @@ export function HomeFeed() {
               <Link href="/nearby" style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
             </div>
             {NEARBY_PEOPLE.map(p => (
-              <Link key={p.id} href={`/profile/${p.id}`} style={{
+              <Link key={p.id} href={`/profile/${p.id}`} prefetch={false} style={{
                 display: "flex", alignItems: "center", gap: 11,
                 padding: "9px 12px",
                 background: "rgba(255,255,255,.04)",
@@ -484,15 +484,16 @@ export function HomeFeed() {
           <div style={{ padding: "0 14px", marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
               <span style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>Begegnungen</span>
-              <span style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, cursor: "pointer" }}>Alle ›</span>
+              <Link href="/encounter" prefetch={false} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
             </div>
 
             {/* Summary banner */}
-            <div style={{
+            <Link href="/encounter" prefetch={false} style={{
               display: "flex", alignItems: "center", gap: 11, padding: "11px 14px",
               background: "linear-gradient(135deg,rgba(168,85,247,.12),rgba(99,102,241,.07))",
               borderRadius: 14, marginBottom: 8,
               border: "1px solid rgba(168,85,247,.18)",
+              textDecoration: "none", color: "inherit",
             }}>
               <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(168,85,247,.18)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <svg width="18" height="17" viewBox="0 0 80 72" fill="none">
@@ -510,10 +511,10 @@ export function HomeFeed() {
                 Heute <strong style={{ color: "#c084fc" }}>3 Begegnungen</strong>
               </div>
               <span style={{ color: "#a855f7", fontSize: 14 }}>›</span>
-            </div>
+            </Link>
 
             {ENCOUNTERS.map(e => (
-              <Link key={e.id} href={`/profile/${e.id}`} style={{
+              <Link key={e.id} href={`/profile/${e.id}`} prefetch={false} style={{
                 display: "flex", alignItems: "center", gap: 11,
                 padding: "9px 12px",
                 background: "rgba(255,255,255,.03)",
