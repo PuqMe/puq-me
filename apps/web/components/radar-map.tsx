@@ -18,7 +18,7 @@ interface LocationInfo {
 }
 
 const NAV_ITEMS = [
-  { href: "/nearby",  label: "In der Nähe", icon: "nearby" },
+  { href: "/nearby",  label: "In der NÃ¤he", icon: "nearby" },
   { href: "/circle",  label: "Kreis", icon: "circle" },
   { href: "/matches", label: "Matches", icon: "matches" },
   { href: "/chat",    label: "Chat", icon: "chat" },
@@ -26,15 +26,15 @@ const NAV_ITEMS = [
   { href: "/settings",label: "Einstellungen", icon: "settings" },
 ];
 
-/* ── Tile layer configs ── */
+/* ââ Tile layer configs ââ */
 const TILE_LAYERS: Record<string, { url: string; label: string }> = {
   dunkel:   { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",  label: "Dunkel" },
   standard: { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", label: "Standard" },
   gebaeude: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", label: "Hell" },
-  oepnv:    { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png", label: "ÖPNV" },
+  oepnv:    { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png", label: "ÃPNV" },
 };
 
-/* ── SVG Icons ── */
+/* ââ SVG Icons ââ */
 function NearbyIcon()    { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="20" y2="5.5" strokeWidth="1.4"/></svg>; }
 function CircleIcon()    { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>; }
 function HeartIcon()     { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 20s-6.5-4.2-8.5-8A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6C18.5 15.8 12 20 12 20Z"/></svg>; }
@@ -60,7 +60,7 @@ function NavIcon({ type }: { type: string }) {
   return <NearbyIcon />;
 }
 
-/* ── Avatar HTML for Leaflet divIcon (initials) ── */
+/* ââ Avatar HTML for Leaflet divIcon (initials) ââ */
 function avatarHtml(initials: string, color: string, size: number, online: boolean, opacity: number = 1) {
   const fs   = Math.round(size * 0.32);
   const dot  = Math.round(size * 0.22);
@@ -80,7 +80,7 @@ function avatarHtml(initials: string, color: string, size: number, online: boole
   </div>`;
 }
 
-/* ── Photo Avatar HTML for Leaflet divIcon (with profile photo) ── */
+/* ââ Photo Avatar HTML for Leaflet divIcon (with profile photo) ââ */
 function photoAvatarHtml(photoUrl: string, size: number, online: boolean, opacity: number = 1) {
   const dot = Math.round(size * 0.22);
   const off = Math.round(size * 0.04);
@@ -98,7 +98,7 @@ function photoAvatarHtml(photoUrl: string, size: number, online: boolean, opacit
   </div>`;
 }
 
-/* ── Component ── */
+/* ââ Component ââ */
 export function RadarMap() {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -111,7 +111,7 @@ export function RadarMap() {
   const ringsRef = useRef<any[]>([]);
   const trackerRef = useRef<WatchTimeTracker | null>(null);
   const [ready,    setReady]    = useState(false);
-  const [location, setLocation] = useState<LocationInfo>({ lat: 48.1351, lng: 11.582, displayName: "München" });
+  const [location, setLocation] = useState<LocationInfo>({ lat: 48.1351, lng: 11.582, displayName: "MÃ¼nchen" });
   const [nearbyUsers, setNearbyUsers] = useState<NearbyUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showSearch,  setShowSearch]  = useState(false);
@@ -153,13 +153,13 @@ export function RadarMap() {
     if (!document.getElementById("lf-css")) {
       const link = document.createElement("link");
       link.id = "lf-css"; link.rel = "stylesheet";
-      link.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+      link.href = "/vendor/leaflet/leaflet.min.css";
       document.head.appendChild(link);
     }
     if (document.getElementById("lf-js")) { setReady(true); return; }
     const script = document.createElement("script");
     script.id  = "lf-js";
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    script.src = "/vendor/leaflet/leaflet.min.js";
     script.onload = () => setReady(true);
     document.head.appendChild(script);
   }, []);
@@ -248,7 +248,7 @@ export function RadarMap() {
     postLocationEvent(location.lat, location.lng).catch(() => {});
   }, [location.lat, location.lng]);
 
-  /* Init Leaflet map — only depends on ready */
+  /* Init Leaflet map â only depends on ready */
   useEffect(() => {
     if (!ready || !mapRef.current || mapObjRef.current) return;
     const L = (window as any).L;
@@ -305,7 +305,7 @@ export function RadarMap() {
       zIndexOffset: 1000,
     }).addTo(map).bindPopup("<div style='padding:8px;color:#fff;'><b>You are here</b></div>");
 
-    // Add concentric radar rings (500m, 1km, 2km, 4km) — outlines only
+    // Add concentric radar rings (500m, 1km, 2km, 4km) â outlines only
     const ringDistances = [500, 1000, 2000, 4000];
     const ringOpacities = [0.25, 0.15, 0.08, 0.04];
     ringDistances.forEach((dist, idx) => {
@@ -320,7 +320,7 @@ export function RadarMap() {
       ringsRef.current.push(ring);
     });
 
-    // Add heatmap zones (activity hotspots) — subtle glow areas
+    // Add heatmap zones (activity hotspots) â subtle glow areas
     const heatmapZones = [
       { lat: location.lat + 0.005, lng: location.lng + 0.008, opacity: 0.045 },
       { lat: location.lat - 0.006, lng: location.lng - 0.005, opacity: 0.035 },
@@ -443,9 +443,9 @@ export function RadarMap() {
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;font-weight:600;cursor:pointer;">👋 Winken</button>
-        <button onclick="window.location.href='/chat'" style="padding:8px;border-radius:8px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;font-weight:600;cursor:pointer;">💬 Chat</button>
-        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(255,0,0,.2);background:rgba(255,0,0,.05);color:#ff6b7a;font-size:11px;font-weight:600;cursor:pointer;">♥ Mag ich</button>
+        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;font-weight:600;cursor:pointer;">ð Winken</button>
+        <button onclick="window.location.href='/chat'" style="padding:8px;border-radius:8px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;font-weight:600;cursor:pointer;">ð¬ Chat</button>
+        <button onclick="window.__puqWave && window.__puqWave('${user.userId}')" style="padding:8px;border-radius:8px;border:1px solid rgba(255,0,0,.2);background:rgba(255,0,0,.05);color:#ff6b7a;font-size:11px;font-weight:600;cursor:pointer;">â¥ Mag ich</button>
       </div>
     </div>`;
   };
@@ -571,7 +571,7 @@ export function RadarMap() {
           <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "#07050f" }}>
             <div style={{ textAlign: "center" }}>
               <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-              <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Karte wird geladen…</p>
+              <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Karte wird geladenâ¦</p>
             </div>
           </div>
         )}
@@ -581,14 +581,14 @@ export function RadarMap() {
             position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
             zIndex: 15, textAlign: "center", color: "#fff", fontFamily: "system-ui, sans-serif"
           }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📍</div>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>ð</div>
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Standort aktivieren</div>
-            <div style={{ fontSize: 14, color: "rgba(255,255,255,.6)", marginBottom: 16 }}>um Personen in der Nähe zu sehen</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", maxWidth: 240 }}>Überprüfe deine Browsereinstellungen, um Standortzugriff zu aktivieren</div>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,.6)", marginBottom: 16 }}>um Personen in der NÃ¤he zu sehen</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", maxWidth: 240 }}>ÃberprÃ¼fe deine Browsereinstellungen, um Standortzugriff zu aktivieren</div>
           </div>
         )}
 
-        {/* ── TOP HEADER ── */}
+        {/* ââ TOP HEADER ââ */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
           background: "transparent",
@@ -616,7 +616,7 @@ export function RadarMap() {
           </div>
         </div>
 
-        {/* ── RADAR VIEWS COUNTER (Glass Morphism) ── */}
+        {/* ââ RADAR VIEWS COUNTER (Glass Morphism) ââ */}
         <div style={{
           position: "absolute", top: 50, left: 12, zIndex: 20,
           background: "rgba(12,8,28,.6)",
@@ -633,7 +633,7 @@ export function RadarMap() {
           </span>
         </div>
 
-        {/* ── RIGHT CONTROLS ── */}
+        {/* ââ RIGHT CONTROLS ââ */}
         <div style={{
           position: "absolute", right: 12, zIndex: 20,
           bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))",
@@ -642,17 +642,17 @@ export function RadarMap() {
           <button style={ctrlBtn}><UserIcon size={16} /><span style={{ fontSize: 8, color: "rgba(255,255,255,.4)", lineHeight: 1 }}>{nearbyUsers.length}</span></button>
           <button onClick={locate} style={ctrlBtn}><CrosshairIcon /></button>
           <button onClick={zoomIn} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>+</button>
-          <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>−</button>
+          <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>â</button>
         </div>
 
-        {/* ── EBENEN (bottom-left) ── */}
+        {/* ââ EBENEN (bottom-left) ââ */}
         <div style={{ position: "absolute", left: 12, zIndex: 20, bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))" }}>
           <button style={ctrlBtn} aria-label="Layers" onClick={() => { setShowLayers(l => !l); setShowMenu(false); }}>
             <LayersIcon />
           </button>
         </div>
 
-        {/* ── EBENEN POPUP ── */}
+        {/* ââ EBENEN POPUP ââ */}
         {showLayers && (
           <div style={{
             position: "absolute", left: 12, zIndex: 25,
@@ -676,7 +676,7 @@ export function RadarMap() {
           </div>
         )}
 
-        {/* ── NOTIFICATION TOAST ── */}
+        {/* ââ NOTIFICATION TOAST ââ */}
         {showNotifToast && (
           <div style={{
             position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 9999,
@@ -688,7 +688,7 @@ export function RadarMap() {
           </div>
         )}
 
-        {/* ── SCAN BUTTON (Centered above bottom nav) ── */}
+        {/* ââ SCAN BUTTON (Centered above bottom nav) ââ */}
         <div style={{
           position: "absolute", bottom: "calc(max(58px, env(safe-area-inset-bottom)) + 8px)", left: "50%",
           transform: "translateX(-50%)", zIndex: 31,
@@ -736,7 +736,7 @@ export function RadarMap() {
           )}
         </div>
 
-        {/* ── BOTTOM NAV (hidden on desktop via media query class) ── */}
+        {/* ââ BOTTOM NAV (hidden on desktop via media query class) ââ */}
         <nav className="radar-bottom-nav" style={{
           position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 30,
           display: "flex", alignItems: "center", justifyContent: "space-around",
@@ -754,7 +754,7 @@ export function RadarMap() {
           ))}
         </nav>
 
-        {/* ── MENU DRAWER ── */}
+        {/* ââ MENU DRAWER ââ */}
         {showMenu && (
           <>
             <div onClick={() => setShowMenu(false)} style={{ position: "absolute", inset: 0, zIndex: 45, background: "rgba(0,0,0,.5)" }} />
@@ -787,7 +787,7 @@ export function RadarMap() {
           </>
         )}
 
-        {/* ── SEARCH BOTTOM SHEET ── */}
+        {/* ââ SEARCH BOTTOM SHEET ââ */}
         {showSearch && (
           <div style={{
             position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 40,
