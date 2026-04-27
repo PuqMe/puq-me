@@ -19,7 +19,7 @@ export default function EncounterMap({ lat, lng }: EncounterMapProps) {
       const link = document.createElement("link");
       link.id = "lf-css-enc";
       link.rel = "stylesheet";
-      link.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+      link.href = "/vendor/leaflet/leaflet.min.css";
       document.head.appendChild(link);
     }
     if (document.getElementById("lf-js")) {
@@ -34,7 +34,7 @@ export default function EncounterMap({ lat, lng }: EncounterMapProps) {
     }
     const script = document.createElement("script");
     script.id = "lf-js-enc";
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    script.src = "/vendor/leaflet/leaflet.min.js";
     script.onload = () => setReady(true);
     document.head.appendChild(script);
   }, []);
