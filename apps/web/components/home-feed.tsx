@@ -352,7 +352,7 @@ export function HomeFeed() {
             gap: 8,
           }}>
             {/* Logo + brand name */}
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 7, textDecoration: "none", flex: 1 }}>
+            <Link prefetch={false} href="/" style={{ display: "flex", alignItems: "center", gap: 7, textDecoration: "none", flex: 1 }}>
               <LogoMark className="shrink-0 text-[#a855f7]" size={22} />
               <span style={{ fontSize: 17, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", textShadow: "0 1px 8px rgba(0,0,0,.75)" }}>
                 {BRAND_NAME}
@@ -394,7 +394,7 @@ export function HomeFeed() {
                     Dein Radar ist aktiv und priorisiert echte Nähe.
                   </div>
                 </div>
-                <Link href="/nearby" style={{
+                <Link prefetch={false} href="/nearby" style={{
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                   height: 40, padding: "0 14px", borderRadius: 999,
                   textDecoration: "none", color: "#fff", fontSize: 12, fontWeight: 700,
@@ -449,10 +449,10 @@ export function HomeFeed() {
           <div style={{ padding: "10px 14px 0", marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
               <span style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>In der Nähe</span>
-              <Link href="/nearby" style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
+              <Link prefetch={false} href="/nearby" style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
             </div>
             {NEARBY_PEOPLE.map(p => (
-              <Link key={p.id} href={`/profile/${p.id}`} prefetch={false} style={{
+              <Link prefetch={false} key={p.id} href={`/profile/${p.id}`} prefetch={false} style={{
                 display: "flex", alignItems: "center", gap: 11,
                 padding: "9px 12px",
                 background: "rgba(255,255,255,.04)",
@@ -484,11 +484,11 @@ export function HomeFeed() {
           <div style={{ padding: "0 14px", marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
               <span style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>Begegnungen</span>
-              <Link href="/encounter" prefetch={false} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
+              <Link prefetch={false} href="/encounter" prefetch={false} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
             </div>
 
             {/* Summary banner */}
-            <Link href="/encounter" prefetch={false} style={{
+            <Link prefetch={false} href="/encounter" prefetch={false} style={{
               display: "flex", alignItems: "center", gap: 11, padding: "11px 14px",
               background: "linear-gradient(135deg,rgba(168,85,247,.12),rgba(99,102,241,.07))",
               borderRadius: 14, marginBottom: 8,
@@ -514,7 +514,7 @@ export function HomeFeed() {
             </Link>
 
             {ENCOUNTERS.map(e => (
-              <Link key={e.id} href={`/profile/${e.id}`} prefetch={false} style={{
+              <Link prefetch={false} key={e.id} href={`/profile/${e.id}`} prefetch={false} style={{
                 display: "flex", alignItems: "center", gap: 11,
                 padding: "9px 12px",
                 background: "rgba(255,255,255,.03)",
@@ -572,7 +572,7 @@ export function HomeFeed() {
           paddingLeft: 14, paddingRight: 14,
         }}>
           {/* Nearby */}
-          <Link href="/nearby" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
+          <Link prefetch={false} href="/nearby" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65">
               <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/>
               <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
@@ -581,7 +581,7 @@ export function HomeFeed() {
           </Link>
 
           {/* Matches / Heart */}
-          <Link href="/matches" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
+          <Link prefetch={false} href="/matches" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65">
               <path d="M12 20s-6.5-4.2-8.5-8A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6C18.5 15.8 12 20 12 20Z"/>
             </svg>
@@ -589,7 +589,7 @@ export function HomeFeed() {
 
           {/* Circle — elevated center button */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: -18 }}>
-            <Link href="/circle" style={{
+            <Link prefetch={false} href="/circle" style={{
               width: 52, height: 52, borderRadius: "50%",
               background: "linear-gradient(145deg,#b855f7,#7c3aed)",
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -601,14 +601,14 @@ export function HomeFeed() {
           </div>
 
           {/* Chat */}
-          <Link href="/chat" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
+          <Link prefetch={false} href="/chat" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65">
               <path d="M5 6.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z"/>
             </svg>
           </Link>
 
           {/* Profile */}
-          <Link href="/profile" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
+          <Link prefetch={false} href="/profile" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 42, height: 30, color: "rgba(255,255,255,.3)", textDecoration: "none" }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65">
               <circle cx="12" cy="8" r="4"/>
               <path d="M5 20a7 7 0 0 1 14 0"/>
