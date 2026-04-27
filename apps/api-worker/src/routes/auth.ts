@@ -1,13 +1,18 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { zValidator } from "@hono/zod-validator";
 import type { AppContext } from "../env.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
-import { BadRequestError, ConflictError, UnauthorizedError } from "../lib/errors.js";
+import { ConflictError, UnauthorizedError } from "../lib/errors.js";
 import { rateLimit } from "../middleware/rate-limit.js";
 import { verifyGoogleIdToken } from "../lib/google-auth.js";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../lib/mail.js";
+import {
+  setAuthCookies,
+  clearAuthCookies,
+  readAccessCookie,
+  readRefreshCookie
+} from "../lib/cookies.js";
 
 const registerBody = z.object({
   email: z.string().email().max(255),
@@ -23,13 +28,17 @@ const googleLoginBody = z.object({
   credential: z.string().min(1)
 });
 
+// `refreshToken` and on /logout are now optional — the cookie is the primary
+// source for the web client. Native/Bearer clients keep sending them in body.
 const refreshBody = z.object({
-  refreshToken: z.string().min(1)
+  refreshToken: z.string().min(1).optional()
 });
 
-const logoutBody = z.object({
-  refreshToken: z.string().min(1)
-});
+const logoutBody = z
+  .object({
+    refreshToken: z.string().min(1).optional()
+  })
+  .optional();
 
 const forgotPasswordBody = z.object({
   email: z.string().email()
@@ -165,6 +174,8 @@ auth.post("/register", async (c) => {
     { userAgent: c.req.header("User-Agent"), ipAddress: c.req.header("CF-Connecting-IP") }
   );
 
+  setAuthCookies(c, tokens);
+
   return c.json({
     user: { id: String(result.id), email: result.email, status: result.status },
     tokens
@@ -193,6 +204,8 @@ auth.post("/login", rateLimit({ max: 10, windowSeconds: 900, keyPrefix: "auth_lo
     { id: String(user.id), email: user.email },
     { userAgent: c.req.header("User-Agent"), ipAddress: c.req.header("CF-Connecting-IP") }
   );
+
+  setAuthCookies(c, tokens);
 
   return c.json({
     user: { id: String(user.id), email: user.email, status: user.status },
@@ -257,24 +270,79 @@ auth.post("/google", async (c) => {
     { userAgent: c.req.header("User-Agent"), ipAddress: c.req.header("CF-Connecting-IP") }
   );
 
+  setAuthCookies(c, tokens);
+
   return c.json({
     user: { id: String(user.id), email: user.email, status: user.status },
     tokens
   });
 });
 
+// GET /v1/auth/session — read access cookie, return current user.
+// Used by the web client on app boot to restore session without exposing tokens to JS.
+auth.get("/session", async (c) => {
+  const cookieToken = readAccessCookie(c);
+  // Allow Bearer header as a fallback so existing native clients can also
+  // probe their session through this endpoint.
+  const auth = c.req.header("Authorization");
+  const headerToken = auth?.startsWith("Bearer ") ? auth.slice(7) : undefined;
+  const token = cookieToken ?? headerToken;
+
+  if (!token) {
+    return c.json({ user: null }, 200);
+  }
+
+  let payload: { sub: string; email: string };
+  try {
+    payload = await verifyJwt<{ sub: string; email: string }>(token, c.env.JWT_SECRET);
+  } catch {
+    // Don't 401 here — boot probes are fine returning "no session".
+    // The client will then route to /login.
+    return c.json({ user: null }, 200);
+  }
+
+  if (!payload.sub) {
+    return c.json({ user: null }, 200);
+  }
+
+  const user = await c.env.DB.prepare(
+    `SELECT id, email, status FROM users WHERE id = ? AND deleted_at IS NULL LIMIT 1`
+  ).bind(payload.sub).first<{ id: number; email: string; status: string }>();
+
+  if (!user) {
+    return c.json({ user: null }, 200);
+  }
+
+  return c.json({
+    user: { id: String(user.id), email: user.email, status: user.status }
+  });
+});
+
 // POST /v1/auth/refresh
 auth.post("/refresh", async (c) => {
-  const body = refreshBody.parse(await c.req.json());
+  // Token can come from cookie (web) or body (native).
+  const cookieRefresh = readRefreshCookie(c);
+  let bodyRefresh: string | undefined;
+  try {
+    const raw = await c.req.json();
+    bodyRefresh = refreshBody.parse(raw).refreshToken;
+  } catch {
+    bodyRefresh = undefined;
+  }
+  const refreshToken = cookieRefresh ?? bodyRefresh;
+
+  if (!refreshToken) {
+    throw new UnauthorizedError("missing_refresh_token");
+  }
 
   let payload: { sub: string; session: string };
   try {
-    payload = await verifyJwt<{ sub: string; session: string }>(body.refreshToken, c.env.JWT_REFRESH_SECRET);
+    payload = await verifyJwt<{ sub: string; session: string }>(refreshToken, c.env.JWT_REFRESH_SECRET);
   } catch {
     throw new UnauthorizedError("invalid_refresh_token");
   }
 
-  const refreshTokenHash = await hashOpaqueToken(body.refreshToken);
+  const refreshTokenHash = await hashOpaqueToken(refreshToken);
 
   const session = await c.env.DB.prepare(
     `SELECT session_id, user_id FROM user_sessions WHERE refresh_token_hash = ? AND revoked_at IS NULL AND expires_at > datetime('now') LIMIT 1`
@@ -299,6 +367,9 @@ auth.post("/refresh", async (c) => {
     session.session_id
   );
 
+  // Important: also rotate cookies so the browser stores the fresh refresh token.
+  setAuthCookies(c, tokens);
+
   return c.json({
     user: { id: String(user.id), email: user.email, status: user.status },
     tokens
@@ -307,12 +378,28 @@ auth.post("/refresh", async (c) => {
 
 // POST /v1/auth/logout
 auth.post("/logout", async (c) => {
-  const body = logoutBody.parse(await c.req.json());
-  const refreshTokenHash = await hashOpaqueToken(body.refreshToken);
+  const cookieRefresh = readRefreshCookie(c);
+  let bodyRefresh: string | undefined;
+  try {
+    const raw = await c.req.json().catch(() => null);
+    if (raw) {
+      const parsed = logoutBody.parse(raw);
+      bodyRefresh = parsed?.refreshToken;
+    }
+  } catch {
+    bodyRefresh = undefined;
+  }
+  const refreshToken = cookieRefresh ?? bodyRefresh;
 
-  await c.env.DB.prepare(
-    `UPDATE user_sessions SET revoked_at = datetime('now'), updated_at = datetime('now') WHERE refresh_token_hash = ? AND revoked_at IS NULL`
-  ).bind(refreshTokenHash).run();
+  if (refreshToken) {
+    const refreshTokenHash = await hashOpaqueToken(refreshToken);
+    await c.env.DB.prepare(
+      `UPDATE user_sessions SET revoked_at = datetime('now'), updated_at = datetime('now') WHERE refresh_token_hash = ? AND revoked_at IS NULL`
+    ).bind(refreshTokenHash).run();
+  }
+
+  // Always clear cookies on logout, regardless of whether a token was present.
+  clearAuthCookies(c);
 
   return c.json({ message: "logged_out" });
 });
