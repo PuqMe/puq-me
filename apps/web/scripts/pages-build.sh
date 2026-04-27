@@ -24,6 +24,7 @@ cat > .open-next/_routes.json << 'ROUTES'
   "include": ["/*"],
   "exclude": [
     "/_next/static/*",
+    "/vendor/*",
     "/favicon.ico",
     "/manifest.json",
     "/sw.js",
