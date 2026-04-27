@@ -2,18 +2,32 @@ import { createMiddleware } from "hono/factory";
 import type { AppContext } from "../env.js";
 import { verifyJwt } from "../lib/jwt.js";
 import { UnauthorizedError } from "../lib/errors.js";
+import { readAccessCookie } from "../lib/cookies.js";
 
 /**
  * JWT authentication middleware for protected routes.
- * Extracts and verifies the Bearer token, then sets userId and userEmail.
+ *
+ * Token sources (in this order):
+ *   1. `Authorization: Bearer <token>` header — for native/mobile clients.
+ *   2. `puqme_at` HTTP-only cookie — for the web client (Round 4: HTTP-only auth).
+ *
+ * If neither is present (or the token is invalid/expired), responds with 401.
+ * On success, sets `userId` and `userEmail` on the Hono context.
  */
 export const auth = createMiddleware<AppContext>(async (c, next) => {
+  let token: string | undefined;
+
   const authorization = c.req.header("Authorization");
-  if (!authorization?.startsWith("Bearer ")) {
-    throw new UnauthorizedError("missing_authorization_header");
+  if (authorization?.startsWith("Bearer ")) {
+    token = authorization.slice(7);
+  } else {
+    const cookieToken = readAccessCookie(c);
+    if (cookieToken) token = cookieToken;
   }
 
-  const token = authorization.slice(7);
+  if (!token) {
+    throw new UnauthorizedError("missing_authorization_header");
+  }
 
   try {
     const payload = await verifyJwt<{
