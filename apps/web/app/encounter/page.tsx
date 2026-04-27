@@ -65,6 +65,8 @@ export default function EncounterListPage() {
   return (
     <main
       style={{
+        position: "relative",
+        zIndex: 1,
         minHeight: "100dvh",
         background: "#07050f",
         color: "#fff",
