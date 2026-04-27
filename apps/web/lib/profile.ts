@@ -43,6 +43,7 @@ export type ProfileResponse = {
     city: string | null;
     countryCode: string | null;
   } | null;
+  freeNow?: boolean;
 };
 
 export type UpdateProfileInput = {
