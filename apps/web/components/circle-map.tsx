@@ -12,7 +12,7 @@ import {
   type CircleEncounter, type FriendCircle, type CircleListResponse
 } from "@/lib/social";
 
-/* ── Time filters ── */
+/* ââ Time filters ââ */
 type TimeFilter = "24h" | "3d" | "7d" | "1m" | "3m" | "1y";
 const TIME_FILTERS: { key: TimeFilter; label: string }[] = [
   { key: "24h", label: "24h" },
@@ -23,11 +23,11 @@ const TIME_FILTERS: { key: TimeFilter; label: string }[] = [
   { key: "1y",  label: "1 Jahr" },
 ];
 
-/* ── Color palette for encounters ── */
+/* ââ Color palette for encounters ââ */
 const COLORS = ["#f15bb5", "#38bdf8", "#fbbf24", "#4ade80", "#ec4899", "#06b6d4", "#eab308", "#10b981"];
 
 const NAV_ITEMS = [
-  { href: "/nearby",  label: "In der Nähe" },
+  { href: "/nearby",  label: "In der NÃ¤he" },
   { href: "/circle",  label: "Kreis" },
   { href: "/matches", label: "Matches" },
   { href: "/chat",    label: "Chat" },
@@ -35,15 +35,15 @@ const NAV_ITEMS = [
   { href: "/settings",label: "Einstellungen" },
 ];
 
-/* ── Tile layer configs ── */
+/* ââ Tile layer configs ââ */
 const TILE_LAYERS: Record<string, { url: string; label: string }> = {
   dunkel:   { url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",  label: "Dunkel" },
   standard: { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", label: "Standard" },
   gebaeude: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", label: "Hell" },
-  oepnv:    { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png", label: "ÖPNV" },
+  oepnv:    { url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png", label: "ÃPNV" },
 };
 
-/* ── SVG icons ── */
+/* ââ SVG icons ââ */
 function NearbyIcon()    { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="20" y2="5.5" strokeWidth="1.4"/></svg>; }
 function CircleNavIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>; }
 function HeartIcon()     { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 20s-6.5-4.2-8.5-8A5 5 0 0 1 12 6a5 5 0 0 1 8.5 6C18.5 15.8 12 20 12 20Z"/></svg>; }
@@ -70,7 +70,7 @@ function NavIcon({ type }: { type: string }) {
   return <NearbyIcon />;
 }
 
-/* ── Dot marker HTML for Leaflet ── */
+/* ââ Dot marker HTML for Leaflet ââ */
 function dotMarkerHtml(color: string) {
   return `<div style="
     width:18px;height:18px;border-radius:50%;
@@ -80,7 +80,7 @@ function dotMarkerHtml(color: string) {
   "></div>`;
 }
 
-/* ── Component ── */
+/* ââ Component ââ */
 export function CircleMap() {
   const { t } = useLanguage();
   const mapRef     = useRef<HTMLDivElement>(null);
@@ -114,13 +114,13 @@ export function CircleMap() {
     if (!document.getElementById("lf-css")) {
       const link = document.createElement("link");
       link.id = "lf-css"; link.rel = "stylesheet";
-      link.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+      link.href = "/vendor/leaflet/leaflet.min.css";
       document.head.appendChild(link);
     }
     if (document.getElementById("lf-js")) { setReady(true); return; }
     const script = document.createElement("script");
     script.id  = "lf-js";
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    script.src = "/vendor/leaflet/leaflet.min.js";
     script.onload = () => setReady(true);
     document.head.appendChild(script);
   }, []);
@@ -370,7 +370,7 @@ export function CircleMap() {
 
       <div style={{ position: "fixed", inset: 0, zIndex: 999, overflow: "hidden", background: "#07050f", display: "flex", flexDirection: "column" }}>
 
-        {/* MAP — hidden when circle tab is active */}
+        {/* MAP â hidden when circle tab is active */}
         <div ref={mapRef} style={{
           position: "relative",
           height: activeTab === "encounters" ? "45vh" : "0px",
@@ -389,7 +389,7 @@ export function CircleMap() {
             borderRadius: 16, padding: "12px 24px", fontSize: 14, color: "#fff", fontWeight: 700,
             backdropFilter: "blur(12px)", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 8,
           }}>
-            <span>🏆</span> {t.regularBadge} 3× Maya {t.timesThisWeek}
+            <span>ð</span> {t.regularBadge} 3Ã Maya {t.timesThisWeek}
           </div>
         )}
 
@@ -397,7 +397,7 @@ export function CircleMap() {
           <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "#07050f" }}>
             <div style={{ textAlign: "center" }}>
               <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-              <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Karte wird geladen…</p>
+              <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Karte wird geladenâ¦</p>
             </div>
           </div>
         )}
@@ -407,14 +407,14 @@ export function CircleMap() {
             position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
             zIndex: 15, textAlign: "center", color: "#fff", fontFamily: "system-ui, sans-serif"
           }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📍</div>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>ð</div>
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Standort aktivieren</div>
             <div style={{ fontSize: 14, color: "rgba(255,255,255,.6)", marginBottom: 16 }}>um Begegnungen zu sehen</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", maxWidth: 240 }}>Überprüfe deine Browsereinstellungen, um Standortzugriff zu aktivieren</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,.4)", maxWidth: 240 }}>ÃberprÃ¼fe deine Browsereinstellungen, um Standortzugriff zu aktivieren</div>
           </div>
         )}
 
-        {/* ── TOP HEADER ── */}
+        {/* ââ TOP HEADER ââ */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
           background: "transparent",
@@ -444,7 +444,7 @@ export function CircleMap() {
             </div>
           </div>
 
-          {/* Row 2: Time filter bar — only on encounters tab */}
+          {/* Row 2: Time filter bar â only on encounters tab */}
           {activeTab === "encounters" && <div style={{
             display: "flex", alignItems: "center", gap: 6,
             paddingBottom: 10, overflowX: "auto",
@@ -517,7 +517,7 @@ export function CircleMap() {
           </div>
         </div>
 
-        {/* ── ENCOUNTERS TAB: Timeline Below Map ── */}
+        {/* ââ ENCOUNTERS TAB: Timeline Below Map ââ */}
         {activeTab === "encounters" && (
           <div style={{
             position: "relative", height: timelineHeight, overflowY: "auto", background: "#07050f",
@@ -527,7 +527,7 @@ export function CircleMap() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-                  <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Begegnungen werden geladen…</p>
+                  <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Begegnungen werden geladenâ¦</p>
                 </div>
               </div>
             ) : encounters.length > 0 ? (
@@ -572,7 +572,7 @@ export function CircleMap() {
                               {enc.displayName}, {enc.age}
                             </div>
                             <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)", marginTop: 2 }}>
-                              {enc.area} • {enc.distanceKm?.toFixed(1) || "?"} km
+                              {enc.area} â¢ {enc.distanceKm?.toFixed(1) || "?"} km
                             </div>
                           </div>
                           <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", textAlign: "right" }}>
@@ -585,7 +585,7 @@ export function CircleMap() {
                           {enc.mutual ? (
                             <>Du hast <b>{enc.displayName}</b> zum 2. Mal diese Woche gekreuzt</>
                           ) : (
-                            <>Erste Begegnung in der Nähe vom Café</>
+                            <>Erste Begegnung in der NÃ¤he vom CafÃ©</>
                           )}
                         </div>
 
@@ -595,7 +595,7 @@ export function CircleMap() {
                             display: "inline-block", background: "rgba(168,85,247,.3)", color: "#c084fc",
                             padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, marginBottom: 8,
                           }}>
-                            ⚡ {t.mutualSignal}
+                            â¡ {t.mutualSignal}
                           </div>
                         )}
 
@@ -606,19 +606,19 @@ export function CircleMap() {
                             background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
                             fontWeight: 600,
                           }}>
-                            👋 {t.waveBtn}
+                            ð {t.waveBtn}
                           </button>
                           <button onClick={(e) => e.preventDefault()} style={{
                             padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
                             background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
                           }}>
-                            💬
+                            ð¬
                           </button>
                           <button onClick={(e) => e.preventDefault()} style={{
                             padding: "6px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,.15)",
                             background: "transparent", color: "rgba(255,255,255,.7)", fontSize: 12, cursor: "pointer",
                           }}>
-                            ♥
+                            â¥
                           </button>
                         </div>
                       </div>
@@ -647,7 +647,7 @@ export function CircleMap() {
           </div>
         )}
 
-        {/* ── MEIN KREIS TAB ── */}
+        {/* ââ MEIN KREIS TAB ââ */}
         {activeTab === "circle" && (
           <div style={{
             position: "relative", flex: 1, overflowY: "auto", background: "#07050f",
@@ -684,7 +684,7 @@ export function CircleMap() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #a855f7", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-                    <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Kreise werden geladen…</p>
+                    <p style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,.4)" }}>Kreise werden geladenâ¦</p>
                   </div>
                 </div>
               ) : (
@@ -749,7 +749,7 @@ export function CircleMap() {
                             onChange={(e) => handleCircleSettingChange(circle.circleId, "locationSharing", e.target.checked)}
                             style={{ width: 16, height: 16, accentColor: "#a855f7" }}
                           />
-                          <span style={{ color: "rgba(255,255,255,.7)" }}>📍 {t.locationSharing}</span>
+                          <span style={{ color: "rgba(255,255,255,.7)" }}>ð {t.locationSharing}</span>
                         </label>
                         <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
                           <input
@@ -758,7 +758,7 @@ export function CircleMap() {
                             onChange={(e) => handleCircleSettingChange(circle.circleId, "presenceSharing", e.target.checked)}
                             style={{ width: 16, height: 16, accentColor: "#a855f7" }}
                           />
-                          <span style={{ color: "rgba(255,255,255,.7)" }}>👁 {t.presenceSharing}</span>
+                          <span style={{ color: "rgba(255,255,255,.7)" }}>ð {t.presenceSharing}</span>
                         </label>
                         <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12 }}>
                           <input
@@ -767,7 +767,7 @@ export function CircleMap() {
                             onChange={(e) => handleCircleSettingChange(circle.circleId, "availabilitySharing", e.target.checked)}
                             style={{ width: 16, height: 16, accentColor: "#a855f7" }}
                           />
-                          <span style={{ color: "rgba(255,255,255,.7)" }}>📅 {t.availabilitySharing}</span>
+                          <span style={{ color: "rgba(255,255,255,.7)" }}>ð {t.availabilitySharing}</span>
                         </label>
                       </div>
                     </div>
@@ -782,7 +782,7 @@ export function CircleMap() {
               border: "1px dashed rgba(168,85,247,.4)", background: "transparent",
               color: "#a855f7", fontSize: 14, fontWeight: 600, cursor: "pointer", marginBottom: 20,
             }}>
-              ＋ {t.createCircle}
+              ï¼ {t.createCircle}
             </button>
 
             {/* SOS Alert */}
@@ -811,14 +811,14 @@ export function CircleMap() {
                 background: "rgba(255,255,255,.04)", borderRadius: 12, padding: 12,
                 fontSize: 13, color: "rgba(255,255,255,.7)", lineHeight: 1.6,
               }}>
-                <div style={{ marginBottom: 8 }}>🟢 Emma ist jetzt in Kreuzberg</div>
-                <div>📍 Lukas hat Bin frei aktiviert</div>
+                <div style={{ marginBottom: 8 }}>ð¢ Emma ist jetzt in Kreuzberg</div>
+                <div>ð Lukas hat Bin frei aktiviert</div>
               </div>
             </div>
           </div>
         )}
 
-        {/* ── RIGHT CONTROLS (only on encounters tab) ── */}
+        {/* ââ RIGHT CONTROLS (only on encounters tab) ââ */}
         {activeTab === "encounters" && (
           <div style={{
             position: "absolute", right: 12, zIndex: 20,
@@ -828,11 +828,11 @@ export function CircleMap() {
             <button style={ctrlBtn}><UserIcon size={16} /><span style={{ fontSize: 8, color: "rgba(255,255,255,.4)", lineHeight: 1 }}>{encounters.length}</span></button>
             <button onClick={locate} style={ctrlBtn}><CrosshairIcon /></button>
             <button onClick={zoomIn}  style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>+</button>
-            <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>−</button>
+            <button onClick={zoomOut} style={{ ...ctrlBtn, fontSize: 20, fontWeight: 300, lineHeight: 1 }}>â</button>
           </div>
         )}
 
-        {/* ── EBENEN (bottom-left, only on encounters tab) ── */}
+        {/* ââ EBENEN (bottom-left, only on encounters tab) ââ */}
         {activeTab === "encounters" && (
           <div style={{ position: "absolute", left: 12, zIndex: 20, bottom: "max(60px, calc(env(safe-area-inset-bottom) + 52px))" }}>
             <button style={ctrlBtn} aria-label="Layers" onClick={() => { setShowLayers(l => !l); setShowMenu(false); }}>
@@ -841,7 +841,7 @@ export function CircleMap() {
           </div>
         )}
 
-        {/* ── EBENEN POPUP ── */}
+        {/* ââ EBENEN POPUP ââ */}
         {showLayers && (
           <div style={{
             position: "absolute", left: 12, zIndex: 25,
@@ -865,7 +865,7 @@ export function CircleMap() {
           </div>
         )}
 
-        {/* ── NOTIFICATION TOAST ── */}
+        {/* ââ NOTIFICATION TOAST ââ */}
         {showNotifToast && (
           <div style={{
             position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)", zIndex: 9999,
@@ -877,7 +877,7 @@ export function CircleMap() {
           </div>
         )}
 
-        {/* ── BOTTOM NAV ── */}
+        {/* ââ BOTTOM NAV ââ */}
         <nav style={{
           position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 30,
           display: "flex", alignItems: "center", justifyContent: "space-around",
@@ -895,7 +895,7 @@ export function CircleMap() {
           ))}
         </nav>
 
-        {/* ── MENU DRAWER ── */}
+        {/* ââ MENU DRAWER ââ */}
         {showMenu && (
           <>
             <div onClick={() => setShowMenu(false)} style={{ position: "absolute", inset: 0, zIndex: 45, background: "rgba(0,0,0,.5)" }} />
@@ -927,7 +927,7 @@ export function CircleMap() {
           </>
         )}
 
-        {/* ── SEARCH BOTTOM SHEET ── */}
+        {/* ââ SEARCH BOTTOM SHEET ââ */}
         {showSearch && (
           <div style={{
             position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 40,
