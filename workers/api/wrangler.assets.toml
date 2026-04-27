@@ -1,0 +1,22 @@
+name = "puq-me-assets"
+main = "src/assets.ts"
+compatibility_date = "2025-09-01"
+account_id = "REPLACE_WITH_CF_ACCOUNT_ID"
+workers_dev = false
+
+# cdn.puq.me  → Read-Through-Cache vor IDrive E2
+routes = [
+  { pattern = "cdn.puq.me/*", zone_name = "puq.me" }
+]
+
+[vars]
+IDRIVE_E2_HOST           = "s3.eu-west-3.idrivee2.com"
+IDRIVE_E2_REGION         = "eu-west-3"
+IDRIVE_E2_BUCKET_AVATARS = "puq-avatars"
+IDRIVE_E2_BUCKET_IMAGES  = "puq-images"
+IDRIVE_E2_BUCKET_CHAT    = "puq-chat-media"
+
+# Wichtig: dieser Worker bekommt NUR read-only Sub-Keys
+# Secrets:
+#   IDRIVE_E2_ACCESS_KEY  (read-only)
+#   IDRIVE_E2_SECRET_KEY  (read-only)

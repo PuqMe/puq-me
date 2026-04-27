@@ -52,6 +52,30 @@ textarea {
   box-sizing: border-box;
 }
 
+/* PuQ.me — Mobile-App-Feeling: kein Pinch-Zoom, kein Bounce, kein Pull-to-Refresh */
+html.puq-app, html.puq-app body {
+  overscroll-behavior: none;
+  touch-action: pan-y;
+}
+html.puq-app body {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+}
+.puq-app .puq-scroll {
+  height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.puq-pad-top    { padding-top: env(safe-area-inset-top); }
+.puq-pad-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.puq-app input, .puq-app textarea, .puq-app select {
+  font-size: 16px; /* iOS verhindert Auto-Zoom ab 16px */
+}
+
 .safe-px {
   padding-left: max(1rem, env(safe-area-inset-left));
   padding-right: max(1rem, env(safe-area-inset-right));

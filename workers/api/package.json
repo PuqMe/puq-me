@@ -1,0 +1,21 @@
+{
+  "name": "@puqme/worker-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --config wrangler.toml",
+    "dev:assets": "wrangler dev --config wrangler.assets.toml",
+    "deploy": "wrangler deploy --config wrangler.toml",
+    "deploy:assets": "wrangler deploy --config wrangler.assets.toml",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "aws4fetch": "^1.0.20"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250901.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^3.90.0"
+  }
+}

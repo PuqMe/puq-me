@@ -1,0 +1,32 @@
+name = "puq-me-api"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+account_id = "REPLACE_WITH_CF_ACCOUNT_ID"
+workers_dev = false
+
+# api.puq.me
+routes = [
+  { pattern = "api.puq.me/*", zone_name = "puq.me" }
+]
+
+[vars]
+IDRIVE_E2_HOST           = "s3.eu-west-3.idrivee2.com"
+IDRIVE_E2_REGION         = "eu-west-3"
+IDRIVE_E2_BUCKET_AVATARS = "puq-avatars"
+IDRIVE_E2_BUCKET_IMAGES  = "puq-images"
+IDRIVE_E2_BUCKET_CHAT    = "puq-chat-media"
+IDRIVE_E2_BUCKET_IDDOCS  = "puq-id-docs"
+PUBLIC_CDN_HOST          = "cdn.puq.me"
+
+# Optional: Pending-Upload-Tracking
+# [[kv_namespaces]]
+# binding = "PENDING_UPLOADS"
+# id      = "REPLACE_WITH_KV_ID"
+
+# Secrets via wrangler secret put:
+#   IDRIVE_E2_ACCESS_KEY
+#   IDRIVE_E2_SECRET_KEY
+#   JWT_SECRET
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Zweiter Worker für cdn.puq.me — siehe wrangler.assets.toml

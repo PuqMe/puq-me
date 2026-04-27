@@ -89,6 +89,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  minimumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
   themeColor: BRAND_THEME_COLOR
 };
@@ -124,15 +127,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="app-frame min-h-screen font-sans antialiased">
         <SkipNav />
+        <div id="main-content" />
         <script dangerouslySetInnerHTML={{ __html: installPromptScript }} />
         <CityBackdrop />
         <Providers>
           <PwaRegistrar />
           <OfflineBanner />
           <InstallNowFab />
-          <main id="main-content" role="main" tabIndex={-1}>
-            {children}
-          </main>
+          {children}
         </Providers>
       </body>
     </html>
