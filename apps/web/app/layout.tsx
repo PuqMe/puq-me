@@ -126,15 +126,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Analytics: Cloudflare Web Analytics — kostenlos, DSGVO-konform, läuft automatisch über CF-Proxy */}
       </head>
       <body className="app-frame min-h-screen font-sans antialiased">
+        <noscript>
+          <div style={{ padding: "2rem", textAlign: "center", color: "#ffffff", background: "#0a0a0b" }}>
+            <h2>JavaScript erforderlich</h2>
+            <p>Bitte aktiviere JavaScript in deinem Browser, um PuQ.me nutzen zu können.</p>
+          </div>
+        </noscript>
         <SkipNav />
-        <div id="main-content" />
         <script dangerouslySetInnerHTML={{ __html: installPromptScript }} />
         <CityBackdrop />
         <Providers>
           <PwaRegistrar />
           <OfflineBanner />
           <InstallNowFab />
-          {children}
+          <div id="main-content" className="w-full">
+            {children}
+          </div>
         </Providers>
       </body>
     </html>
