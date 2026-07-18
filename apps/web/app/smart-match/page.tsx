@@ -214,7 +214,6 @@ export default function SmartMatchPage() {
               style={{
                 fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                 fontWeight: "600",
-                color: "#ffffff",
                 margin: "0",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -448,7 +447,6 @@ export default function SmartMatchPage() {
               style={{
                 fontSize: "clamp(0.8rem, 2.5vw, 1rem)",
                 fontWeight: "600",
-                color: "#ffffff",
                 margin: "0 0 20px 0",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",

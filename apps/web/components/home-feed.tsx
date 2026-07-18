@@ -452,7 +452,7 @@ export function HomeFeed() {
               <Link prefetch={false} href="/nearby" style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
             </div>
             {NEARBY_PEOPLE.map(p => (
-              <Link prefetch={false} key={p.id} href={`/profile/${p.id}`} prefetch={false} style={{
+              <Link key={p.id} href={`/profile/${p.id}`} prefetch={false} style={{
                 display: "flex", alignItems: "center", gap: 11,
                 padding: "9px 12px",
                 background: "rgba(255,255,255,.04)",
@@ -484,11 +484,11 @@ export function HomeFeed() {
           <div style={{ padding: "0 14px", marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
               <span style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>Begegnungen</span>
-              <Link prefetch={false} href="/encounter" prefetch={false} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
+              <Link href="/encounter" prefetch={false} style={{ fontSize: 11, color: "#a855f7", fontWeight: 600, textDecoration: "none" }}>Alle ›</Link>
             </div>
 
             {/* Summary banner */}
-            <Link prefetch={false} href="/encounter" prefetch={false} style={{
+            <Link href="/encounter" prefetch={false} style={{
               display: "flex", alignItems: "center", gap: 11, padding: "11px 14px",
               background: "linear-gradient(135deg,rgba(168,85,247,.12),rgba(99,102,241,.07))",
               borderRadius: 14, marginBottom: 8,
@@ -514,7 +514,7 @@ export function HomeFeed() {
             </Link>
 
             {ENCOUNTERS.map(e => (
-              <Link prefetch={false} key={e.id} href={`/profile/${e.id}`} prefetch={false} style={{
+              <Link key={e.id} href={`/profile/${e.id}`} prefetch={false} style={{
                 display: "flex", alignItems: "center", gap: 11,
                 padding: "9px 12px",
                 background: "rgba(255,255,255,.03)",

@@ -400,7 +400,6 @@ export const translations = {
     cancel: "Cancel",
     loading: "Loading...",
     error: "An error occurred",
-    backToLogin: "Already have an account?",
     orDivider: "or",
   },
 
@@ -797,7 +796,6 @@ export const translations = {
     cancel: "Abbrechen",
     loading: "Wird geladen...",
     error: "Ein Fehler ist aufgetreten",
-    backToLogin: "Bereits ein Konto?",
     orDivider: "oder",
   },
 } satisfies Record<Locale, Record<string, string>>;
